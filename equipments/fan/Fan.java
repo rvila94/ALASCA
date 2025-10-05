@@ -328,8 +328,11 @@ implements FanImplementationI
         if (Fan.VERBOSE) {
             this.traceMessage("Fan is set to high speed.\n");
         }
-        assert this.getState() == FanState.ON : 
-        	new PreconditionException("getState() == FanState.ON");
+
+        assert this.getState() == FanState.ON :
+            new PreconditionException("getState() == FanState.ON");
+        assert this.getMode() != FanMode.HIGH :
+            new PreconditionException("getMode() != FanMode.HIGH");
 
         this.currentMode = FanMode.HIGH;
     }
@@ -341,6 +344,8 @@ implements FanImplementationI
         }
         assert this.getState() == FanState.ON : 
         	new PreconditionException("getState() == FanState.ON");
+        assert this.getMode() != FanMode.MEDIUM :
+            new PreconditionException("getMode() != FanMode.MEDIUM");
 
         this.currentMode = FanMode.MEDIUM;
     }
@@ -352,6 +357,8 @@ implements FanImplementationI
         }
         assert this.getState() == FanState.ON : 
         	new PreconditionException("getState() == FanState.ON");
+        assert this.getMode() != FanMode.LOW :
+            new PreconditionException("getMode() != FanMode.LOW");
 
         this.currentMode = FanMode.LOW;
     }

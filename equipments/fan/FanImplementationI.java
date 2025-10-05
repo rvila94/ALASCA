@@ -139,6 +139,7 @@ public interface FanImplementationI {
 	 * 
 	 * <pre>
 	 * pre	{@code getState() == FanState.ON}
+	 * pre	{@code getMode() != FanMode.HIGH}
 	 * post	{@code getMode() == FanMode.HIGH}
 	 * </pre>
 	 *
@@ -153,6 +154,7 @@ public interface FanImplementationI {
 	 * 
 	 * <pre>
 	 * pre	{@code getState() == FanState.ON}
+	 * pre	{@code getMode() != FanMode.MEDIUM}
 	 * post	{@code getMode() == FanMode.MEDIUM}
 	 * </pre>
 	 *
@@ -167,6 +169,7 @@ public interface FanImplementationI {
 	 * 
 	 * <pre>
 	 * pre	{@code getState() == FanState.ON}
+	 * pre	{@code getMode() != FanMode.LOW}
 	 * post	{@code getMode() == FanMode.LOW}
 	 * </pre>
 	 *
