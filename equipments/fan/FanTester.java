@@ -16,6 +16,9 @@ import fr.sorbonne_u.utils.aclocks.ClocksServer;
 import fr.sorbonne_u.utils.aclocks.ClocksServerCI;
 import fr.sorbonne_u.utils.aclocks.ClocksServerConnector;
 import fr.sorbonne_u.utils.aclocks.ClocksServerOutboundPort;
+
+import static org.junit.Assert.assertTrue;
+
 import equipments.fan.FanImplementationI.FanMode;
 import equipments.fan.FanImplementationI.FanState;
 import equipments.fan.connections.FanConnector;
@@ -358,6 +361,7 @@ public class FanTester extends AbstractComponent
 	 *
 	 */
 	public void testTurnOnOff() {
+		
 		this.logMessage("Feature: turning the fan on and off");
 		this.logMessage("  Scenario: turning on when off");
 		FanState resultState = null;
@@ -475,11 +479,315 @@ public class FanTester extends AbstractComponent
 		this.statistics.updateStatistics();
 	}
 
-	public void testSwitchModes() {
-		// TODO
-		// ici on doit tester les 3 transitions : LOW <-> MEDIUM <-> HIGH
-		// avec les mêmes scénarios que pour HairDryer mais en ajoutant MEDIUM
+	/**
+	 * test switching modes of the fan.
+	 *
+	 * <p><strong>Description</strong></p>
+	 * 
+	 * <p>Gherkin specification:</p>
+	 * <pre>
+	 * Feature: switching the fan between modes LOW, MEDIUM and HIGH.
+	 * 
+	 *   Scenario: set the fan to medium from low
+	 *     Given the fan is on
+	 *     And the fan is low
+	 *     When the fan is set medium
+	 *     Then the fan is on
+	 *     And  the fan is medium
+	 * 
+	 *   Scenario: set the fan to high from medium
+	 *     Given the fan is on
+	 *     And the fan is medium
+	 *     When the fan is set high
+	 *     Then the fan is on
+	 *     And  the fan is high
+	 * 
+	 *   Scenario: set the fan to medium from high
+	 *     Given the fan is on
+	 *     And the fan is high
+	 *     When the fan is set medium
+	 *     Then the fan is on
+	 *     And  the fan is medium
+	 *     
+	 *   Scenario: set the fan medium from medium
+	 *     Given the fan is on
+	 *     And the fan is medium
+	 *     When the fan is set medium
+	 *     Then a precondition exception is thrown
+	 * 
+	 *   Scenario: set the fan to low from medium
+	 *     Given the fan is on
+	 *     And the fan is medium
+	 *     When the fan is set low
+	 *     Then the fan is on
+	 *     And  the fan is low
+	 *     
+	 *   Scenario: set the fan low from low
+	 *     Given the fan is on
+	 *     And the fan is low
+	 *     When the fan is set low
+	 *     Then a precondition exception is thrown
+	 * 
+	 *   Scenario: set the fan to high from low
+	 *     Given the fan is on
+	 *     And the fan is low
+	 *     When the fan is set high
+	 *     Then the fan is on
+	 *     And  the fan is high
+	 *     
+	 *   Scenario: set the fan high from high
+	 *     Given the fan is on
+	 *     And the fan is high
+	 *     When the fan is set high
+	 *     Then a precondition exception is thrown
+	 * 
+	 *   Scenario: set the fan to low from high
+	 *     Given the fan is on
+	 *     And the fan is high
+	 *     When the fan is set low
+	 *     Then the fan is on
+	 *     And  the fan is low
+	 * 
+	 * </pre>
+	 */
+	public void testSwitchModes()
+	{
+		this.logMessage("Feature: switching the fan between LOW, MEDIUM and HIGH.");
+		this.logMessage("  Scenario: set the fan to medium from low");
+		this.logMessage("    Given the fan is on");
+		FanState resultState = null;
+		FanMode resultMode = null;
+
+		// Always start with fan ON and LOW
+		try {
+			this.fop.turnOn();
+			resultState = this.fop.getState();
+			if (!FanState.ON.equals(resultState)) {
+				this.logMessage("     but was: " + resultState);
+				this.statistics.failedCondition();
+			}
+		} catch (Throwable e) {
+			this.statistics.failedCondition();
+			this.logMessage("     but the exception " + e + " has been raised");
+		}
+
+		try {
+			this.logMessage("    And the fan is low");
+			resultMode = this.fop.getMode();
+			if (!FanMode.LOW.equals(resultMode)) {
+				this.logMessage("     but was: " + resultMode);
+				this.statistics.failedCondition();
+			}
+		} catch (Throwable e) {
+			this.statistics.failedCondition();
+			this.logMessage("     but the exception " + e + " has been raised");
+		}
+		try {
+			this.logMessage("    When the fan is set medium");
+			this.logMessage("    Then the fan is on");
+			this.fop.setMedium();
+			resultState = this.fop.getState();
+			if (!FanState.ON.equals(resultState)) {
+				this.logMessage("     but was: " + resultState);
+				this.statistics.incorrectResult();
+			}
+		} catch (Throwable e) {
+			this.statistics.incorrectResult();
+			this.logMessage("     but the exception " + e + " has been raised");
+		}
+		try {
+			this.logMessage("    And the fan is medium");
+			resultMode = this.fop.getMode();
+			if (!FanMode.MEDIUM.equals(resultMode)) {
+				this.logMessage("     but was: " + resultMode);
+				this.statistics.incorrectResult();
+			}
+		} catch (Throwable e) {
+			this.statistics.incorrectResult();
+			this.logMessage("     but the exception " + e + " has been raised");
+		}
+		this.statistics.updateStatistics();
 		
+		this.logMessage("  Scenario: set the fan to high from medium");
+		this.logMessage("    Given the fan is on");
+		this.logMessage("    And the fan is medium");
+		this.logMessage("    When the fan is set high");
+		try {
+			this.fop.setHigh();
+			this.logMessage("    Then the fan is on");
+			resultState = this.fop.getState();
+			if (!FanState.ON.equals(resultState)) {
+				this.logMessage("     but was: " + resultState);
+				this.statistics.incorrectResult();
+			}
+			this.logMessage("    And the fan is high");
+			resultMode = this.fop.getMode();
+			if (!FanMode.HIGH.equals(resultMode)) {
+				this.logMessage("     but was: " + resultMode);
+				this.statistics.incorrectResult();
+			}
+		} catch (Throwable e) {
+			this.statistics.incorrectResult();
+			this.logMessage("     but the exception " + e + " has been raised");
+		}
+		this.statistics.updateStatistics();
+
+		this.logMessage("  Scenario: set the fan to medium from high");
+		this.logMessage("    Given the fan is on");
+		this.logMessage("    And the fan is high");
+		this.logMessage("    When the fan is set medium");
+		try {
+			this.fop.setMedium();
+			this.logMessage("    Then the fan is on");
+			resultState = this.fop.getState();
+			if (!FanState.ON.equals(resultState)) {
+				this.logMessage("     but was: " + resultState);
+				this.statistics.incorrectResult();
+			}
+			this.logMessage("    And the fan is medium");
+			resultMode = this.fop.getMode();
+			if (!FanMode.MEDIUM.equals(resultMode)) {
+				this.logMessage("     but was: " + resultMode);
+				this.statistics.incorrectResult();
+			}
+		} catch (Throwable e) {
+			this.statistics.incorrectResult();
+			this.logMessage("     but the exception " + e + " has been raised");
+		}
+		this.statistics.updateStatistics();
+
+		this.logMessage("  Scenario: set the fan medium from medium");
+		this.logMessage("    Given the fan is on");
+		this.logMessage("    And the fan is medium");
+		this.logMessage("    When the fan is set medium");
+		this.logMessage("    Then a precondition exception is thrown");
+		boolean old = BCMException.VERBOSE;
+		try {
+			BCMException.VERBOSE = false;
+			this.fop.setMedium();
+			this.logMessage("     but it was not thrown");
+			this.statistics.incorrectResult();
+		} catch (Throwable e) {
+			// expected
+		} finally {
+			BCMException.VERBOSE = old;
+		}
+		this.statistics.updateStatistics();
+
+		this.logMessage("  Scenario: set the fan to low from medium");
+		this.logMessage("    Given the fan is on");
+		this.logMessage("    And the fan is medium");
+		this.logMessage("    When the fan is set low");
+		try {
+			this.fop.setLow();
+			this.logMessage("    Then the fan is on");
+			resultState = this.fop.getState();
+			if (!FanState.ON.equals(resultState)) {
+				this.logMessage("     but was: " + resultState);
+				this.statistics.incorrectResult();
+			}
+			this.logMessage("    And the fan is low");
+			resultMode = this.fop.getMode();
+			if (!FanMode.LOW.equals(resultMode)) {
+				this.logMessage("     but was: " + resultMode);
+				this.statistics.incorrectResult();
+			}
+		} catch (Throwable e) {
+			this.statistics.incorrectResult();
+			this.logMessage("     but the exception " + e + " has been raised");
+		}
+		this.statistics.updateStatistics();
+
+		this.logMessage("  Scenario: set the fan low from low");
+		this.logMessage("    Given the fan is on");
+		this.logMessage("    And the fan is low");
+		this.logMessage("    When the fan is set low");
+		this.logMessage("    Then a precondition exception is thrown");
+		old = BCMException.VERBOSE;
+		try {
+			BCMException.VERBOSE = false;
+			this.fop.setLow();
+			this.logMessage("     but it was not thrown");
+			this.statistics.incorrectResult();
+		} catch (Throwable e) {
+			// expected
+		} finally {
+			BCMException.VERBOSE = old;
+		}
+		this.statistics.updateStatistics();
+
+		this.logMessage("  Scenario: set the fan to high from low");
+		this.logMessage("    Given the fan is on");
+		this.logMessage("    And the fan is low");
+		this.logMessage("    When the fan is set high");
+		try {
+			this.fop.setHigh();
+			this.logMessage("    Then the fan is on");
+			resultState = this.fop.getState();
+			if (!FanState.ON.equals(resultState)) {
+				this.logMessage("     but was: " + resultState);
+				this.statistics.incorrectResult();
+			}
+			this.logMessage("    And the fan is high");
+			resultMode = this.fop.getMode();
+			if (!FanMode.HIGH.equals(resultMode)) {
+				this.logMessage("     but was: " + resultMode);
+				this.statistics.incorrectResult();
+			}
+		} catch (Throwable e) {
+			this.statistics.incorrectResult();
+			this.logMessage("     but the exception " + e + " has been raised");
+		}
+		this.statistics.updateStatistics();
+
+		this.logMessage("  Scenario: set the fan high from high");
+		this.logMessage("    Given the fan is on");
+		this.logMessage("    And the fan is high");
+		this.logMessage("    When the fan is set high");
+		this.logMessage("    Then a precondition exception is thrown");
+		old = BCMException.VERBOSE;
+		try {
+			BCMException.VERBOSE = false;
+			this.fop.setHigh();
+			this.logMessage("     but it was not thrown");
+			this.statistics.incorrectResult();
+		} catch (Throwable e) {
+			// expected
+		} finally {
+			BCMException.VERBOSE = old;
+		}
+		this.statistics.updateStatistics();
+
+		this.logMessage("  Scenario: set the fan to low from high");
+		this.logMessage("    Given the fan is on");
+		this.logMessage("    And the fan is high");
+		this.logMessage("    When the fan is set low");
+		try {
+			this.fop.setLow();
+			this.logMessage("    Then the fan is on");
+			resultState = this.fop.getState();
+			if (!FanState.ON.equals(resultState)) {
+				this.logMessage("     but was: " + resultState);
+				this.statistics.incorrectResult();
+			}
+			this.logMessage("    And the fan is low");
+			resultMode = this.fop.getMode();
+			if (!FanMode.LOW.equals(resultMode)) {
+				this.logMessage("     but was: " + resultMode);
+				this.statistics.incorrectResult();
+			}
+		} catch (Throwable e) {
+			this.statistics.incorrectResult();
+			this.logMessage("     but the exception " + e + " has been raised");
+		}
+		this.statistics.updateStatistics();
+
+		// turn off at the end of the tests
+		try {
+			this.fop.turnOff();
+		} catch (Throwable e) {
+			assertTrue(false);
+		}
 	}
 
 	protected void runAllUnitTests() {
