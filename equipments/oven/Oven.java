@@ -227,7 +227,9 @@ implements OvenImplementationI
 		assert this.getState() != OvenState.OFF :
 				new PreconditionException("getState() != OvenState.OFF");
 
-		this.stopProgram();
+		if (this.getState() == OvenState.PROGRAMMED || this.getState() == OvenState.COOKING) {
+	        this.stopProgram();
+	    }
 		this.currentState = OvenState.OFF;
 		this.isCooking = false;
 	}

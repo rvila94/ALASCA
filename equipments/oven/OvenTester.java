@@ -562,40 +562,52 @@ public class OvenTester extends AbstractComponent
 
 		// Scenario: setting a mode when oven is OFF
 		this.logMessage("  Scenario: setting a mode when oven is OFF");
+		this.logMessage("    Given the oven is OFF");
+		this.logMessage("    When trying to set CUSTOM mode (150°C)");
+		this.logMessage("    Then a precondition exception is thrown");
+		boolean old = BCMException.VERBOSE;
 		try {
-			this.logMessage("    Given the oven is OFF");
-			
 			resultState = this.oop.getState();
 			if (!OvenState.OFF.equals(resultState)) {
 				this.logMessage("     but was: " + resultState);
 				this.statistics.failedCondition();
 			}
-			this.logMessage("    When trying to set CUSTOM mode (150°C)");
-			this.logMessage("    Then a precondition exception is thrown");
+			BCMException.VERBOSE = false;
 			this.oop.setTemperature(150);
 			this.logMessage("     but the precondition exception was not thrown");
 			this.statistics.incorrectResult();
 		} catch (Throwable e) {
 			// expected
+		} finally {
+			BCMException.VERBOSE = old;
 		}
+		this.logMessage("    When trying to set DEFROST mode");
+		this.logMessage("    Then a precondition exception is thrown");
+		old = BCMException.VERBOSE;
 		try {
-			this.logMessage("    When trying to set DEFROST mode");
-			this.logMessage("    Then a precondition exception is thrown");
+			BCMException.VERBOSE = false;
 			this.oop.setDefrost();
 			this.logMessage("     but the precondition exception was not thrown");
 			this.statistics.incorrectResult();
 		} catch (Throwable e) {
 			// expected
+		} finally {
+			BCMException.VERBOSE = old;
 		}
+		this.logMessage("    When trying to set GRILL mode");
+		this.logMessage("    Then a precondition exception is thrown");
+		old = BCMException.VERBOSE;
 		try {
-			this.logMessage("    When trying to set GRILL mode");
-			this.logMessage("    Then a precondition exception is thrown");
+			BCMException.VERBOSE = false;
 			this.oop.setGrill();
 			this.logMessage("     but the precondition exception was not thrown");
 			this.statistics.incorrectResult();
 		} catch (Throwable e) {
 			// expected
+		} finally {
+			BCMException.VERBOSE = old;
 		}
+		
 		this.statistics.updateStatistics();
 
 		// Turn oven ON
@@ -631,12 +643,16 @@ public class OvenTester extends AbstractComponent
 		this.logMessage("    And the oven is in CUSTOM mode with 200°C");
 		this.logMessage("    When the oven temperature is set to 200°C");
 		this.logMessage("    Then a precondition exception is thrown");
+		old = BCMException.VERBOSE;
 		try {
+			BCMException.VERBOSE = false;
 			this.oop.setTemperature(200);
 			this.logMessage("     but precondition exception was not thrown");
 			this.statistics.incorrectResult();
 		} catch (Throwable e) {
 			// expected
+		} finally {
+			BCMException.VERBOSE = old;
 		}
 		this.statistics.updateStatistics();
 
@@ -646,12 +662,16 @@ public class OvenTester extends AbstractComponent
 		this.logMessage("    And the oven is in CUSTOM mode with 200°C");
 		this.logMessage("    When the oven temperature is set to 0°C");
 		this.logMessage("    Then a precondition exception is thrown");
+		old = BCMException.VERBOSE;
 		try {
+			BCMException.VERBOSE = false;
 			this.oop.setTemperature(0);
 			this.logMessage("     but precondition exception was not thrown");
 			this.statistics.incorrectResult();
 		} catch (Throwable e) {
 			// expected
+		} finally {
+			BCMException.VERBOSE = old;
 		}
 		this.statistics.updateStatistics();
 
@@ -680,12 +700,16 @@ public class OvenTester extends AbstractComponent
 		this.logMessage("    And the oven is in DEFROST mode");
 		this.logMessage("    When the oven is set to DEFROST mode");
 		this.logMessage("    Then a precondition exception is thrown");
+		old = BCMException.VERBOSE;
 		try {
+			BCMException.VERBOSE = false;
 			this.oop.setDefrost();
 			this.logMessage("     but precondition exception was not thrown");
 			this.statistics.incorrectResult();
 		} catch (Throwable e) {
 			// expected
+		} finally {
+			BCMException.VERBOSE = old;
 		}
 		this.statistics.updateStatistics();
 
@@ -714,12 +738,16 @@ public class OvenTester extends AbstractComponent
 		this.logMessage("    And the oven is in GRILL mode");
 		this.logMessage("    When the oven is set to GRILL mode");
 		this.logMessage("    Then a precondition exception is thrown");
+		old = BCMException.VERBOSE;
 		try {
+			BCMException.VERBOSE = false;
 			this.oop.setGrill();
 			this.logMessage("     but precondition exception was not thrown");
 			this.statistics.incorrectResult();
 		} catch (Throwable e) {
 			// expected
+		} finally {
+			BCMException.VERBOSE = old;
 		}
 		this.statistics.updateStatistics();
 
@@ -877,10 +905,12 @@ public class OvenTester extends AbstractComponent
 					this.statistics.failedCondition();
 				}
 			} catch (Throwable e) { this.statistics.failedCondition(); }
-
+			
+			this.logMessage("    When " + method + " is called");
+			this.logMessage("    Then a precondition exception is thrown");
+			boolean old = BCMException.VERBOSE;
 			try {
-				this.logMessage("    When " + method + " is called");
-				this.logMessage("    Then a precondition exception is thrown");
+				BCMException.VERBOSE = false;
 				if (method.equals("startCooking"))
 					this.oop.startCooking(10);
 				else if (method.equals("programCooking"))
@@ -892,6 +922,8 @@ public class OvenTester extends AbstractComponent
 				this.statistics.incorrectResult();
 			} catch (Throwable e) {
 				// expected
+			} finally {
+				BCMException.VERBOSE = old;
 			}
 			this.statistics.updateStatistics();
 		}
@@ -904,19 +936,23 @@ public class OvenTester extends AbstractComponent
 
 		this.logMessage("  Scenario: stopping program when oven is ON");
 		this.logMessage("    Given the oven is ON");
-		try {	
+		this.logMessage("    When stopProgram is called");
+		this.logMessage("    Then a precondition exception is thrown");
+		boolean old = BCMException.VERBOSE;
+		try {
+			BCMException.VERBOSE = false;	
 			resultState = this.oop.getState();
 			if (!OvenState.ON.equals(resultState)) {
 				this.logMessage("     but was: " + resultState);
 				this.statistics.failedCondition();
 			}
-			this.logMessage("    When stopProgram is called");
-			this.logMessage("    Then a precondition exception is thrown");
 			this.oop.stopProgram();
 			this.logMessage("     but precondition exception was not thrown");
 			this.statistics.incorrectResult();
 		} catch (Throwable e) {
 			// expected
+		} finally {
+			BCMException.VERBOSE = old;
 		}
 		this.statistics.updateStatistics();
 
@@ -924,12 +960,16 @@ public class OvenTester extends AbstractComponent
 		this.logMessage("    Given the oven is ON");
 		this.logMessage("    When programCooking is called with 0 delay");
 		this.logMessage("    Then a precondition exception is thrown");
+		old = BCMException.VERBOSE;
 		try {
+			BCMException.VERBOSE = false;	
 			this.oop.programCooking(0, 10);
 			this.logMessage("     but precondition exception was not thrown");
 			this.statistics.incorrectResult();
 		} catch (Throwable e) {
 			// expected
+		} finally {
+			BCMException.VERBOSE = old;
 		}
 		this.statistics.updateStatistics();
 
@@ -937,12 +977,16 @@ public class OvenTester extends AbstractComponent
 		this.logMessage("    Given the oven is ON");
 		this.logMessage("    When programCooking is called with 0 duration");
 		this.logMessage("    Then a precondition exception is thrown");
+		old = BCMException.VERBOSE;
 		try {
+			BCMException.VERBOSE = false;
 			this.oop.programCooking(5, 0);
 			this.logMessage("     but precondition exception was not thrown");
 			this.statistics.incorrectResult();
 		} catch (Throwable e) {
 			// expected
+		} finally {
+			BCMException.VERBOSE = old;
 		}
 		this.statistics.updateStatistics();
 
@@ -990,6 +1034,7 @@ public class OvenTester extends AbstractComponent
 				this.statistics.incorrectResult();
 			}
 			this.logMessage("    Simulating delay... then calling startCooking");
+			this.oop.stopProgram(); // Le delai est fini, on appel startCooking
 			this.oop.startCooking(10);
 			this.logMessage("    Then the oven state becomes COOKING");
 			resultState = this.oop.getState();
@@ -1006,12 +1051,16 @@ public class OvenTester extends AbstractComponent
 		this.logMessage("    Given the oven is COOKING");
 		this.logMessage("    When programmedCooking is called");
 		this.logMessage("    Then a precondition exception is thrown");
+		old = BCMException.VERBOSE;
 		try {
+			BCMException.VERBOSE = false;
 			this.oop.programCooking(5, 10);
 			this.logMessage("     but precondition exception was not thrown");
 			this.statistics.incorrectResult();
 		} catch (Throwable e) {
 			// expected
+		} finally {
+			BCMException.VERBOSE = old;
 		}
 		this.statistics.updateStatistics();
 
