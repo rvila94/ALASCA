@@ -1,27 +1,26 @@
 package equipments.dimmerlamp.connections;
 
 import equipments.dimmerlamp.DimmerLamp;
-import equipments.dimmerlamp.DimmerLampI;
-import equipments.dimmerlamp.DimmerLampCI;
-import fr.sorbonne_u.alasca.physical_data.Measure;
+import equipments.dimmerlamp.interfaces.DimmerLampUserI;
+import equipments.dimmerlamp.interfaces.DimmerLampUserCI;
 import fr.sorbonne_u.components.ComponentI;
 import fr.sorbonne_u.components.ports.AbstractInboundPort;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
-public class DimmerLampInboundPort
+public class DimmerLampUserInboundPort
 extends AbstractInboundPort
-implements DimmerLampCI {
+implements DimmerLampUserCI {
 
 
-    public DimmerLampInboundPort(String uri, ComponentI owner) throws Exception {
-        super(uri, DimmerLampCI.class, owner);
-        assert owner instanceof DimmerLampI :
+    public DimmerLampUserInboundPort(String uri, ComponentI owner) throws Exception {
+        super(uri, DimmerLampUserCI.class, owner);
+        assert owner instanceof DimmerLampUserI :
                 new PreconditionException("owner not instance of DimmerLightI");
     }
 
-    public DimmerLampInboundPort(ComponentI owner) throws Exception {
-        super(DimmerLampCI.class, owner);
-        assert owner instanceof DimmerLampI:
+    public DimmerLampUserInboundPort(ComponentI owner) throws Exception {
+        super(DimmerLampUserCI.class, owner);
+        assert owner instanceof DimmerLampUserI :
                 new PreconditionException("owner not instance of DimmeLightI");
     }
 
@@ -46,26 +45,9 @@ implements DimmerLampCI {
     }
 
     @Override
-    public void setVariationPower(Measure<Integer> variationPower) throws Exception {
-        this.getOwner().handleRequest(
-                owner -> {
-                    ((DimmerLamp)owner).setVariationPower(variationPower);
-                    return null;
-                }
-        );
-    }
-
-    @Override
     public boolean isOn() throws Exception {
         return this.getOwner().handleRequest(
                 owner -> ((DimmerLamp)owner).isOn()
-        );
-    }
-
-    @Override
-    public Measure<Integer> getCurrentPowerLevel() throws Exception {
-        return this.getOwner().handleRequest(
-                owner -> ((DimmerLamp)owner).getCurrentPowerLevel()
         );
     }
 }

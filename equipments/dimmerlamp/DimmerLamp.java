@@ -1,19 +1,27 @@
 package equipments.dimmerlamp;
 
-import equipments.dimmerlamp.connections.DimmerLampInboundPort;
+import equipments.dimmerlamp.connections.DimmerLampExternalJava4InboundPort;
+import equipments.dimmerlamp.connections.DimmerLampUserInboundPort;
+import equipments.dimmerlamp.interfaces.DimmerLampExternalI;
+import equipments.dimmerlamp.interfaces.DimmerLampExternalJava4CI;
+import equipments.dimmerlamp.interfaces.DimmerLampUserCI;
+import equipments.dimmerlamp.interfaces.DimmerLampUserI;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.alasca.physical_data.MeasurementUnit;
 import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.annotations.OfferedInterfaces;
+import fr.sorbonne_u.components.annotations.RequiredInterfaces;
 import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
+import fr.sorbonne_u.components.hem2025.bases.RegistrationCI;
 import fr.sorbonne_u.exceptions.AssertionChecking;
 import fr.sorbonne_u.exceptions.PostconditionException;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
-@OfferedInterfaces(offered={DimmerLampCI.class})
+@RequiredInterfaces(required = {RegistrationCI.class})
+@OfferedInterfaces(offered = {DimmerLampUserCI.class, DimmerLampExternalJava4CI.class})
 public class DimmerLamp
 extends AbstractComponent
-implements DimmerLampI {
+implements DimmerLampUserI, DimmerLampExternalI {
 
     protected enum LampState {
         OFF,
@@ -31,6 +39,7 @@ implements DimmerLampI {
 
     protected static final String BASE_REFLECTION_INBOUND_PORT_URI = "REFLECTION-DIMMER-LAMP-URI";
     protected static final String BASE_USER_INBOUND_PORT_URI = "USER-DIMMER-LAMP-URI";
+    protected static final String BASE_EXTERNAL_INBOUND_PORT_URI = "EXTERNAL-DIMMER-LAMP-URI";
     protected static final int NUMBER_THREADS = 1;
     protected static final int NUMBER_SCHEDULABLE_THREADS = 0;
 
@@ -103,22 +112,27 @@ implements DimmerLampI {
     protected Measure<Integer> power_variation;
     protected LampState state;
 
-    protected DimmerLampInboundPort inbound;
+    protected DimmerLampUserInboundPort userInbound;
+    protected DimmerLampExternalJava4InboundPort externalInbound;
 
     protected DimmerLamp(
-            String ReflectionInboundPortURI,
-            String LampInboundPortURI
+            String reflectionInboundPortURI,
+            String userInboundPortURI,
+            String externalInboundPortURI
     ) throws Exception {
-        super(ReflectionInboundPortURI, NUMBER_THREADS, NUMBER_SCHEDULABLE_THREADS);
+        super(reflectionInboundPortURI, NUMBER_THREADS, NUMBER_SCHEDULABLE_THREADS);
 
-        assert LampInboundPortURI != null : new PreconditionException("LampInboundPortURI == null");
+        assert userInboundPortURI != null : new PreconditionException("userInboundPortURI == null");
 
         // TODO demander par rapport à la fonction initialise
         this.state = LampState.OFF;
         this.power_variation = BASE_POWER_VARIATION;
 
-        this.inbound = new DimmerLampInboundPort(LampInboundPortURI, this);
-        this.inbound.publishPort();
+        this.userInbound = new DimmerLampUserInboundPort(userInboundPortURI, this);
+        this.userInbound.publishPort();
+
+        this.externalInbound = new DimmerLampExternalJava4InboundPort(externalInboundPortURI, this);
+        this.externalInbound.publishPort();
 
         assert DimmerLamp.invariants(this)
                 : new PostconditionException("DimmerLamp invariants are not respected");
@@ -128,19 +142,23 @@ implements DimmerLampI {
 
     protected DimmerLamp() throws Exception {
         // TODO might have to change the number of threads to 2
-        this(BASE_REFLECTION_INBOUND_PORT_URI, BASE_USER_INBOUND_PORT_URI);
+        this(BASE_REFLECTION_INBOUND_PORT_URI, BASE_USER_INBOUND_PORT_URI, BASE_EXTERNAL_INBOUND_PORT_URI);
     }
 
     @Override
     public void switchOn() throws Exception {
         assert this.state == LampState.OFF : new PreconditionException("Lamp is already on");
 
-        assert this.state == LampState.OFF : new PostconditionException("Lamp is off");
+        this.state = LampState.ON;
+
+        assert this.state == LampState.ON : new PostconditionException("Lamp is off");
     }
 
     @Override
     public void switchOff() throws Exception {
         assert this.state == LampState.ON : new PreconditionException("Lamp is already off");
+
+        this.state = LampState.OFF;
 
         assert this.state == LampState.OFF : new PostconditionException("Lamp is on");
     }
@@ -159,15 +177,16 @@ implements DimmerLampI {
         this.power_variation = variation;
     }
 
+    @Override
     public Measure<Integer> getCurrentPowerLevel() throws Exception {
         return new Measure<>(this.power_variation.getData(), MeasurementUnit.WATTS);
     }
 
 
-
     public void shutdown() throws ComponentShutdownException {
         try {
-            this.inbound.unpublishPort();
+            this.userInbound.unpublishPort();
+            this.externalInbound.unpublishPort();
         } catch (Exception e) {
             throw new ComponentShutdownException(e) ;
         }

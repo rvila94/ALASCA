@@ -1,10 +1,13 @@
-package equipments.dimmerlamp;
+package equipments.dimmerlamp.test;
 
+import equipments.dimmerlamp.DimmerLamp;
+import equipments.dimmerlamp.connections.DimmerLampExternalConnector;
+import equipments.dimmerlamp.connections.DimmerLampUserConnector;
 import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.cvm.AbstractCVM;
 
 /**
- * The class <code>equipments.dimmerlamp.CVMUnitTest</code>.
+ * The class <code>equipments.dimmerlamp.test.CVMUnitTest</code>.
  *
  * <p><strong>Description</strong></p>
  *
@@ -25,6 +28,9 @@ import fr.sorbonne_u.components.cvm.AbstractCVM;
 public class CVMUnitTest
 extends AbstractCVM {
 
+    protected static final String BASE_USER_INBOUND_PORT_URI = "USER-DIMMER-LAMP-URI";
+    protected static final String BASE_EXTERNAL_INBOUND_PORT_URI = "EXTERNAL-DIMMER-LAMP-URI";
+
     public				CVMUnitTest() throws Exception
     {
         DimmerLampTester.VERBOSE = true;
@@ -40,8 +46,14 @@ extends AbstractCVM {
                 new Object[]{});
 
         AbstractComponent.createComponent(
-                DimmerLamp.class.getCanonicalName(),
-                new Object[]{true});	// is unit test
+                DimmerLampTester.class.getCanonicalName(),
+                new Object[]{
+                        true,
+                        BASE_USER_INBOUND_PORT_URI,
+                        BASE_EXTERNAL_INBOUND_PORT_URI,
+                        DimmerLampUserConnector.class,
+                        DimmerLampExternalConnector.class
+                });	// is unit test
 
         super.deploy();
     }

@@ -1,6 +1,6 @@
 package equipments.HeatPump;
 
-import equipments.HeatPump.connections.HeatPumpExternalControlInboundPort;
+import equipments.HeatPump.connections.HeatPumpExternalJava4InboundPort;
 import equipments.HeatPump.connections.HeatPumpInternalControlInboundPort;
 import equipments.HeatPump.connections.HeatPumpUserInboundPort;
 import equipments.HeatPump.powerRepartitionPolicy.PowerRepartitionPolicyI;
@@ -9,6 +9,7 @@ import equipments.HeatPump.temperatureSensor.TemperatureSensorOutboundPort;
 import equipments.HeatPump.compressor.CompressorCI;
 import equipments.HeatPump.compressor.CompressorOutboundPort;
 import equipments.HeatPump.interfaces.*;
+import equipments.hem.RegistrationOutboundPort;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.alasca.physical_data.MeasurementUnit;
 import fr.sorbonne_u.alasca.physical_data.SignalData;
@@ -17,6 +18,7 @@ import fr.sorbonne_u.components.annotations.OfferedInterfaces;
 import fr.sorbonne_u.components.annotations.RequiredInterfaces;
 import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
+import fr.sorbonne_u.components.hem2025.bases.RegistrationCI;
 import fr.sorbonne_u.exceptions.PostconditionException;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
@@ -39,8 +41,15 @@ import fr.sorbonne_u.exceptions.PreconditionException;
  * @author    <a href="mailto:Rodrigo.Vila@etu.sorbonne-universite.fr">Rodrigo Vila</a>
  * @author    <a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
  */
-@RequiredInterfaces(required = {TemperatureSensorCI.class, CompressorCI.class})
-@OfferedInterfaces(offered = {HeatPumpUserCI.class, HeatPumpInternalControlCI.class, HeatPumpExternalControlCI.class})
+@RequiredInterfaces(required = {
+        TemperatureSensorCI.class,
+        CompressorCI.class,
+        RegistrationCI.class
+})
+@OfferedInterfaces(offered = {
+        HeatPumpUserCI.class,
+        HeatPumpInternalControlCI.class,
+        HeatPumpExternalJava4InboundPort.class})
 public class HeatPump
 extends AbstractComponent
 implements HeatPumpUserI,
@@ -56,6 +65,10 @@ implements HeatPumpUserI,
     protected static final String BUFFER_TANK_OUTBOUND_PORT_URI = "BUFFER-TANK-OUTBOUND-URI";
 
     protected static final String REFLECTION_INBOUND_URI = "HEAT-PUMP-REFLECTION-INBOUND-URI";
+
+    protected static final String EQUIPMENT_UID = "1A100354";
+
+    protected static final String PATH_TO_CONNECTOR_DESCRIPTOR = "connectorGenerator/heatpump-descriptor.xml";
 
     /** measurement unit for power used by the heat pump					      */
     protected static final MeasurementUnit POWER_UNIT = MeasurementUnit.WATTS;
@@ -102,7 +115,11 @@ implements HeatPumpUserI,
 
     protected HeatPumpUserInboundPort userInboundPort;
     protected HeatPumpInternalControlInboundPort internalInboundPort;
-    protected HeatPumpExternalControlInboundPort externalInboundPort;
+    protected HeatPumpExternalJava4InboundPort externalInboundPort;
+
+    protected RegistrationOutboundPort registrationOutboundPort;
+    protected String registrationHEMURI;
+    protected String registrationHEMConnectorClassName;
 
     protected HeatPump(
             String compressorURI,
@@ -111,7 +128,9 @@ implements HeatPumpUserI,
             String bufferCcName,
             String userInboundURI,
             String internalInboundURI,
-            String externalInboundURI) throws Exception {
+            String externalInboundURI,
+            String registrationHEMURI,
+            String registrationHEMCcName) throws Exception {
         this(REFLECTION_INBOUND_URI,
                 compressorURI,
                 bufferTankURI,
@@ -119,7 +138,9 @@ implements HeatPumpUserI,
                 bufferCcName,
                 userInboundURI,
                 internalInboundURI,
-                externalInboundURI);
+                externalInboundURI,
+                registrationHEMURI,
+                registrationHEMCcName);
     }
 
     protected HeatPump(
@@ -130,7 +151,9 @@ implements HeatPumpUserI,
             String bufferCcName,
             String userInboundURI,
             String internalInboundURI,
-            String externalInboundURI) throws Exception {
+            String externalInboundURI,
+            String registrationHEMURI,
+            String registrationHEMCcName) throws Exception {
         super(reflectionInboundPortURI, NUMBER_THREADS, NUMBER_SCHEDULABLE_THREADS);
 
         this.pumpState = State.Off;
@@ -154,8 +177,13 @@ implements HeatPumpUserI,
         this.internalInboundPort = new HeatPumpInternalControlInboundPort(internalInboundURI, this);
         this.internalInboundPort.publishPort();
 
-        this.externalInboundPort = new HeatPumpExternalControlInboundPort(externalInboundURI, this);
+        this.externalInboundPort = new HeatPumpExternalJava4InboundPort(externalInboundURI, this);
         this.externalInboundPort.publishPort();
+
+        this.registrationOutboundPort = new RegistrationOutboundPort(this);
+        this.registrationOutboundPort.publishPort();
+        this.registrationHEMURI = registrationHEMURI;
+        this.registrationHEMConnectorClassName = registrationHEMCcName;
     }
 
     /**
@@ -514,6 +542,11 @@ implements HeatPumpUserI,
         return res;
     }
 
+    @Override
+    public Measure<Double> getTargetTemperature() throws Exception {
+        return this.targetTemperature;
+    }
+
     /**
      *
      * returns the minimum power required to make the device work
@@ -625,6 +658,15 @@ implements HeatPumpUserI,
                     this.bufferTankInboundURI,
                     this.bufferConnectorClassName
             );
+            this.doPortConnection(
+                    this.registrationOutboundPort.getPortURI(),
+                    this.registrationHEMURI,
+                    this.registrationHEMConnectorClassName
+            );
+            this.registrationOutboundPort.register(
+                    EQUIPMENT_UID,
+                    this.externalInboundPort.getPortURI(),
+                    PATH_TO_CONNECTOR_DESCRIPTOR);
         } catch (Exception e) {
             throw new ComponentStartException(e);
         }
@@ -636,6 +678,7 @@ implements HeatPumpUserI,
     {
         this.doPortDisconnection(this.compressorBoundPort.getPortURI());
         this.doPortDisconnection(this.bufferTankBoundPort.getPortURI());
+        this.doPortDisconnection(this.registrationOutboundPort.getPortURI());
         super.finalise();
     }
 
@@ -645,6 +688,7 @@ implements HeatPumpUserI,
         try {
             this.compressorBoundPort.unpublishPort();
             this.bufferTankBoundPort.unpublishPort();
+            this.registrationOutboundPort.unpublishPort();
 
             this.userInboundPort.unpublishPort();
             this.internalInboundPort.unpublishPort();
@@ -655,5 +699,6 @@ implements HeatPumpUserI,
 
         super.shutdown();
     }
+
 
 }

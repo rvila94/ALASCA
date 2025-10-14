@@ -1,25 +1,26 @@
-package equipments.dimmerlamp;
+package equipments.dimmerlamp.test;
 
-import equipments.dimmerlamp.connections.DimmerLampInboundPort;
-import equipments.dimmerlamp.connections.DimmerLampOutboundPort;
+import equipments.dimmerlamp.DimmerLamp;
+import equipments.dimmerlamp.connections.DimmerLampExternalOutboundPort;
+import equipments.dimmerlamp.connections.DimmerLampUserOutboundPort;
+import equipments.dimmerlamp.interfaces.DimmerLampExternalCI;
+import equipments.dimmerlamp.interfaces.DimmerLampUserCI;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.alasca.physical_data.MeasurementUnit;
 import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.annotations.RequiredInterfaces;
-import fr.sorbonne_u.components.connectors.ConnectorI;
+import fr.sorbonne_u.components.connectors.AbstractConnector;
 import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.components.hem2025.tests_utils.TestsStatistics;
 import fr.sorbonne_u.components.hem2025e1.CVMIntegrationTest;
 import fr.sorbonne_u.exceptions.PreconditionException;
 import fr.sorbonne_u.utils.aclocks.*;
-import jdk.nashorn.internal.runtime.ECMAException;
 
-import java.security.Permission;
 import java.util.Random;
 
 /**
- * The class <code>equipments.dimmerlamp.DimmerLampTester</code>.
+ * The class <code>equipments.dimmerlamp.test.DimmerLampTester</code>.
  *
  * <p><strong>Description</strong></p>
  *
@@ -38,7 +39,7 @@ import java.util.Random;
  * @author    <a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
  */
 
-@RequiredInterfaces(required = {DimmerLampCI.class, ClocksServerCI.class})
+@RequiredInterfaces(required = {DimmerLampUserCI.class, DimmerLampExternalCI.class, ClocksServerCI.class})
 public class DimmerLampTester
 extends AbstractComponent {
 
@@ -49,37 +50,60 @@ extends AbstractComponent {
 
     protected static final String BASE_REFLECTION_INBOUND_PORT = "DIMMER-LAMP-TESTER-INBOUND-PORT";
 
-    protected DimmerLampOutboundPort outbound;
+    protected DimmerLampUserOutboundPort userOutboundPort;
 
-    protected String dimmerLampInboundPortURI;
+    protected DimmerLampExternalOutboundPort externalOutboundPort;
+
+    protected String userInboundPortURI;
+
+    protected String externalInboundPortURI;
 
     protected TestsStatistics statistics;
 
     protected final boolean isUnitTest;
 
-    protected final String connectorClassName;
+    protected final String connectorUserClassName;
 
-    public DimmerLampTester(boolean isUnitTest, String lampInboundPortURI, ConnectorI connectorClass) throws Exception {
-        this(isUnitTest, BASE_REFLECTION_INBOUND_PORT, lampInboundPortURI, connectorClass);
+    protected final String connectorExternalClassName;
+
+    protected DimmerLampTester(
+            boolean isUnitTest,
+            String userInboundPortURI,
+            String externalInboundPortURI,
+            Class<? extends AbstractConnector> connectorUserClass,
+            Class<? extends AbstractConnector> connectorExternalClass) throws Exception {
+        this(isUnitTest,
+                BASE_REFLECTION_INBOUND_PORT,
+                userInboundPortURI,
+                externalInboundPortURI,
+                connectorUserClass,
+                connectorExternalClass);
     }
 
-    public DimmerLampTester(
+    protected DimmerLampTester(
             boolean isUnitTest,
             String reflectionInboundPortURI,
-            String lampInboundPortURI,
-            ConnectorI connectorClass) throws Exception {
+            String userInboundPortURI,
+            String externalInboundPortURI,
+            Class<? extends AbstractConnector> connectorUserClass,
+            Class<? extends AbstractConnector> connectorExternalClass) throws Exception {
         super(reflectionInboundPortURI, NUMBER_THREADS, NUMBER_SCHEDULABLE_THREADS);
 
-        assert lampInboundPortURI != null && ! lampInboundPortURI.isEmpty() : new PreconditionException("lampURI == null || lamp.isEmpty()");
+        assert userInboundPortURI != null && ! userInboundPortURI.isEmpty() : new PreconditionException("lampURI == null || lamp.isEmpty()");
 
         this.isUnitTest = isUnitTest;
         this.statistics = new TestsStatistics();
 
-        this.outbound = new DimmerLampOutboundPort(this);
-        this.outbound.publishPort();
-        this.dimmerLampInboundPortURI = lampInboundPortURI;
+        this.userOutboundPort = new DimmerLampUserOutboundPort(this);
+        this.userOutboundPort.publishPort();
+        this.userInboundPortURI = userInboundPortURI;
+        this.connectorUserClassName = connectorUserClass.getCanonicalName();
 
-        this.connectorClassName = connectorClass.getClass().getCanonicalName();
+        this.externalOutboundPort = new DimmerLampExternalOutboundPort(this);
+        this.externalOutboundPort.publishPort();
+        this.externalInboundPortURI = externalInboundPortURI;
+        this.connectorExternalClassName = connectorExternalClass.getCanonicalName();
+
     }
 
     /**
@@ -113,7 +137,7 @@ extends AbstractComponent {
         this.logMessage("   When the dimmer lamp has not been used yet");
 
         try {
-            boolean result = ! this.outbound.isOn();
+            boolean result = ! this.userOutboundPort.isOn();
             if (result) {
                 this.logMessage("   Then the dimmer lamp is off");
             } else {
@@ -162,8 +186,8 @@ extends AbstractComponent {
 
         try {
             this.logMessage("   When the user switches on the dimmer lamp");
-            this.outbound.switchOff();
-            boolean result = ! this.outbound.isOn();
+            this.userOutboundPort.switchOn();
+            boolean result = this.userOutboundPort.isOn();
             if (result) {
                 this.logMessage("   Then the dimmer lamp is on");
             } else {
@@ -212,8 +236,8 @@ extends AbstractComponent {
 
         try {
             this.logMessage("   When the user switches off the dimmer lamp");
-            this.outbound.switchOff();
-            boolean result = ! this.outbound.isOn();
+            this.userOutboundPort.switchOff();
+            boolean result = ! this.userOutboundPort.isOn();
             if (result) {
                 this.logMessage("   Then the dimmer lamp is off");
             } else {
@@ -266,7 +290,7 @@ extends AbstractComponent {
         this.logMessage("   When the user gets the current power level");
 
         try {
-            Measure<Integer> result = this.outbound.getCurrentPowerLevel();
+            Measure<Integer> result = this.externalOutboundPort.getCurrentPowerLevel();
 
             if (result.getData() == DimmerLamp.BASE_POWER_VARIATION.getData()) {
                 this.logMessage("   Then the current power level is equal to the base power level");
@@ -289,8 +313,8 @@ extends AbstractComponent {
         try {
             Random rd = new Random();
             Measure<Integer> random_power_level = new Measure<>(rd.nextInt(), MeasurementUnit.WATTS);
-            this.outbound.setVariationPower(random_power_level);
-            Measure<Integer> result = this.outbound.getCurrentPowerLevel();
+            this.externalOutboundPort.setVariationPower(random_power_level);
+            Measure<Integer> result = this.externalOutboundPort.getCurrentPowerLevel();
 
             if (result.getData() == random_power_level.getData()) {
                 this.logMessage("   Then the current power level is equal to the power level set by the user");
@@ -322,9 +346,14 @@ extends AbstractComponent {
 
         try {
             this.doPortConnection(
-                    this.outbound.getPortURI(),
-                    this.dimmerLampInboundPortURI,
-                    this.connectorClassName
+                    this.userOutboundPort.getPortURI(),
+                    this.userInboundPortURI,
+                    this.connectorUserClassName
+            );
+            this.doPortConnection(
+                    this.externalOutboundPort.getPortURI(),
+                    this.externalInboundPortURI,
+                    this.connectorExternalClassName
             );
         } catch (Exception e) {
             throw new ComponentStartException(e);
@@ -336,7 +365,8 @@ extends AbstractComponent {
     @Override
     public synchronized void	finalise() throws Exception
     {
-        this.doPortDisconnection(this.outbound.getPortURI());
+        this.doPortDisconnection(this.userOutboundPort.getPortURI());
+        this.doPortDisconnection(this.externalOutboundPort.getPortURI());
         super.finalise();
     }
 
@@ -344,7 +374,8 @@ extends AbstractComponent {
     public synchronized void	shutdown() throws ComponentShutdownException
     {
         try {
-            this.outbound.unpublishPort();
+            this.userOutboundPort.unpublishPort();
+            this.externalOutboundPort.unpublishPort();
         } catch (Exception e) {
             throw new ComponentShutdownException(e) ;
         }

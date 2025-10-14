@@ -1,0 +1,161 @@
+<control-adapter
+        xmlns="http://www.sorbonne-universite.fr/alasca/control-adapter"
+        uid="1A100354"
+        offered="equipments.HeatPump.interfaces.HeatPumpExternalJava4CI">
+    <consumption nominal="100" min="0" max="100"/>
+    <instance-var modifiers="protected static" type="int" name="MAX_MODE" static-init="10"/>
+    <instance-var modifiers="protected" type="int" name="currentMode" static-init="MAX_MODE"/>
+    <instance-var modifiers="protected" type="boolean" name="isSuspended" static-init="false"/>
+    <instance-var modifiers="protected static" type="double" name="MAX_POS_DELTA" static-init="10.0"/>
+    <instance-var modifiers="protected static" type="double" name="MAX_NEG_DELTA" static-init="-10.0"/>
+    <instance-var modifiers="protected static" type="double" name="MIN_ADMISSIBLE_DELTA" static-init="14.0"/>
+    <instance-var modifiers="protected static" type="double" name="MAX_ADMISSIBLE_DELTA" static-init="32.0"/>
+    <internal modifiers="protected" type="double" name="computePowerLevel">
+        <parameter type="int" name="mode"/>
+        <thrown>java.lang.Exception</thrown>
+        <body equipment="heatPump">
+            double maxPowerLevel = heatPump.getMaxPowerJava4();
+            double minPowerLevel = heatPump.getMinimumRequiredPowerJava4();
+            if (mode == 2) {
+                return minPowerLevel;
+            } else {
+                return (mode - 1) * maxPowerLevel / (MAX_MODE - 1);
+            }
+        </body>
+    </internal>
+    <internal modifiers="protected" type="void" name="setPowerLevel">
+        <parameter type="double" name="newPowerLevel"/>
+        <thrown>java.lang.Exception</thrown>
+        <body equipmentRef="heatPump">
+            double maxPowerLevel = heatPump.getMaxPowerJava4();
+            double minPowerLevel = heatPump.getMinimumRequiredPowerJava4();
+            if (minPowerLevel > newPowerLevel) {
+                newPowerLevel = 0.0;
+            } else if (newPowerLevel > maxPowerLevel) {
+                newPowerLevel = newPowerLevel;
+            }
+            heatPump.setCurrentPowerLevelJava4(newPowerLevel);
+        </body>
+    </internal>
+    <internal modifiers="protected" type="void" name="computeAndSetNewPowerLevel">
+        <parameter type="int" name="newMode"/>
+        <thrown>java.lang.Exception</thrown>
+        <body>
+            double newPowerLevel = computePowerLevel(newMode);
+            setPowerLevel(newPowerLevel);
+        </body>
+    </internal>
+    <internal modifiers="protected" type="double" name="computeTemperatureDelta">
+        <parameter type="double" name="currentTemperature"/>
+        <thrown>java.lang.Exception</thrown>
+        <body equipmentRef="heatPump">
+            double targetTemperature = heatPump.getTargetTemperatureJava4();
+            return targetTemperature - currentTemperature;
+        </body>
+    </internal>
+    <internal modifiers="protected" type="boolean" name="temperatureIsAdmissible">
+        <parameter type="double" name="currentTemperature"/>
+        <body>
+            return currentTemperature >= MIN_ADMISSIBLE_TEMPERATURE &amp;&amp;
+                    MAX_ADMISSIBLE_TEMPERATURE >= currentTemperature;
+        </body>
+    </internal>
+    <internal modifier="protected" type="double" name="getCurrentTemperature"/>
+    <thrown>java.lang.Exception</thrown>
+    <body equipmentRef="heatPump">
+        return heatPump.getCurrentTemperatureJava4();
+    </body>
+    <maxMode><body>return MAX_MODE;</body></maxMode>
+    <upMode>
+        <body>
+            try {
+                computeAndSetNewPowerLevel(currentMode + 1);
+                ++currentMode;
+            } catch(Exception e) {
+                return false;
+            }
+            return true;
+        </body>
+    </upMode>
+    <downMode>
+        <body>
+            try {
+                computeAndSetNewPowerLevel(currentMode - 1);
+                --currentMode;
+            } catch (Exception e) {
+                return false;
+            }
+            return true;
+        </body>
+    </downMode>
+    <setMode>
+        <parameter name="modeIndex"/>
+        <body>
+            try {
+                computeAndSetNewPowerLevel(modeIndex);
+                currentMove = modeIndex;
+            } catch(Exception e) {
+                return false;
+            }
+            return true;
+        </body>
+    </setMode>
+    <currentMode>
+        <body>
+            if (suspended()) {
+                return 0;
+            } else {
+                return currentMode;
+            }
+        </body>
+    </currentMode>
+    <getModeConsumption>
+        <parameter name="modeIndex"/>
+        <body>
+            return computePowerLevel(modeIndex);
+        </body>
+    </getModeConsumption>
+    <suspended>
+        <body>
+            return isSuspended;
+        </body>
+    </suspended>
+    <suspend>
+        <body>
+            try {
+
+                isSuspended = true;
+            } catch (Exception e) {
+                return false;
+            }
+            return true;
+        </body>
+    </suspend>
+    <resume>
+        <body>
+            try {
+                computeAndSetNewPowerLevel(currentMode);
+                isSuspended = false;
+            } catch (Exception e) {
+                return false;
+            }
+            return true;
+        </body>
+    </resume>
+    <emergency>
+        <body>
+            double currentTemperature = getCurrentTemperature();
+            double delta = computeTemperatureDelta(currentTemperature);
+            double res;
+            if (! temperatureIsAdmissible(currentTemperature) ||
+                MAX_NEG_DELTA >= delta || delta >= MAX_POS_DELTA) {
+                    res = 1.0;
+            } else if (MAX_NEG_DELTA >= delta) {
+                res = delta / MAX_NEG_DELTA;
+            } else {
+                res = delta / MAX_POS_DELTA;
+            }
+            return res;
+        </body>
+    </emergency>
+</control-adapter>

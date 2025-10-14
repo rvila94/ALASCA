@@ -31,6 +31,8 @@ public interface HeatPumpExternalControlI {
 
     SignalData<Double> getCurrentTemperature() throws Exception;
 
+    Measure<Double> getTargetTemperature() throws Exception;
+
     Measure<Double> getMinimumRequiredPower() throws Exception;
 
     void setCurrentPower(Measure<Double> power) throws Exception;

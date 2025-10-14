@@ -45,6 +45,11 @@ implements HeatPumpExternalControlCI {
     }
 
     @Override
+    public Measure<Double> getTargetTemperature() throws Exception {
+        return ((HeatPumpExternalControlCI)this.offering).getTargetTemperature();
+    }
+
+    @Override
     public Measure<Double> getMinimumRequiredPower() throws Exception {
         return ((HeatPumpExternalControlCI)this.offering).getMinimumRequiredPower();
     }

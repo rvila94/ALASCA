@@ -40,7 +40,7 @@ implements HeatPumpExternalControlCI {
     }
 
     public HeatPumpExternalControlInboundPort(ComponentI owner) throws Exception {
-        super(HeatPumpExternalControlInboundPort.class, owner);
+        super(HeatPumpExternalControlCI.class, owner);
         assert owner instanceof HeatPumpExternalControlI:
                 new PreconditionException("owner not instance of DimmeLightI");
     }
@@ -64,6 +64,13 @@ implements HeatPumpExternalControlCI {
     public SignalData<Double> getCurrentTemperature() throws Exception {
         return         this.getOwner().handleRequest(
                 o -> ((HeatPump)o).getCurrentTemperature()
+        );
+    }
+
+    @Override
+    public Measure<Double> getTargetTemperature() throws Exception {
+        return this.getOwner().handleRequest(
+                owner -> ((HeatPump)owner).getTargetTemperature()
         );
     }
 
