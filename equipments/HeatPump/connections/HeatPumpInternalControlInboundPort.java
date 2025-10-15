@@ -3,6 +3,8 @@ package equipments.HeatPump.connections;
 import equipments.HeatPump.HeatPump;
 import equipments.HeatPump.interfaces.HeatPumpInternalControlCI;
 import equipments.HeatPump.interfaces.HeatPumpInternalControlI;
+import fr.sorbonne_u.alasca.physical_data.Measure;
+import fr.sorbonne_u.alasca.physical_data.SignalData;
 import fr.sorbonne_u.components.ComponentI;
 import fr.sorbonne_u.components.ports.AbstractInboundPort;
 import fr.sorbonne_u.exceptions.PreconditionException;
@@ -94,6 +96,21 @@ implements HeatPumpInternalControlCI {
                     ((HeatPump)o).stopCooling();
                     return null;
                 }
+        );
+    }
+
+    @Override
+    public SignalData<Double> getCurrentTemperature() throws Exception {
+        return this.getOwner().handleRequest(
+                owner -> ((HeatPump)owner).getCurrentTemperature()
+
+        );
+    }
+
+    @Override
+    public Measure<Double> getTargetTemperature() throws Exception {
+        return this.getOwner().handleRequest(
+                owner -> ((HeatPump)owner).getTargetTemperature()
         );
     }
 }

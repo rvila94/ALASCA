@@ -1,6 +1,8 @@
 package equipments.HeatPump.connections;
 
 import equipments.HeatPump.interfaces.HeatPumpInternalControlCI;
+import fr.sorbonne_u.alasca.physical_data.Measure;
+import fr.sorbonne_u.alasca.physical_data.SignalData;
 import fr.sorbonne_u.components.connectors.AbstractConnector;
 
 /**
@@ -53,5 +55,15 @@ implements HeatPumpInternalControlCI {
     @Override
     public void stopCooling() throws Exception {
         ((HeatPumpInternalControlCI)this.offering).stopCooling();
+    }
+
+    @Override
+    public SignalData<Double> getCurrentTemperature() throws Exception {
+        return ((HeatPumpInternalControlCI)this.offering).getCurrentTemperature();
+    }
+
+    @Override
+    public Measure<Double> getTargetTemperature() throws Exception {
+        return ((HeatPumpInternalControlCI)this.offering).getTargetTemperature();
     }
 }

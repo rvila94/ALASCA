@@ -23,8 +23,9 @@ import fr.sorbonne_u.alasca.physical_data.Measure;
  */
 public interface DimmerLampExternalI {
 
-    void setVariationPower(Measure<Integer> variationPower) throws Exception;
+    void setVariationPower(Measure<Double> variationPower) throws Exception;
 
-    Measure<Integer> getCurrentPowerLevel() throws Exception;
+    Measure<Double> getCurrentPowerLevel() throws Exception;
 
+    Measure<Double> getMaxPowerLevel() throws Exception;
 }

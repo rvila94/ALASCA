@@ -32,11 +32,11 @@ implements RegistrationCI {
 
     @Override
     public boolean register(String uid, String controlPortURI, String xmlControlAdapter) throws Exception {
-        return ((RegistrationCI)this.offering).registered(uid);
+        return ((RegistrationCI)this.offering).register(uid, controlPortURI, xmlControlAdapter);
     }
 
     @Override
     public void unregister(String uid) throws Exception {
-        ((RegistrationCI)this.offering).registered(uid);
+        ((RegistrationCI)this.offering).unregister(uid);
     }
 }

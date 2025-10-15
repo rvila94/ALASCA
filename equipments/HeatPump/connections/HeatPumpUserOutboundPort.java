@@ -2,6 +2,7 @@ package equipments.HeatPump.connections;
 
 import equipments.HeatPump.interfaces.HeatPumpUserCI;
 import fr.sorbonne_u.alasca.physical_data.Measure;
+import fr.sorbonne_u.alasca.physical_data.SignalData;
 import fr.sorbonne_u.components.ComponentI;
 import fr.sorbonne_u.components.ports.AbstractOutboundPort;
 
@@ -58,5 +59,15 @@ implements HeatPumpUserCI {
     @Override
     public void setTargetTemperature(Measure<Double> temperature) throws Exception {
         ((HeatPumpUserCI)this.getConnector()).setTargetTemperature(temperature);
+    }
+
+    @Override
+    public SignalData<Double> getCurrentTemperature() throws Exception {
+        return ((HeatPumpUserCI)this.getConnector()).getCurrentTemperature();
+    }
+
+    @Override
+    public Measure<Double> getTargetTemperature() throws Exception {
+        return ((HeatPumpUserCI)this.getConnector()).getTargetTemperature();
     }
 }

@@ -9,6 +9,7 @@ import equipments.HeatPump.temperatureSensor.TemperatureSensorOutboundPort;
 import equipments.HeatPump.compressor.CompressorCI;
 import equipments.HeatPump.compressor.CompressorOutboundPort;
 import equipments.HeatPump.interfaces.*;
+import equipments.dimmerlamp.DimmerLamp;
 import equipments.hem.RegistrationOutboundPort;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.alasca.physical_data.MeasurementUnit;
@@ -19,6 +20,7 @@ import fr.sorbonne_u.components.annotations.RequiredInterfaces;
 import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.components.hem2025.bases.RegistrationCI;
+import fr.sorbonne_u.exceptions.AssertionChecking;
 import fr.sorbonne_u.exceptions.PostconditionException;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
@@ -58,6 +60,11 @@ implements HeatPumpUserI,
 
     public static boolean VERBOSE = false;
 
+    /** when tracing, x coordinate of the window relative position.			*/
+    public static int X_RELATIVE_POSITION = 0;
+    /** when tracing, y coordinate of the window relative position.			*/
+    public static int Y_RELATIVE_POSITION = 0;
+
     /** Standard URI of the port used to interface with the compressor */
     protected static final String COMPRESSOR_OUTBOUND_PORT_URI = "COMPRESSOR-OUTBOUND-URI";
 
@@ -66,35 +73,32 @@ implements HeatPumpUserI,
 
     protected static final String REFLECTION_INBOUND_URI = "HEAT-PUMP-REFLECTION-INBOUND-URI";
 
-    protected static final String EQUIPMENT_UID = "1A100354";
+    public static final String EQUIPMENT_UID = "1A100354";
 
     protected static final String PATH_TO_CONNECTOR_DESCRIPTOR = "connectorGenerator/heatpump-descriptor.xml";
 
     /** measurement unit for power used by the heat pump					      */
-    protected static final MeasurementUnit POWER_UNIT = MeasurementUnit.WATTS;
+    public static final MeasurementUnit POWER_UNIT = MeasurementUnit.WATTS;
 
     /** measurement unit for the temperature of fluids and air			          */
-    protected static final MeasurementUnit TEMPERATURE_UNIT = MeasurementUnit.CELSIUS;
+    public static final MeasurementUnit TEMPERATURE_UNIT = MeasurementUnit.CELSIUS;
 
     /** maximum power level of the heat pump, in watts                                */
-    protected static final Measure<Double> MAX_POWER_LEVEL = new Measure<>(100., POWER_UNIT);
+    public static final Measure<Double> MAX_POWER_LEVEL = new Measure<>(100., POWER_UNIT);
     /** minimum power level of the heat pump, in watts                                */
     protected static final Measure<Double> MIN_POWER_LEVEL = new Measure<>(0., POWER_UNIT);
     /** standard power level of the heat pump, in watts                               */
-    protected static final Measure<Double> STANDARD_POWER_LEVEL = new Measure<>(50., POWER_UNIT);
+    public static final Measure<Double> STANDARD_POWER_LEVEL = new Measure<>(50., POWER_UNIT);
     /** minimum power required for the device to function */
     protected static final Measure<Double> MIN_REQUIRED_POWER_LEVEL = new Measure<>(10., POWER_UNIT);
 
     /** maximum temperature target for the heat pump, in celsius                       */
-    protected static final Measure<Double> MAX_TARGET_TEMPERATURE = new Measure<>(-50., TEMPERATURE_UNIT);
+    public static final Measure<Double> MAX_TARGET_TEMPERATURE = new Measure<>(50., TEMPERATURE_UNIT);
 
     /** minimum temperature target for the heat pump, in celsius                       */
-    protected static final Measure<Double> MIN_TARGET_TEMPERATURE = new Measure<>(50., TEMPERATURE_UNIT);
+    protected static final Measure<Double> MIN_TARGET_TEMPERATURE = new Measure<>(-50., TEMPERATURE_UNIT);
 
-    /** standard temperature target for the heat pump, in celsius                      */
-    protected static final Measure<Double> STD_TARGET_TEMPERATURE = new Measure<>(19., TEMPERATURE_UNIT);
-
-    protected static final int NUMBER_THREADS = 1;
+    protected static final int NUMBER_THREADS = 2;
     protected static final int NUMBER_SCHEDULABLE_THREADS = 0;
 
     protected CompressorOutboundPort compressorBoundPort;
@@ -111,8 +115,6 @@ implements HeatPumpUserI,
 
     protected SignalData<Double> currentPower;
 
-    protected Measure<Double> targetTemperature;
-
     protected HeatPumpUserInboundPort userInboundPort;
     protected HeatPumpInternalControlInboundPort internalInboundPort;
     protected HeatPumpExternalJava4InboundPort externalInboundPort;
@@ -120,6 +122,8 @@ implements HeatPumpUserI,
     protected RegistrationOutboundPort registrationOutboundPort;
     protected String registrationHEMURI;
     protected String registrationHEMConnectorClassName;
+
+    protected boolean isUnitTest;
 
     protected HeatPump(
             String compressorURI,
@@ -156,9 +160,10 @@ implements HeatPumpUserI,
             String registrationHEMCcName) throws Exception {
         super(reflectionInboundPortURI, NUMBER_THREADS, NUMBER_SCHEDULABLE_THREADS);
 
+        this.isUnitTest = false;
+
         this.pumpState = State.Off;
-        this.currentPower = new SignalData<>(MIN_POWER_LEVEL);
-        this.targetTemperature = STD_TARGET_TEMPERATURE;
+        this.currentPower = new SignalData<>(STANDARD_POWER_LEVEL);
 
         this.compressorBoundPort = new CompressorOutboundPort(this);
         this.compressorBoundPort.publishPort();
@@ -184,6 +189,100 @@ implements HeatPumpUserI,
         this.registrationOutboundPort.publishPort();
         this.registrationHEMURI = registrationHEMURI;
         this.registrationHEMConnectorClassName = registrationHEMCcName;
+
+        if (HeatPump.VERBOSE) {
+            this.tracer.get().setTitle("HeatPump component");
+            this.tracer.get().setRelativePosition(X_RELATIVE_POSITION,
+                    Y_RELATIVE_POSITION);
+            this.toggleTracing();
+        }
+    }
+
+    protected HeatPump(
+            String compressorURI,
+            String bufferTankURI,
+            String compressorCcName,
+            String bufferCcName,
+            String userInboundURI,
+            String internalInboundURI,
+            String externalInboundURI
+    ) throws Exception {
+        super(REFLECTION_INBOUND_URI, NUMBER_THREADS, NUMBER_SCHEDULABLE_THREADS);
+        this.isUnitTest = true;
+
+        this.pumpState = State.Off;
+        this.currentPower = new SignalData<>(STANDARD_POWER_LEVEL);
+
+        this.compressorBoundPort = new CompressorOutboundPort(this);
+        this.compressorBoundPort.publishPort();
+        this.compressorInboundURI = compressorURI;
+
+        this.bufferTankBoundPort = new TemperatureSensorOutboundPort(this);
+        this.bufferTankBoundPort.publishPort();
+        this.bufferTankInboundURI = bufferTankURI;
+
+        this.compressorConnectorClassName = compressorCcName;
+        this.bufferConnectorClassName = bufferCcName;
+
+        this.userInboundPort = new HeatPumpUserInboundPort(userInboundURI, this);
+        this.userInboundPort.publishPort();
+
+        this.internalInboundPort = new HeatPumpInternalControlInboundPort(internalInboundURI, this);
+        this.internalInboundPort.publishPort();
+
+        this.externalInboundPort = new HeatPumpExternalJava4InboundPort(externalInboundURI, this);
+        this.externalInboundPort.publishPort();
+
+        if (HeatPump.VERBOSE) {
+            this.tracer.get().setTitle("HeatPump component");
+            this.tracer.get().setRelativePosition(X_RELATIVE_POSITION,
+                    Y_RELATIVE_POSITION);
+            this.toggleTracing();
+        }
+
+    }
+
+
+    protected static boolean implementationInvariants(HeatPump pump) throws Exception {
+
+        assert pump != null : new PreconditionException("lamp == null");
+
+        boolean invariant_check = true;
+        invariant_check &= AssertionChecking.checkInvariant(
+                MAX_POWER_LEVEL.getData() >= 0 &&
+                        MAX_POWER_LEVEL.getData() <= 100,
+                HeatPump.class, pump,
+                "MAX_POWER_VARIATION < 0 || MAX_POWER_VARIATION > 100"
+        );
+        invariant_check &= AssertionChecking.checkInvariant(
+                MIN_POWER_LEVEL.getData() >= 0 &&
+                        MIN_POWER_LEVEL.getData() <= 100,
+                HeatPump.class, pump,
+                "MIN_POWER_VARIATION < 0 || MIN_POWER_VARIATION > 100"
+        );
+        invariant_check &= AssertionChecking.checkInvariant(
+                MIN_POWER_LEVEL.getData() <= MAX_POWER_LEVEL.getData(),
+                HeatPump.class, pump,
+                "MIN_POWER_VARIATION > MAX_POWER_VARIATION"
+        );
+
+        double pump_power = pump.getCurrentPower().getMeasure().getData();
+        invariant_check &= AssertionChecking.checkInvariant(
+                pump_power <= MAX_POWER_LEVEL.getData()
+                        && (pump_power == MIN_POWER_LEVEL.getData()
+                        || pump_power >= MIN_REQUIRED_POWER_LEVEL.getData()),
+                HeatPump.class, pump,
+                "MIN_POWER_VARIATION.getData() > lamp_variation" +
+                        " || lamp_variation < MAX_POWER_VARIATION.getData()"
+        );
+
+        invariant_check &= AssertionChecking.checkInvariant(
+                pump.state != null,
+                HeatPump.class, pump,
+                "lamp == null"
+        );
+
+        return invariant_check;
     }
 
     /**
@@ -203,7 +302,13 @@ implements HeatPumpUserI,
         assert this.on() :
                 new PreconditionException("The HeatPump is off");
 
-        return this.pumpState == State.Heating;
+        boolean res = this.pumpState == State.Heating;
+
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump returns its heating status: " + res + "\n");
+        }
+
+        return res;
     }
 
     /**
@@ -221,9 +326,15 @@ implements HeatPumpUserI,
     @Override
     public boolean cooling() throws Exception {
         assert this.on() :
-                new PreconditionException("The Heat Pump is off");
+                new PreconditionException("The Heat Pump is off\n");
 
-        return this.pumpState == State.Cooling;
+        boolean res = this.pumpState == State.Cooling;
+
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The Heat pump returns its cooling status: " + res + "\n");
+        }
+
+        return res;
     }
 
     /**
@@ -242,12 +353,21 @@ implements HeatPumpUserI,
     @Override
     public void startHeating() throws Exception {
         assert this.on() :
-                new PreconditionException("The Heat Pump is off");
+                new PreconditionException("The Heat Pump is off\n");
         assert !this.heating() :
-                new PreconditionException("The Heat pump is already heating");
+                new PreconditionException("The Heat pump is already heating\n");
+
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump starts heating\n");
+            this.traceMessage("The heat pump signals its compressor to start heating\n");
+        }
 
         this.pumpState = State.Heating;
         this.compressorBoundPort.startCompressing();
+
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump successfully completed the call to the compressor\n");
+        }
 
         assert this.heating() :
                 new PostconditionException("The Heat pump is not heating");
@@ -274,8 +394,17 @@ implements HeatPumpUserI,
         assert this.heating() :
                 new PreconditionException("The heat pump is not heating");
 
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump stops heating\n");
+            this.traceMessage("The heat pump signals the compressor to become idle\n");
+        }
+
         this.pumpState = State.On;
         this.compressorBoundPort.switchOff();
+
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump successfully completed the call to the compressor\n");
+        }
 
         assert !this.heating():
                 new PostconditionException("The heat pump is still heating");
@@ -302,8 +431,17 @@ implements HeatPumpUserI,
         assert !this.cooling():
                 new PreconditionException("The heat pump is already in cooling mode");
 
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump starts cooling\n");
+            this.traceMessage("The heat pump signals its compressor to start relaxing\n");
+        }
+
         this.pumpState = State.Cooling;
         this.compressorBoundPort.startRelaxing();
+
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump successfully completed the call to the compressor\n");
+        }
 
         assert this.cooling():
                 new PostconditionException("The heat pump is not in cooling mode");
@@ -330,8 +468,17 @@ implements HeatPumpUserI,
         assert this.cooling():
                 new PreconditionException("The heat pump is not in cooling mode");
 
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump stops cooling\n");
+            this.traceMessage("The heat pump signals the compressor to become idle\n");
+        }
+
         this.pumpState = State.On;
         this.compressorBoundPort.switchOff();
+
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump successfully completed the call to the compressor\n");
+        }
 
         assert !this.cooling():
                 new PostconditionException("The heat pump is still in cooling mode");
@@ -351,7 +498,13 @@ implements HeatPumpUserI,
      */
     @Override
     public boolean on() throws Exception {
-        return this.pumpState != State.Off;
+        boolean res = this.pumpState != State.Off;
+
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump indicates if it is on: " + res);
+        }
+
+        return res;
     }
 
     /**
@@ -369,14 +522,37 @@ implements HeatPumpUserI,
     @Override
     public void switchOff() throws Exception {
         assert this.on() :
-                new PreconditionException("The heat pump is off");
+                new PreconditionException("The heat pump is off\n");
+
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump turns off\n");
+            this.traceMessage("The temperature sensor is turned off\n");
+        }
 
         this.pumpState = State.Off;
         this.bufferTankBoundPort.switchOff();
+
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump successfully completed the call to the temperature sensor\n");
+            this.traceMessage("The compressor becomes idle\n");
+        }
+
         this.compressorBoundPort.switchOff();
 
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump successfully completed the call to the compressor\n");
+            this.traceMessage("The heat pump unregisters from the home energy manager\n");
+        }
+
+        if (! this.isUnitTest) {
+            this.registrationOutboundPort.unregister(HeatPump.EQUIPMENT_UID);
+
+            if (HeatPump.VERBOSE) {
+                this.traceMessage("The heat pump successfully completed the call to the home energy manager\n");
+            }
+        }
         assert !this.on() :
-                new PostconditionException("The heat pump is still off");
+                new PostconditionException("The heat pump is still off\n");
     }
 
     /**
@@ -394,11 +570,31 @@ implements HeatPumpUserI,
     @Override
     public void switchOn() throws Exception {
         assert !this.on() :
-                new PreconditionException("The heat pump is on");
+                new PreconditionException("The heat pump is on\n");
+
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump is turned on\n");
+            this.traceMessage("The temperatureSensor is turned on\n");
+        }
 
         this.pumpState = State.On;
         this.bufferTankBoundPort.switchOn();
-        // we only turn on the compressor when
+
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump successfully completed the call to the temperature sensor\n");
+            this.traceMessage("The heat pump register into the home energy manager\n");
+        }
+
+        if (! this.isUnitTest) {
+            boolean registration = this.registrationOutboundPort.register(
+                    EQUIPMENT_UID,
+                    this.externalInboundPort.getPortURI(),
+                    PATH_TO_CONNECTOR_DESCRIPTOR);
+
+            if (HeatPump.VERBOSE) {
+                this.traceMessage("The heat pump successfully completed the registration: " + registration);
+            }
+        }
 
         assert this.on() :
                 new PostconditionException("The heat pump is still off");
@@ -418,6 +614,11 @@ implements HeatPumpUserI,
      */
     @Override
     public State getState() throws Exception {
+
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump returns its state\n");
+        }
+
         return this.pumpState;
     }
 
@@ -448,10 +649,17 @@ implements HeatPumpUserI,
                 new PreconditionException("MIN_TARGET_TEMPERATURE.getData() <= temperature.getData()" +
                         "&& temperature.getData <= MAX_TARGET_TEMPERATURE.getData()");
 
-        this.targetTemperature = temperature;
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat Pump calls the compressor to change the target temperature.\n");
+        }
+
         compressorBoundPort.setTargetTemperature(temperature);
 
-        assert this.targetTemperature.equals(temperature) :
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump successfully completed the call to the compressor\n");
+        }
+
+        assert this.getTargetTemperature().equals(temperature) :
             new PostconditionException("The target temperature of the heat pump is not equal to the target");
     }
 
@@ -474,13 +682,35 @@ implements HeatPumpUserI,
         assert this.on():
                 new PreconditionException("heat pump is off");
 
-        Measure<Double> bufferPowerLevel = this.bufferTankBoundPort.getCurrentPower().getMeasure();
-        Measure<Double> compressorPowerLevel = this.compressorBoundPort.getCurrentPower().getMeasure();
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump gets the current power level used by the temperature sensor");
+        }
 
-        Measure<Double> new_measure = new Measure<>(bufferPowerLevel.getData() + compressorPowerLevel.getData(), POWER_UNIT);
+        Measure<Double> bufferPowerLevel = this.bufferTankBoundPort.getCurrentPower().getMeasure();
+
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump successfully completed the call to the temperature sensor: "
+                    + bufferPowerLevel.getData() + "W\n");
+            this.traceMessage("The heat pump gets the current power level used by the compressor");
+        }
+
+
+        Measure<Double> compressorPowerLevel = this.compressorBoundPort.getCurrentPower().getMeasure();
+        Measure<Double> pumpPowerLevel = this.currentPower.getMeasure();
+
+
+        Measure<Double> new_measure = new Measure<>(bufferPowerLevel.getData() + compressorPowerLevel.getData() + pumpPowerLevel.getData(), POWER_UNIT);
         SignalData<Double> ret = new SignalData<>(new_measure);
 
-        assert ret.getMeasure().getData() >= 0.0 && ret.getMeasure().getData() <= getMaximumPower().getData() :
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump successfully completed the call to the compressor: "
+                    + compressorPowerLevel.getData() + "W\n");
+            this.traceMessage("The heat pump adds those power levels to its own power level: "
+                    + new_measure.getData() + "W\n");
+        }
+
+        final double epsilon = 1e-6;
+        assert ret.getMeasure().getData() >= -epsilon && ret.getMeasure().getData() <= getMaximumPower().getData() + epsilon :
             new PostconditionException("ret.getMeasure().getData() < 0.0 || ret.getMeasure().getData() > getMaximumPower().getData()");
 
         return ret;
@@ -501,12 +731,30 @@ implements HeatPumpUserI,
     @Override
     public Measure<Double> getMaximumPower() throws Exception {
 
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump gets the maximum power level of the compressor\n");
+        }
+
         Measure<Double> maxPowerCompressor = compressorBoundPort.getMaximumPower();
+
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump successfully completed the call to the compressor: "
+                    + maxPowerCompressor.getData() + "W\n");
+            this.traceMessage("The heat pump successfully gets the maximum power level of the temperature sensor\n");
+        }
+
         Measure<Double> maxPowerSensor = bufferTankBoundPort.getMaximumPower();
 
         Measure<Double> res = new Measure<>(
                 MAX_POWER_LEVEL.getData() + maxPowerCompressor.getData() + maxPowerSensor.getData(),
                 POWER_UNIT);
+
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump successfully completed the call to the temperature sensor: "
+                    + maxPowerSensor.getData() + "W\n");
+            this.traceMessage("The heat pump adds those power levels to its own maximum power level: "
+                    + res.getData() + "W\n");
+        }
 
         assert res != null :
                 new PostconditionException("res == null");
@@ -533,8 +781,17 @@ implements HeatPumpUserI,
         assert this.on() :
                 new PreconditionException("The heat pump is off");
 
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump gets the current temperature from the temperature sensor\n");
+        }
+
         Measure<Double> temperature = this.bufferTankBoundPort.getTemperature();
         SignalData<Double> res = new SignalData<>(temperature);
+
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump successfully completed the call to the temperature sensor:"
+                    + temperature.getData() + "°C\n");
+        }
 
         assert res != null :
                 new PostconditionException("res == null");
@@ -544,7 +801,18 @@ implements HeatPumpUserI,
 
     @Override
     public Measure<Double> getTargetTemperature() throws Exception {
-        return this.targetTemperature;
+
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("the heat pump gets the targetTemperature from the compressor\n");
+        }
+
+        Measure<Double> target = this.compressorBoundPort.getTargetTemperature();
+
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("the heat pump successfully completed the call to the compressor: "
+                    + target.getData() + "°C\n");
+        }
+        return target;
     }
 
     /**
@@ -562,7 +830,18 @@ implements HeatPumpUserI,
     @Override
     public Measure<Double> getMinimumRequiredPower() throws Exception {
 
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump gets the minimum power from the compressor\n");
+        }
+
         Measure<Double> minPowerCompressor = compressorBoundPort.getMinimumRequiredPower();
+
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat successfully completed the call to the compressor: "
+                    + minPowerCompressor.getData() + "W\n");
+            this.traceMessage("The heat pump gets the minimum power from the temperature sensor\n");
+        }
+
         Measure<Double> minPowerSensor = bufferTankBoundPort.getMinimumRequiredPower();
 
         Measure<Double> res = new Measure<>(
@@ -570,23 +849,44 @@ implements HeatPumpUserI,
                 POWER_UNIT
         );
 
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("The heat pump successfully completed the call to the temperature sensor: "
+                    + minPowerSensor.getData() + "W\n");
+            this.traceMessage("The heat pump adds those power levels to its own minimum power level: "
+                    + res.getData() + "W\n");
+        }
+
         return res;
     }
 
     private void basePowerRepartitionPolicy(Measure<Double> power) throws Exception {
-        double surplus = power.getData() - this.getMaximumPower().getData();
+        double surplus = power.getData() - this.getMinimumRequiredPower().getData();
 
-        double min_power_compressor = compressorBoundPort.getMinimumRequiredPower().getData();
-        double min_power_sensor = bufferTankBoundPort.getMinimumRequiredPower().getData();
+        Measure<Double> min_compressor_measure = compressorBoundPort.getMinimumRequiredPower();
+        Measure<Double> min_sensor_measure = bufferTankBoundPort.getMinimumRequiredPower();
+
+        double min_power_compressor = min_compressor_measure.getData();
+        double min_power_sensor = min_sensor_measure.getData();
 
         Measure<Double> new_power_measure;
 
-        if (surplus > MAX_POWER_LEVEL.getData()) {
-            new_power_measure = MAX_POWER_LEVEL;
-            compressorBoundPort.setPower(new Measure<>(min_power_compressor + surplus / 2, POWER_UNIT));
-            bufferTankBoundPort.setPower(new Measure<>(min_power_sensor + surplus / 2, POWER_UNIT));
+        if (surplus > 0) {
+            double powerShare = surplus / 3.;
+            new_power_measure = new Measure<>(HeatPump.MIN_REQUIRED_POWER_LEVEL.getData() + powerShare, POWER_UNIT);
+            compressorBoundPort.setPower(new Measure<>(min_power_compressor + powerShare, POWER_UNIT));
+            bufferTankBoundPort.setPower(new Measure<>(min_power_sensor + powerShare, POWER_UNIT));
         } else {
-            new_power_measure = new Measure<>(MIN_REQUIRED_POWER_LEVEL.getData() + surplus, POWER_UNIT);
+            new_power_measure = MIN_REQUIRED_POWER_LEVEL;
+            compressorBoundPort.setPower(min_compressor_measure);
+            bufferTankBoundPort.setPower(min_sensor_measure);
+
+        }
+
+        if (HeatPump.VERBOSE) {
+            this.traceMessage("the power set for the compressor is: "
+                    + compressorBoundPort.getCurrentPower().getMeasure().getData() + "W\n");
+            this.traceMessage("the power set for the compressor is: "
+                    + bufferTankBoundPort.getCurrentPower().getMeasure().getData() + "W\n");
         }
 
         this.currentPower = new SignalData<>(new_power_measure);
@@ -601,7 +901,7 @@ implements HeatPumpUserI,
      *
      * <pre>
      *  pre {@code power != null}
-     *  pre {@code power.getData() >= getMinimumRequiredPower().getData()}
+     *  pre {@code power.getData == 0. || power.getData() >= getMinimumRequiredPower().getData()}
      *  pre {@code power.getData() <= getMaximumPower().getDate()}
      *  post {@code getCurrentPower().getMeasure().getData() == power.getData()}
      * </pre>
@@ -612,15 +912,26 @@ implements HeatPumpUserI,
 
         assert power != null :
                 new PreconditionException("power == null");
-        assert power.getData() >= this.getMinimumRequiredPower().getData() :
-                new PreconditionException("power provided is inferior to the minimum required");
+        assert power.getData() == 0. || power.getData() >= this.getMinimumRequiredPower().getData() :
+                new PreconditionException("power provided is different than 0 bu inferior to the minimum required");
         assert power.getData() <= this.getMaximumPower().getData() :
                 new PreconditionException("power provided is superior the maximum supported");
 
-        basePowerRepartitionPolicy(power);
+        if (power.getData() == 0.) {
 
-        assert getCurrentPower().getMeasure().getData() == power.getData():
-                new PostconditionException("current power is not equals to the power provided");
+            if (HeatPump.VERBOSE) {
+                this.traceMessage("Power is not provided to the component");
+            }
+
+            this.currentPower = new SignalData<>(power);
+            this.compressorBoundPort.setPower(power);
+            this.bufferTankBoundPort.setPower(power);
+        } else {
+            basePowerRepartitionPolicy(power);
+        }
+
+        //assert getCurrentPower().getMeasure().getData() == power.getData():
+               //new PostconditionException("current power is not equals to the power provided");
     }
 
     @Override
@@ -658,37 +969,42 @@ implements HeatPumpUserI,
                     this.bufferTankInboundURI,
                     this.bufferConnectorClassName
             );
-            this.doPortConnection(
-                    this.registrationOutboundPort.getPortURI(),
-                    this.registrationHEMURI,
-                    this.registrationHEMConnectorClassName
-            );
-            this.registrationOutboundPort.register(
-                    EQUIPMENT_UID,
-                    this.externalInboundPort.getPortURI(),
-                    PATH_TO_CONNECTOR_DESCRIPTOR);
+            if (! this.isUnitTest) {
+                this.doPortConnection(
+                        this.registrationOutboundPort.getPortURI(),
+                        this.registrationHEMURI,
+                        this.registrationHEMConnectorClassName
+                );
+            }
+
         } catch (Exception e) {
             throw new ComponentStartException(e);
         }
 
+
+
     }
 
     @Override
-    public synchronized void	finalise() throws Exception
+    public synchronized void finalise() throws Exception
     {
         this.doPortDisconnection(this.compressorBoundPort.getPortURI());
         this.doPortDisconnection(this.bufferTankBoundPort.getPortURI());
-        this.doPortDisconnection(this.registrationOutboundPort.getPortURI());
+        if (!this.isUnitTest) {
+            this.doPortDisconnection(this.registrationOutboundPort.getPortURI());
+        }
         super.finalise();
     }
 
     @Override
-    public synchronized void	shutdown() throws ComponentShutdownException
+    public synchronized void shutdown() throws ComponentShutdownException
     {
         try {
             this.compressorBoundPort.unpublishPort();
             this.bufferTankBoundPort.unpublishPort();
-            this.registrationOutboundPort.unpublishPort();
+            if (!this.isUnitTest) {
+                this.registrationOutboundPort.unpublishPort();
+            }
 
             this.userInboundPort.unpublishPort();
             this.internalInboundPort.unpublishPort();
@@ -699,6 +1015,5 @@ implements HeatPumpUserI,
 
         super.shutdown();
     }
-
 
 }

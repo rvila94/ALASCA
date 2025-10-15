@@ -79,6 +79,11 @@ implements CompressorCI{
     }
 
     @Override
+    public Measure<Double> getTargetTemperature() throws Exception {
+        return ((CompressorCI)this.offering).getTargetTemperature();
+    }
+
+    @Override
     public void setPower(Measure<Double> temperature) throws Exception {
         ((CompressorCI)this.offering).setPower(temperature);
     }

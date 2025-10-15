@@ -1,0 +1,118 @@
+<control-adapter
+        xmlns="http://www.sorbonne-universite.fr/alasca/control-adapter"
+        uid="1A1003584"
+        offered="equipments.dimmerlamp.interfaces.DimmerLampExternalJava4CI">
+    <consumption nominal="100" min="0" max="100"/>
+    <instance-var modifiers="protected static" type="int" name="MAX_MODE" static-init="4"/>
+    <instance-var modifiers="protected" type="int" name="currentMode" static-init="MAX_MODE"/>
+    <instance-var modifiers="protected" type="boolean" name="isSuspended" static-init="false"/>
+    <internal modifiers="protected" type="double" name="computePowerLevel">
+        <parameter type="int" name="mode"/>
+        <thrown>java.lang.Exception</thrown>
+        <body equipmentRef="lamp">
+            double maxPowerLevel = lamp.getMaxPowerLevelJava4();
+            return (mode - 1) * maxPowerLevel / (MAX_MODE - 1);
+        </body>
+    </internal>
+    <internal modifiers="protected" type="void" name="setPowerLevel">
+        <parameter type="double" name="newPowerLevel"/>
+        <thrown>java.lang.Exception</thrown>
+        <body equipmentRef="lamp">
+            double maxPowerLevel = lamp.getMaxPowerLevelJava4();
+            if (newPowerLevel > 0.) {
+                newPowerLevel = maxPowerLevel;
+            }
+            lamp.setVariationPowerJava4(newPowerLevel);
+        </body>
+    </internal>
+    <internal modifiers="protected" type="void" name="computeAndSetNewPowerLevel">
+        <parameter type="int" name="newMode"/>
+        <thrown>java.lang.Exception</thrown>
+        <body>
+            double newPowerLevel = computePowerLevel(newMode);
+            setPowerLevel(newPowerLevel);
+        </body>
+    </internal>
+    <maxMode><body>return MAX_MODE;</body></maxMode>
+    <upMode>
+        <body>
+            try {
+                computeAndSetNewPowerLevel(currentMode + 1);
+                ++currentMode;
+            } catch (Exception e) {
+                return false;
+            }
+            return true;
+        </body>
+    </upMode>
+    <downMode>
+        <body>
+            try {
+                computeAndSetNewPowerLevel(currentMode - 1);
+                --currentMode;
+            } catch (Exception e) {
+                return false;
+            }
+            return true;
+        </body>
+    </downMode>
+    <setMode>
+        <parameter name="modeIndex"/>
+        <body>
+            try {
+                computeAndSetNewPowerLevel(modeIndex);
+                currentMode = modeIndex;
+            } catch(Exception e) {
+                return false;
+            }
+            return true;
+        </body>
+    </setMode>
+    <currentMode>
+        <body>
+            if (suspended()) {
+                return 0;
+            } else {
+                return currentMode;
+            }
+        </body>
+    </currentMode>
+    <getModeConsumption>
+        <parameter name="modeIndex"/>
+        <body>
+            return computePowerLevel(modeIndex);
+        </body>
+    </getModeConsumption>
+    <suspended>
+        <body>
+            return isSuspended;
+        </body>
+    </suspended>
+    <suspend>
+        <body>
+            try {
+                setPowerLevel(0.0);
+                isSuspended = true;
+            } catch (Exception e) {
+                return false;
+            }
+            return true;
+        </body>
+    </suspend>
+    <resume>
+        <body>
+            try {
+                computeAndSetNewPowerLevel(currentMode);
+                isSuspended = false;
+            } catch (Exception e) {
+                return false;
+            }
+            return true;
+        </body>
+    </resume>
+    <emergency>
+        <body>
+            return 0.0;
+        </body>
+    </emergency>
+</control-adapter>

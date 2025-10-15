@@ -8,12 +8,12 @@
     <instance-var modifiers="protected" type="boolean" name="isSuspended" static-init="false"/>
     <instance-var modifiers="protected static" type="double" name="MAX_POS_DELTA" static-init="10.0"/>
     <instance-var modifiers="protected static" type="double" name="MAX_NEG_DELTA" static-init="-10.0"/>
-    <instance-var modifiers="protected static" type="double" name="MIN_ADMISSIBLE_DELTA" static-init="14.0"/>
-    <instance-var modifiers="protected static" type="double" name="MAX_ADMISSIBLE_DELTA" static-init="32.0"/>
+    <instance-var modifiers="protected static" type="double" name="MIN_ADMISSIBLE_TEMPERATURE" static-init="14.0"/>
+    <instance-var modifiers="protected static" type="double" name="MAX_ADMISSIBLE_TEMPERATURE" static-init="32.0"/>
     <internal modifiers="protected" type="double" name="computePowerLevel">
         <parameter type="int" name="mode"/>
         <thrown>java.lang.Exception</thrown>
-        <body equipment="heatPump">
+        <body equipmentRef="heatPump">
             double maxPowerLevel = heatPump.getMaxPowerJava4();
             double minPowerLevel = heatPump.getMinimumRequiredPowerJava4();
             if (mode == 2) {
@@ -60,12 +60,16 @@
                     MAX_ADMISSIBLE_TEMPERATURE >= currentTemperature;
         </body>
     </internal>
-    <internal modifier="protected" type="double" name="getCurrentTemperature"/>
+    <internal modifiers="protected" type="double" name="getCurrentTemperature"/>
     <thrown>java.lang.Exception</thrown>
     <body equipmentRef="heatPump">
         return heatPump.getCurrentTemperatureJava4();
     </body>
-    <maxMode><body>return MAX_MODE;</body></maxMode>
+    <maxMode>
+        <body>
+            return MAX_MODE;
+        </body>
+    </maxMode>
     <upMode>
         <body>
             try {
@@ -81,7 +85,7 @@
         <body>
             try {
                 computeAndSetNewPowerLevel(currentMode - 1);
-                --currentMode;
+                currentMode = currentMode - 1;
             } catch (Exception e) {
                 return false;
             }
@@ -93,7 +97,7 @@
         <body>
             try {
                 computeAndSetNewPowerLevel(modeIndex);
-                currentMove = modeIndex;
+                currentMode = modeIndex;
             } catch(Exception e) {
                 return false;
             }
@@ -123,7 +127,7 @@
     <suspend>
         <body>
             try {
-
+                setPowerLevel(0.0);
                 isSuspended = true;
             } catch (Exception e) {
                 return false;

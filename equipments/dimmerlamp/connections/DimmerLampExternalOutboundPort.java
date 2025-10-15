@@ -36,12 +36,17 @@ implements DimmerLampExternalCI {
     }
 
     @Override
-    public void setVariationPower(Measure<Integer> variationPower) throws Exception {
+    public void setVariationPower(Measure<Double> variationPower) throws Exception {
         ((DimmerLampExternalCI)this.getConnector()).setVariationPower(variationPower);
     }
 
     @Override
-    public Measure<Integer> getCurrentPowerLevel() throws Exception {
+    public Measure<Double> getCurrentPowerLevel() throws Exception {
         return ((DimmerLampExternalCI)this.getConnector()).getCurrentPowerLevel();
+    }
+
+    @Override
+    public Measure<Double> getMaxPowerLevel() throws Exception {
+        return ((DimmerLampExternalCI)this.getConnector()).getMaxPowerLevel();
     }
 }

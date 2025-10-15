@@ -105,25 +105,29 @@ implements CompressorCI {
     @Override
     public SignalData<Double> getCurrentPower() throws Exception {
         return         this.getOwner().handleRequest(
-                o -> {
-                    ((Compressor)o).getCurrentPower();
-                    return null;
-                }
+                o -> ((Compressor)o).getCurrentPower()
         );
     }
 
     @Override
     public Measure<Double> getMinimumRequiredPower() throws Exception {
-        return null;
+        return this.getOwner().handleRequest(
+                owner -> ((Compressor)owner).getMinimumRequiredPower()
+        );
     }
 
     @Override
     public Measure<Double> getMaximumPower() throws Exception {
         return         this.getOwner().handleRequest(
-                o -> {
-                    ((Compressor)o).getMaximumPower();
-                    return null;
-                }
+                o -> ((Compressor)o).getMaximumPower()
+
+        );
+    }
+
+    @Override
+    public Measure<Double> getTargetTemperature() throws Exception {
+        return this.getOwner().handleRequest(
+                owner -> ((Compressor)owner).getTargetTemperature()
         );
     }
 

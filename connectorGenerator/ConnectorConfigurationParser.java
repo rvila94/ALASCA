@@ -3,12 +3,13 @@ package connectorGenerator;
 import fr.sorbonne_u.components.connectors.AbstractConnector;
 import javassist.*;
 import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import java.lang.reflect.Method;
-import java.util.Hashtable;
+import java.io.IOException;
 
 /**
  * The class <code>connectorGenerator.ConnectorConfigurationParser</code>.
@@ -33,18 +34,35 @@ public class ConnectorConfigurationParser {
 
     protected static final String xml_extension = ".xml";
 
-    public static Class<?> parse_xml(String connectorCanoncicalName, Class<?> connectorImplementedInterface, String filename)
-            throws Exception {
+    public static void ClassFromXml(String connectorCanonicalName, Class<?> connectorImplementedInterface, String filename)
+            throws NotFoundException, CannotCompileException, ParserConfigurationException, SAXException, IOException {
 
-        if (! filename.endsWith(xml_extension)) {
+        if (!filename.endsWith(xml_extension)) {
             throw new IllegalArgumentException("filename has no xml_extension");
         }
 
-        SAXParserFactory factory = SAXParserFactory.newInstance();
-        SAXParser parser = factory.newSAXParser();
-        ConfigurationHandler handler = new ConfigurationHandler(connectorCanoncicalName, connectorImplementedInterface);
-        parser.parse(filename, handler);
-        return handler.getConnectorClass();
+        ClassPool pool = ClassPool.getDefault();
+
+        CtClass connectorCtClass = pool.getOrNull(connectorCanonicalName);
+        if (connectorCtClass == null) {
+            CtClass superClass = pool.get(AbstractConnector.class.getCanonicalName());
+            connectorCtClass = pool.makeClass(connectorCanonicalName);
+
+            connectorCtClass.setSuperclass(superClass);
+
+            CtClass CtInterface = pool.get(connectorImplementedInterface.getCanonicalName());
+            connectorCtClass.setInterfaces(new CtClass[]{CtInterface});
+
+            CtInterface.detach();
+            superClass.detach();
+
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            SAXParser parser = factory.newSAXParser();
+            ConfigurationHandler handler = new ConfigurationHandler(connectorCtClass, connectorImplementedInterface);
+            parser.parse(filename, handler);
+            handler.getConnectorClass();
+        }
+
     }
 
 }
@@ -60,46 +78,34 @@ extends DefaultHandler {
     protected static final char NEWLINE = '\n';
 
     protected static final String PARAMETER_COMMA = ", ";
-    protected static final String THROWS = "THROWS";
+    protected static final String THROWS = " throws";
 
-    protected static final String EXCEPTION = "EXCEPTION";
+    protected static final String EXCEPTION = "java.lang.Exception";
 
     protected static final String INT_TYPE = "int ";
 
-    private CtClass connectInterface;
-
     private CtClass connectorCtClass;
-
-    private Hashtable<String, Method> table;
 
     StringBuilder builder;
 
     String previousTag;
     String equipmentRef;
-    String offeredInterface;
+    String offeringCast;
     boolean inInternal;
-    public ConfigurationHandler(String connectorCanonicalName, Class<?> connectorImplementedInterface)
+    public ConfigurationHandler(CtClass new_class, Class<?> connectorImplementedInterface)
             throws NotFoundException, CannotCompileException {
         super();
 
-        ClassPool pool = ClassPool.getDefault();
-        connectInterface = pool.get(connectorImplementedInterface.getCanonicalName());
-        CtClass superClass = pool.get(AbstractConnector.class.getCanonicalName());
-
-        connectorCtClass = pool.makeClass(connectorCanonicalName);
-        connectorCtClass.setSuperclass(superClass);
 
         this.builder = new StringBuilder();
         this.previousTag = "";
         this.equipmentRef = null;
-        this.offeredInterface = "";
+        this.offeringCast = "";
         this.inInternal = false;
 
-        CtClass CtInterface = pool.get(connectorImplementedInterface.getCanonicalName());
-        this.connectorCtClass.setInterfaces(new CtClass[]{CtInterface});
+        this.connectorCtClass = new_class;
 
-        CtInterface.detach();
-        superClass.detach();
+
     }
 
     private void addModifiers(CtField field, String modifiers) {
@@ -147,13 +153,14 @@ extends DefaultHandler {
         } catch (CannotCompileException e) {
             e.printStackTrace();
         }
-        typeClass.detach();
+        //typeClass.detach();
     }
 
     public void startElement(String uri, String localName, String qName, Attributes attributes) {
         switch (qName) {
-            case "identification":
-                this.offeredInterface = attributes.getValue("offered");
+            case "control-adapter":
+                String offeredInterface = attributes.getValue("offered");
+                this.offeringCast = this.castingString(offeredInterface);
                 break;
             case "required":
                 break;
@@ -177,7 +184,7 @@ extends DefaultHandler {
             }
             case "parameter": {
                 String type = attributes.getValue("type");
-                if (type.isEmpty()) {
+                if (type == null) {
                     // We consider the int type to be the default type
                     type = INT_TYPE;
                 }
@@ -191,14 +198,12 @@ extends DefaultHandler {
                 break;
             }
             case "thrown": {
-                if (previousTag.equals("parameter")) {
+                if (previousTag.equals("thrown")){
+                    this.builder.append(PARAMETER_COMMA);
+                } else {
                     this.builder.append(RPAR);
                     this.builder.append(THROWS);
                     this.builder.append(SPACE);
-                } else {
-                    // If the previous element is not a parameter element
-                    // then the previous element was also a thrown element
-                    this.builder.append(PARAMETER_COMMA);
                 }
                 break;
             }
@@ -219,35 +224,35 @@ extends DefaultHandler {
                 break;
             }
             case "maxMode": {
-                this.builder.append("public int MaxMode() throws Exception\n");
+                this.builder.append("public int maxMode() throws java.lang.Exception\n");
                 break;
             }
             case "upMode": {
-                this.builder.append("public boolean upMode() throws Exception\n");
+                this.builder.append("public boolean upMode() throws java.lang.Exception\n");
                 break;
             }
             case "downMode": {
-                this.builder.append("public boolean downMode() throws Exception\n");
+                this.builder.append("public boolean downMode() throws java.lang.Exception\n");
                 break;
             }
             case "currentMode": {
-                this.builder.append("public int currentMode() throws Exception\n");
+                this.builder.append("public int currentMode() throws java.lang.Exception\n");
                 break;
             }
             case "suspended": {
-                this.builder.append("public boolean suspended() throws Exception\n");
+                this.builder.append("public boolean suspended() throws java.lang.Exception\n");
                 break;
             }
             case "suspend": {
-                this.builder.append("public boolean suspend() throws Exception\n");
+                this.builder.append("public boolean suspend() throws java.lang.Exception\n");
                 break;
             }
             case "resume": {
-                this.builder.append("public boolean resume() throws Exception\n");
+                this.builder.append("public boolean resume() throws java.lang.Exception\n");
                 break;
             }
             case "emergency": {
-                this.builder.append("public double emergency() throws Exception\n");
+                this.builder.append("public double emergency() throws java.lang.Exception\n");
                 break;
             }
             case "setMode": {
@@ -259,7 +264,7 @@ extends DefaultHandler {
                 break;
             }
             default:
-                System.out.println(qName);
+
         }
         this.previousTag = qName;
     }
@@ -278,6 +283,7 @@ extends DefaultHandler {
 
                 CtMethod newMethod;
                 try {
+                    System.out.println(this.builder);
                     newMethod = CtMethod.make(this.builder.toString(), this.connectorCtClass);
                     connectorCtClass.addMethod(newMethod);
                 } catch (CannotCompileException e) {
@@ -296,13 +302,19 @@ extends DefaultHandler {
 
     public void characters(char[] ch, int start, int end) {
         String content_string = new String(ch, start, end);
+
         if (this.equipmentRef != null) {
-            content_string.replaceAll(this.equipmentRef, this.offeredInterface);
+            content_string = content_string.replaceAll(this.equipmentRef, this.offeringCast);
         }
         this.builder.append(content_string);
     }
 
-    public Class<?> getConnectorClass() throws CannotCompileException {
+    public Class<?> getConnectorClass() throws CannotCompileException, NotFoundException, IOException {
+        this.connectorCtClass.writeFile();
         return this.connectorCtClass.toClass();
+    }
+
+    private String castingString(String offeredInterface) {
+        return "((" + offeredInterface + ")this.offering)";
     }
 }

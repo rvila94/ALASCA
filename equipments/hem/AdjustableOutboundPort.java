@@ -140,6 +140,7 @@ implements	AdjustableCI
 	public int			maxMode() throws Exception
 	{
 		int ret = ((AdjustableCI)this.getConnector()).maxMode();
+
 		assert ret > 0;
 		return ret;
 	}
@@ -151,11 +152,15 @@ implements	AdjustableCI
 	public boolean		upMode() throws Exception
 	{
 		int oldMode = this.currentMode();
+
 		assert	oldMode < this.maxMode() :
 				new PreconditionException("oldMode < maxMode()");
+
 		boolean ret = ((AdjustableCI)this.getConnector()).upMode();
+
 		assert	this.currentMode() > oldMode :
 				new PostconditionException("currentMode() > oldMode");
+
 		return ret;
 	}
 
@@ -194,9 +199,12 @@ implements	AdjustableCI
 	@Override
 	public int			currentMode() throws Exception
 	{
+
 		int ret = ((AdjustableCI)this.getConnector()).currentMode();
+
 		assert	ret > 0 && ret <= this.maxMode() :
 				new PostconditionException("return > 0 && return <= maxMode()");
+
 		return ret;
 	}
 

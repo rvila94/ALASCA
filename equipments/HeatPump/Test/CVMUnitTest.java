@@ -44,7 +44,16 @@ extends AbstractCVM
     public static final String HEATPUMP_EXTERNAL_INBOUND_URI = "HEATPUMP-EXTERNAL-INBOUND-URI";
 
     public				CVMUnitTest() throws Exception
-    {}
+    {
+        HeatPump.VERBOSE = true;
+        HeatPump.X_RELATIVE_POSITION = 0;
+        HeatPump.Y_RELATIVE_POSITION = 1;
+
+        HeatPumpTester.VERBOSE = true;
+        HeatPumpTester.X_RELATIVE_POSITION = 1;
+        HeatPumpTester.Y_RELATIVE_POSITION = 0;
+
+    }
 
     @Override
     public void			deploy() throws Exception
@@ -86,7 +95,7 @@ extends AbstractCVM
     {
         try {
             CVMUnitTest cvm = new CVMUnitTest();
-            cvm.startStandardLifeCycle(1000L);
+            cvm.startStandardLifeCycle(20000L);
             Thread.sleep(100000L);
             System.exit(0);
         } catch (Exception e) {

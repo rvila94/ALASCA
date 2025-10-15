@@ -17,7 +17,9 @@ import fr.sorbonne_u.components.hem2025e1.CVMIntegrationTest;
 import fr.sorbonne_u.exceptions.PreconditionException;
 import fr.sorbonne_u.utils.aclocks.*;
 
+import java.time.Instant;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The class <code>equipments.dimmerlamp.test.DimmerLampTester</code>.
@@ -45,8 +47,29 @@ extends AbstractComponent {
 
     public static boolean VERBOSE = false;
 
+    /** when tracing, x coordinate of the window relative position.			*/
+    public static int				X_RELATIVE_POSITION = 0;
+    /** when tracing, y coordinate of the window relative position.			*/
+    public static int				Y_RELATIVE_POSITION = 0;
+
+
+    /**	in clock-driven scenario, the delay from the start instant at which
+     *  the heatPump is switched on for the first time.											*/
+    public static final int SWITCH_ON_DELAY1 = 3;
+    /**	in clock-driven scenario, the delay from the start instant at which
+     *  the heat pump is put in heating mode.                                  */
+    public static final int SWITCH_OFF_DELAY1 = 8;
+    /**	in clock-driven scenario, the delay from the start instant at which
+     *  the heatPump is switched on for the second time.											*/
+    public static final int SWITCH_ON_DELAY2 = 11;
+    /**	in clock-driven scenario, the delay from the start instant at which
+     *  the heat pump is put in heating mode.                                  */
+    public static final int SWITCH_OFF_DELAY2 = 14;
+    /**	in clock-driven scenario, the delay from the start instant at which
+     *  the heatPump is switched on for the second time. */
+
     protected static final int NUMBER_THREADS = 1;
-    protected static final int NUMBER_SCHEDULABLE_THREADS = 0;
+    protected static final int NUMBER_SCHEDULABLE_THREADS = 1;
 
     protected static final String BASE_REFLECTION_INBOUND_PORT = "DIMMER-LAMP-TESTER-INBOUND-PORT";
 
@@ -181,7 +204,6 @@ extends AbstractComponent {
         this.logMessage("Feature: Switching on the dimmer lamp");
         this.logMessage("   Scenario: Switching off the dimmer lamp when off");
         this.logMessage("   Given the dimmer lamp is initialised");
-        // TODO ?????
         this.logMessage("   And the dimmer lamp is off");
 
         try {
@@ -231,7 +253,6 @@ extends AbstractComponent {
         this.logMessage("Feature: Switching off the dimmer lamp");
         this.logMessage("   Scenario: Switching off the dimmer lamp when on");
         this.logMessage("   Given the dimmer lamp is initialised");
-        // TODO ?????
         this.logMessage("   And the dimmer lamp is on");
 
         try {
@@ -290,7 +311,7 @@ extends AbstractComponent {
         this.logMessage("   When the user gets the current power level");
 
         try {
-            Measure<Integer> result = this.externalOutboundPort.getCurrentPowerLevel();
+            Measure<Double> result = this.externalOutboundPort.getCurrentPowerLevel();
 
             if (result.getData() == DimmerLamp.BASE_POWER_VARIATION.getData()) {
                 this.logMessage("   Then the current power level is equal to the base power level");
@@ -312,9 +333,9 @@ extends AbstractComponent {
 
         try {
             Random rd = new Random();
-            Measure<Integer> random_power_level = new Measure<>(rd.nextInt(), MeasurementUnit.WATTS);
+            Measure<Double> random_power_level = new Measure<>(rd.nextDouble() * 100., MeasurementUnit.WATTS);
             this.externalOutboundPort.setVariationPower(random_power_level);
-            Measure<Integer> result = this.externalOutboundPort.getCurrentPowerLevel();
+            Measure<Double> result = this.externalOutboundPort.getCurrentPowerLevel();
 
             if (result.getData() == random_power_level.getData()) {
                 this.logMessage("   Then the current power level is equal to the power level set by the user");
@@ -402,7 +423,76 @@ extends AbstractComponent {
             this.doPortDisconnection(
                     clocksServerOutboundPort.getPortURI());
             clocksServerOutboundPort.unpublishPort();
-            clocksServerOutboundPort = null;
+
+            Instant startInstant = ac.getStartInstant();
+            Instant heatPumpSwitchOn1 = startInstant.plusSeconds(SWITCH_ON_DELAY1);
+            Instant heatPumpSwitchOff1 = startInstant.plusSeconds(SWITCH_OFF_DELAY1);
+            Instant heatPumpSwitchOn2 = startInstant.plusSeconds(SWITCH_ON_DELAY2);
+            Instant heatPumpSwitchOff2 = startInstant.plusSeconds(SWITCH_OFF_DELAY2);
+            this.traceMessage("Heat pump tester waits until start.\n");
+
+            ac.waitUntilStart();
+
+            long delayToSwitchOn1 = ac.nanoDelayUntilInstant(heatPumpSwitchOn1);
+            long delayToSwitchOff1 = ac.nanoDelayUntilInstant(heatPumpSwitchOff1);
+
+            long delayToSwitchOn2 = ac.nanoDelayUntilInstant(heatPumpSwitchOn2);
+            long delayToSwitchOff2 = ac.nanoDelayUntilInstant(heatPumpSwitchOff2);
+
+            AbstractComponent o = this;
+
+            this.scheduleTaskOnComponent(
+                    new AbstractComponent.AbstractTask() {
+                        @Override
+                        public void run() {
+                            try {
+                                o.traceMessage("dimmer lamp switches on1.\n");
+                                userOutboundPort.switchOn();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }, delayToSwitchOn1, TimeUnit.NANOSECONDS);
+
+            /*this.scheduleTaskOnComponent(
+                    new AbstractComponent.AbstractTask() {
+                        @Override
+                        public void run() {
+                            try {
+                                o.traceMessage("dimmer lamp switches off1.\n");
+                                userOutboundPort.switchOff();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }, delayToSwitchOff1, TimeUnit.NANOSECONDS);
+
+            this.scheduleTaskOnComponent(
+                    new AbstractComponent.AbstractTask() {
+                        @Override
+                        public void run() {
+                            try {
+                                o.traceMessage("dimmer lamp switches on2.\n");
+                                userOutboundPort.switchOn();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }, delayToSwitchOn2, TimeUnit.NANOSECONDS);
+
+
+            this.scheduleTaskOnComponent(
+                    new AbstractComponent.AbstractTask() {
+                        @Override
+                        public void run() {
+                            try {
+                                o.traceMessage("dimmer lamp switches off2.\n");
+                                userOutboundPort.switchOff();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }, delayToSwitchOff2, TimeUnit.NANOSECONDS);*/
         }
 
     }

@@ -50,5 +50,7 @@ public interface CompressorI {
 
     Measure<Double> getMaximumPower() throws Exception;
 
+    Measure<Double> getTargetTemperature() throws Exception;
+
     void setPower(Measure<Double> power) throws Exception;
 }

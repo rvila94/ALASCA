@@ -54,7 +54,7 @@ implements DimmerLampExternalCI {
     }
 
     @Override
-    public void setVariationPower(Measure<Integer> variationPower) throws Exception {
+    public void setVariationPower(Measure<Double> variationPower) throws Exception {
         this.getOwner().handleRequest(
           owner -> {
               ((DimmerLamp)owner).setVariationPower(variationPower);
@@ -64,9 +64,16 @@ implements DimmerLampExternalCI {
     }
 
     @Override
-    public Measure<Integer> getCurrentPowerLevel() throws Exception {
+    public Measure<Double> getCurrentPowerLevel() throws Exception {
         return this.getOwner().handleRequest(
                 owner -> ((DimmerLamp)owner).getCurrentPowerLevel()
+        );
+    }
+
+    @Override
+    public Measure<Double> getMaxPowerLevel() throws Exception {
+        return this.getOwner().handleRequest(
+                owner -> ((DimmerLamp)owner).getMaxPowerLevel()
         );
     }
 }

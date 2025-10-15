@@ -1,5 +1,7 @@
 package equipments.HeatPump.interfaces;
 
+import fr.sorbonne_u.alasca.physical_data.Measure;
+import fr.sorbonne_u.alasca.physical_data.SignalData;
 import fr.sorbonne_u.components.interfaces.OfferedCI;
 import fr.sorbonne_u.components.interfaces.RequiredCI;
 
@@ -25,4 +27,10 @@ import fr.sorbonne_u.components.interfaces.RequiredCI;
 public interface HeatPumpInternalControlCI
 extends HeatPumpInternalControlI,
         OfferedCI, RequiredCI
-{}
+{
+
+    SignalData<Double> getCurrentTemperature() throws Exception;
+
+    Measure<Double> getTargetTemperature() throws Exception;
+
+}

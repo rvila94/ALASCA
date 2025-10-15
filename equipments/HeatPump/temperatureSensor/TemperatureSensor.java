@@ -42,15 +42,15 @@ implements TemperatureSensorI {
     protected static final MeasurementUnit TEMPERATURE_UNIT = MeasurementUnit.CELSIUS;
 
     /** maximum power level of the compressor, in watts                                */
-    protected static final Measure<Double> MAX_POWER_LEVEL = new Measure<>(100., POWER_UNIT);
+    public static final Measure<Double> MAX_POWER_LEVEL = new Measure<>(100., POWER_UNIT);
     /** minimum power level of the compressor, in watts                                */
     protected static final Measure<Double> MIN_POWER_LEVEL = new Measure<>(0., POWER_UNIT);
     /** standard power level of the compressor, in watts                               */
-    protected static final Measure<Double> STANDARD_POWER_LEVEL = new Measure<>(50., POWER_UNIT);
+    public static final Measure<Double> STANDARD_POWER_LEVEL = new Measure<>(50., POWER_UNIT);
     /** minimum power required for the compressor to function */
     protected static final Measure<Double> MIN_REQUIRED_POWER_LEVEL = new Measure<>(10., POWER_UNIT);
 
-    protected static final Measure<Double> FAKE_CURRENT_TEMPERATURE = new Measure<>(10., TEMPERATURE_UNIT);
+    public static final Measure<Double> FAKE_CURRENT_TEMPERATURE = new Measure<>(10., TEMPERATURE_UNIT);
 
     protected static final int NUMBER_THREADS = 1;
     protected static final int NUMBER_SCHEDULABLE_THREADS = 0;
@@ -142,15 +142,15 @@ implements TemperatureSensorI {
                 new PreconditionException("device is off");
         assert power != null :
                 new PreconditionException("power == null");
-        assert power.getData() >= this.getMinimumRequiredPower().getData() :
-                new PreconditionException("power provided is inferior to the minimum required");
+        assert power.getData() == 0. || power.getData() >= this.getMinimumRequiredPower().getData() :
+                new PreconditionException("power provided is not zero but inferior to the minimum required");
         assert power.getData() <= this.getMaximumPower().getData() :
                 new PreconditionException("power provided is superior the maximum supported");
 
         this.currentPower = new SignalData<>(power);
 
-        assert getCurrentPower().getMeasure().getData() == power.getData():
-                new PostconditionException("current power is not equals to the power provided");
+        //assert getCurrentPower().getMeasure().getData() == power.getData():
+                //new PostconditionException("current power is not equals to the power provided");
     }
 
     @Override

@@ -33,10 +33,15 @@ package equipments;
 // knowledge of the CeCILL-C license and that you accept its terms.
 
 import equipments.HeatPump.HeatPump;
+import equipments.HeatPump.Test.HeatPumpTester;
 import equipments.HeatPump.compressor.Compressor;
 import equipments.HeatPump.compressor.CompressorConnector;
 import equipments.HeatPump.temperatureSensor.TemperatureSensor;
 import equipments.HeatPump.temperatureSensor.TemperatureSensorConnector;
+import equipments.dimmerlamp.DimmerLamp;
+import equipments.dimmerlamp.connections.DimmerLampExternalConnector;
+import equipments.dimmerlamp.connections.DimmerLampUserConnector;
+import equipments.dimmerlamp.test.DimmerLampTester;
 import equipments.hem.HEM;
 import equipments.hem.RegistrationConnector;
 import fr.sorbonne_u.components.AbstractComponent;
@@ -98,7 +103,6 @@ extends		AbstractCVM
 	/** start instant in test scenarios, as a string to be parsed.			*/
 	public static final Instant	START_INSTANT =
 									Instant.parse("2024-09-18T14:00:00.00Z");
-
 
 	public static final String COMPRESSOR_INBOUND_URI = "COMPRESSOR-INBOUND-URI";
 
@@ -204,6 +208,12 @@ extends		AbstractCVM
 		Heater.VERBOSE = true;
 		Heater.X_RELATIVE_POSITION = 1;
 		Heater.Y_RELATIVE_POSITION = 3;
+		HeatPump.VERBOSE = true;
+		HeatPump.X_RELATIVE_POSITION = 2;
+		HeatPump.Y_RELATIVE_POSITION = 0;
+		HeatPumpTester.VERBOSE = true;
+		HeatPumpTester.X_RELATIVE_POSITION = 3;
+		HeatPumpTester.Y_RELATIVE_POSITION = 0;
 
 		assert	implementationInvariants(this) :
 				new InvariantException(
@@ -285,6 +295,33 @@ extends		AbstractCVM
 						RegistrationConnector.class.getCanonicalName()
 				});
 
+		AbstractComponent.createComponent(
+				HeatPumpTester.class.getCanonicalName(),
+				new Object[]{
+						false,
+						HEATPUMP_USER_INBOUND_URI,
+						HEATPUMP_INTERNAL_INBOUND_URI,
+						HEATPUMP_EXTERNAL_INBOUND_URI
+				});	// is unit test
+
+		AbstractComponent.createComponent(
+				DimmerLamp.class.getCanonicalName(),
+				new Object[]{
+						HEM.RegistrationHEMURI,
+						RegistrationConnector.class.getCanonicalName()
+				}
+		);
+
+		AbstractComponent.createComponent(
+				DimmerLampTester.class.getCanonicalName(),
+				new Object[]{
+						false,
+						DimmerLamp.BASE_USER_INBOUND_PORT_URI,
+						DimmerLamp.BASE_EXTERNAL_INBOUND_PORT_URI,
+						DimmerLampUserConnector.class,
+						DimmerLampExternalConnector.class
+				});	// is unit test
+
 		super.deploy();
 	}
 
@@ -294,7 +331,7 @@ extends		AbstractCVM
 		HairDryerTester.EXCEPTIONS_VERBOSE = true;
 		try {
 			CVMIntegrationTest cvm = new CVMIntegrationTest();
-			cvm.startStandardLifeCycle(12000L);
+			cvm.startStandardLifeCycle(20000L);
 			Thread.sleep(100000L);
 			System.exit(0);
 		} catch (Exception e) {

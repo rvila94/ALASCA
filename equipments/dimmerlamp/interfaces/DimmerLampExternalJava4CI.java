@@ -25,8 +25,9 @@ public interface DimmerLampExternalJava4CI
 extends DimmerLampExternalCI
 {
 
-    void setVariationPowerJava4(int variationPower) throws Exception;
+    void setVariationPowerJava4(double variationPower) throws Exception;
 
-    int getCurrentPowerLevelJava4() throws Exception;
+    double getCurrentPowerLevelJava4() throws Exception;
 
+    double getMaxPowerLevelJava4() throws Exception;
 }

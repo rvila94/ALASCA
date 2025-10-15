@@ -4,6 +4,7 @@ import equipments.HeatPump.HeatPump;
 import equipments.HeatPump.interfaces.HeatPumpUserCI;
 import equipments.HeatPump.interfaces.HeatPumpUserI;
 import fr.sorbonne_u.alasca.physical_data.Measure;
+import fr.sorbonne_u.alasca.physical_data.SignalData;
 import fr.sorbonne_u.components.ComponentI;
 import fr.sorbonne_u.components.ports.AbstractInboundPort;
 import fr.sorbonne_u.exceptions.PreconditionException;
@@ -45,17 +46,29 @@ implements HeatPumpUserCI {
 
     @Override
     public boolean on() throws Exception {
-        return ((HeatPump)this.getOwner()).on();
+        return this.getOwner().handleRequest(
+                owner -> ((HeatPump)owner).on()
+        );
     }
 
     @Override
     public void switchOff() throws Exception {
-        ((HeatPump)this.getOwner()).switchOff();
+        this.getOwner().handleRequest(
+                owner -> {
+                    ((HeatPump)owner).switchOff();
+                    return null;
+                }
+        );
     }
 
     @Override
     public void switchOn() throws Exception {
-        ((HeatPump)this.getOwner()).switchOn();
+        this.getOwner().handleRequest(
+                owner -> {
+                    ((HeatPump)owner).switchOn();
+                    return null;
+                }
+        );
     }
 
     @Override
@@ -65,6 +78,25 @@ implements HeatPumpUserCI {
 
     @Override
     public void setTargetTemperature(Measure<Double> temperature) throws Exception {
-        ((HeatPump)this.getOwner()).setTargetTemperature(temperature);
+        this.getOwner().handleRequest(
+                owner -> {
+                    ((HeatPump)owner).setTargetTemperature(temperature);
+                    return null;
+                }
+        );
+    }
+
+    @Override
+    public SignalData<Double> getCurrentTemperature() throws Exception {
+        return this.getOwner().handleRequest(
+                owner -> ((HeatPump)owner).getCurrentTemperature()
+        );
+    }
+
+    @Override
+    public Measure<Double> getTargetTemperature() throws Exception {
+        return this.getOwner().handleRequest(
+                owner -> ((HeatPump)owner).getTargetTemperature()
+        );
     }
 }

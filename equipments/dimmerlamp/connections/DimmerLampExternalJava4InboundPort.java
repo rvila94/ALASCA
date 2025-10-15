@@ -34,12 +34,17 @@ extends DimmerLampExtenalInboundPort
         super(owner);
     }
     @Override
-    public void setVariationPowerJava4(int variationPower) throws Exception {
+    public void setVariationPowerJava4(double variationPower) throws Exception {
         this.setVariationPower(new Measure<>(variationPower));
     }
 
     @Override
-    public int getCurrentPowerLevelJava4() throws Exception {
+    public double getCurrentPowerLevelJava4() throws Exception {
         return this.getCurrentPowerLevel().getData();
+    }
+
+    @Override
+    public double getMaxPowerLevelJava4() throws Exception {
+        return this.getMaxPowerLevel().getData();
     }
 }
