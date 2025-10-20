@@ -2,7 +2,6 @@ package equipments.oven;
 
 import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.cvm.AbstractCVM;
-import fr.sorbonne_u.components.exceptions.BCMException;
 
 /**
  * The class <code>CVMUnitTest</code> performs unit tests on the oven component.
@@ -11,8 +10,8 @@ import fr.sorbonne_u.components.exceptions.BCMException;
  * 
  * <p>
  * This class instantiates an {@link Oven} component and an
- * {@link OvenTester} component, then runs the unit tests implemented in
- * <code>OvenTester</code> to validate the correct behaviour of the oven.
+ * {@link OvenUnitTester} component, then runs the unit tests implemented in
+ * <code>OvenUnitTester</code> to validate the correct behaviour of the oven.
  * </p>
  *
  * <p><strong>Implementation Invariants</strong></p>
@@ -33,19 +32,18 @@ import fr.sorbonne_u.components.exceptions.BCMException;
  * 	<a href="mailto:Rodrigo.Vila@etu.sorbonne-universite.fr">Rodrigo Vila</a>,
  * 	<a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
  */
-public class CVMUnitTest
-extends AbstractCVM
+public class			CVMUnitTest
+extends		AbstractCVM
 {
 	// -------------------------------------------------------------------------
 	// Constructors
 	// -------------------------------------------------------------------------
 
-	public CVMUnitTest() throws Exception
+	public				CVMUnitTest() throws Exception
 	{
-		OvenTester.VERBOSE = true;
-		OvenTester.X_RELATIVE_POSITION = 0;
-		OvenTester.Y_RELATIVE_POSITION = 0;
-
+		OvenUnitTester.VERBOSE = true;
+		OvenUnitTester.X_RELATIVE_POSITION = 0;
+		OvenUnitTester.Y_RELATIVE_POSITION = 0;
 		Oven.VERBOSE = true;
 		Oven.X_RELATIVE_POSITION = 1;
 		Oven.Y_RELATIVE_POSITION = 0;
@@ -59,28 +57,25 @@ extends AbstractCVM
 	 * @see fr.sorbonne_u.components.cvm.AbstractCVM#deploy()
 	 */
 	@Override
-	public void deploy() throws Exception
+	public void			deploy() throws Exception
 	{
 		AbstractComponent.createComponent(
-			Oven.class.getCanonicalName(),
-			new Object[] {}
-		);
+				Oven.class.getCanonicalName(),
+				new Object[]{});
 
 		AbstractComponent.createComponent(
-			OvenTester.class.getCanonicalName(),
-			new Object[] { true }
-		);
+				OvenUnitTester.class.getCanonicalName(),
+				new Object[]{true});	// is unit test
 
 		super.deploy();
 	}
 
-	public static void main(String[] args)
+	public static void	main(String[] args)
 	{
-		BCMException.VERBOSE = true;
 		try {
 			CVMUnitTest cvm = new CVMUnitTest();
-			cvm.startStandardLifeCycle(10000L);
-			Thread.sleep(10000L);
+			cvm.startStandardLifeCycle(1000L);
+			Thread.sleep(100000L);
 			System.exit(0);
 		} catch (Throwable e) {
 			e.printStackTrace();
