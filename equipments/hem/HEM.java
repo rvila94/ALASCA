@@ -223,8 +223,8 @@ extends		AbstractComponent
 		this.statistics = new TestsStatistics();
 
 		this.registrationTable = new Hashtable<>();
-		this.registrationHeatPumpInboundPort = new RegistrationInboundPort(RegistrationHEMURI, this);
-		this.registrationHeatPumpInboundPort.publishPort();
+		this.registrationInboundPort = new RegistrationInboundPort(RegistrationHEMURI, this);
+		this.registrationInboundPort.publishPort();
 
 		if (VERBOSE) {
 			this.tracer.get().setTitle("Home Energy Manager component");
@@ -347,7 +347,7 @@ extends		AbstractComponent
 			}
 			this.registrationTable.clear();
 
-			this.registrationHeatPumpInboundPort.unpublishPort();
+			this.registrationInboundPort.unpublishPort();
 
 		} catch (Exception e) {
 			throw new ComponentShutdownException(e) ;
@@ -363,7 +363,7 @@ extends		AbstractComponent
 
 	public static final String RegistrationHEMURI = "REGISTRATION-HEM-URI";
 
-	protected RegistrationInboundPort registrationHeatPumpInboundPort;
+	protected RegistrationInboundPort registrationInboundPort;
 
 	public boolean registered(String uid) throws Exception {
 		return uid != null && !uid.isEmpty() && this.registrationTable.containsKey(uid);

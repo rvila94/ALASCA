@@ -164,6 +164,13 @@ implements DimmerLampUserI, DimmerLampExternalI {
 
         this.isUnitTest = false;
 
+        if (DimmerLamp.VERBOSE) {
+            this.tracer.get().setTitle("DimmerLamp Component");
+            this.tracer.get().setRelativePosition(X_RELATIVE_POSITION, Y_RELATIVE_POSITION);
+
+            this.toggleTracing();
+        }
+
         assert DimmerLamp.invariants(this)
                 : new PostconditionException("DimmerLamp invariants are not respected");
         assert DimmerLamp.implementationInvariants(this)
@@ -195,6 +202,13 @@ implements DimmerLampUserI, DimmerLampExternalI {
 
         this.isUnitTest = true;
 
+        if (DimmerLamp.VERBOSE) {
+            this.tracer.get().setTitle("DimmerLamp Component");
+            this.tracer.get().setRelativePosition(X_RELATIVE_POSITION, Y_RELATIVE_POSITION);
+
+            this.toggleTracing();
+        }
+
         assert DimmerLamp.invariants(this)
                 : new PostconditionException("DimmerLamp invariants are not respected");
         assert DimmerLamp.implementationInvariants(this)
@@ -221,13 +235,22 @@ implements DimmerLampUserI, DimmerLampExternalI {
     public void switchOn() throws Exception {
         assert this.state == LampState.OFF : new PreconditionException("Lamp is already on");
 
-        this.state = LampState.ON;
-        boolean registered = this.registrationPort.register(
-                DimmerLamp.EQUIPMENT_UID,
-                this.externalInbound.getPortURI(),
-                DimmerLamp.PATH_TO_CONNECTOR_DESCRIPTOR);
+        if (DimmerLamp.VERBOSE) {
+            this.logMessage("The dimmer lamp is switched on.\n");
+        }
 
-        System.out.println(registered);
+        this.state = LampState.ON;
+
+        if (! this.isUnitTest) {
+            boolean registered = this.registrationPort.register(
+                    DimmerLamp.EQUIPMENT_UID,
+                    this.externalInbound.getPortURI(),
+                    DimmerLamp.PATH_TO_CONNECTOR_DESCRIPTOR);
+
+            if (DimmerLamp.VERBOSE) {
+                this.logMessage("The Dimmer lamp successfully completed the registration: " + registered + ".\n");
+            }
+        }
 
         assert this.state == LampState.ON : new PostconditionException("Lamp is off");
     }
@@ -237,14 +260,25 @@ implements DimmerLampUserI, DimmerLampExternalI {
         assert this.state == LampState.ON : new PreconditionException("Lamp is already off");
 
         this.state = LampState.OFF;
-        this.registrationPort.unregister(DimmerLamp.EQUIPMENT_UID);
+
+        if (! this.isUnitTest) {
+            this.registrationPort.unregister(DimmerLamp.EQUIPMENT_UID);
+
+            this.logMessage("The dimmer lamp unregistered from the hem\n");
+        }
 
         assert this.state == LampState.OFF : new PostconditionException("Lamp is on");
     }
 
     @Override
     public boolean isOn() throws Exception {
-        return this.state == LampState.ON;
+        boolean res = this.state == LampState.ON;
+
+        if (DimmerLamp.VERBOSE) {
+            this.logMessage("The dimmer lamp indicates if it is on: " + res + "\n");
+        }
+
+        return res;
     }
 
     @Override
@@ -253,16 +287,33 @@ implements DimmerLampUserI, DimmerLampExternalI {
         assert 0 <= variation.getData() && variation.getData() <= 100 :
                 new PreconditionException("0 > variation.getData() || variation.getData() > 100");
 
+        if (DimmerLamp.VERBOSE) {
+            this.logMessage("The dimmer lamp sets its power to: " + variation + ".\n");
+        }
+
         this.power_variation = variation;
     }
 
     @Override
     public Measure<Double> getCurrentPowerLevel() throws Exception {
-        return new Measure<>(this.power_variation.getData(), MeasurementUnit.WATTS);
+
+        Measure<Double> result = new Measure<>(this.power_variation.getData(), MeasurementUnit.WATTS);
+
+        if (DimmerLamp.VERBOSE) {
+            this.logMessage("The dimmer lamp returns its current power level: " + result + ".\n");
+        }
+
+        return result;
     }
 
     @Override
     public Measure<Double> getMaxPowerLevel() throws Exception {
+
+        if (DimmerLamp.VERBOSE) {
+            this.logMessage("The dimmer lamp returns its maximum power level: "
+                    + MAX_POWER_VARIATION + ".\n");
+        }
+
         return MAX_POWER_VARIATION;
     }
 
@@ -271,7 +322,9 @@ implements DimmerLampUserI, DimmerLampExternalI {
         try {
             this.userInbound.unpublishPort();
             this.externalInbound.unpublishPort();
-            this.registrationPort.unpublishPort();
+            if (!this.isUnitTest) {
+                this.registrationPort.unpublishPort();
+            }
         } catch (Exception e) {
             throw new ComponentShutdownException(e) ;
         }

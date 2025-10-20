@@ -9,7 +9,6 @@ import equipments.HeatPump.temperatureSensor.TemperatureSensorOutboundPort;
 import equipments.HeatPump.compressor.CompressorCI;
 import equipments.HeatPump.compressor.CompressorOutboundPort;
 import equipments.HeatPump.interfaces.*;
-import equipments.dimmerlamp.DimmerLamp;
 import equipments.hem.RegistrationOutboundPort;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.alasca.physical_data.MeasurementUnit;

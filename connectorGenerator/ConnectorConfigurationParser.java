@@ -153,7 +153,7 @@ extends DefaultHandler {
         } catch (CannotCompileException e) {
             e.printStackTrace();
         }
-        //typeClass.detach();
+
     }
 
     public void startElement(String uri, String localName, String qName, Attributes attributes) {
@@ -283,7 +283,6 @@ extends DefaultHandler {
 
                 CtMethod newMethod;
                 try {
-                    System.out.println(this.builder);
                     newMethod = CtMethod.make(this.builder.toString(), this.connectorCtClass);
                     connectorCtClass.addMethod(newMethod);
                 } catch (CannotCompileException e) {
