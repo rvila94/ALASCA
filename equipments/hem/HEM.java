@@ -33,21 +33,37 @@ package equipments.hem;
 // knowledge of the CeCILL-C license and that you accept its terms.
 
 import connectorGenerator.ConnectorConfigurationParser;
+import equipments.CVMIntegrationTest;
 import equipments.HeatPump.HeatPump;
 import equipments.HeatPump.Test.HeatPumpTester;
 import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.annotations.OfferedInterfaces;
 import fr.sorbonne_u.components.annotations.RequiredInterfaces;
+import fr.sorbonne_u.components.exceptions.BCMException;
 import fr.sorbonne_u.components.exceptions.BCMRuntimeException;
 import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.components.hem2025.bases.AdjustableCI;
 import fr.sorbonne_u.components.hem2025.bases.RegistrationCI;
 import fr.sorbonne_u.components.hem2025.tests_utils.TestsStatistics;
-import fr.sorbonne_u.components.hem2025e1.CVMIntegrationTest;
+import fr.sorbonne_u.components.hem2025e1.equipments.batteries.Batteries;
+import fr.sorbonne_u.components.hem2025e1.equipments.batteries.BatteriesCI;
+import fr.sorbonne_u.components.hem2025e1.equipments.batteries.BatteriesUnitTester;
+import fr.sorbonne_u.components.hem2025e1.equipments.batteries.connections.BatteriesConnector;
+import fr.sorbonne_u.components.hem2025e1.equipments.batteries.connections.BatteriesOutboundPort;
+import fr.sorbonne_u.components.hem2025e1.equipments.generator.Generator;
+import fr.sorbonne_u.components.hem2025e1.equipments.generator.GeneratorCI;
+import fr.sorbonne_u.components.hem2025e1.equipments.generator.GeneratorUnitTester;
+import fr.sorbonne_u.components.hem2025e1.equipments.generator.connections.GeneratorConnector;
+import fr.sorbonne_u.components.hem2025e1.equipments.generator.connections.GeneratorOutboundPort;
 import fr.sorbonne_u.components.hem2025e1.equipments.heater.Heater;
 import fr.sorbonne_u.components.hem2025e1.equipments.heater.HeaterUnitTester;
 import fr.sorbonne_u.components.hem2025e1.equipments.meter.*;
+import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.SolarPanel;
+import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.SolarPanelCI;
+import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.SolarPanelUnitTester;
+import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.connections.SolarPanelConnector;
+import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.connections.SolarPanelOutboundPort;
 import fr.sorbonne_u.exceptions.*;
 import fr.sorbonne_u.utils.aclocks.*;
 
@@ -87,11 +103,15 @@ import java.util.concurrent.TimeUnit;
  * 
  * @author	<a href="mailto:Jacques.Malenfant@lip6.fr">Jacques Malenfant</a>
  */
-@RequiredInterfaces(required = {AdjustableCI.class, ElectricMeterCI.class,
-								ClocksServerCI.class})
+@RequiredInterfaces(required = {ClocksServerCI.class,
+		AdjustableCI.class,
+		ElectricMeterCI.class,
+		BatteriesCI.class,
+		SolarPanelCI.class,
+		GeneratorCI.class})
 @OfferedInterfaces(offered = {RegistrationCI.class})
 public class			HEM
-extends		AbstractComponent
+		extends		AbstractComponent
 {
 	// -------------------------------------------------------------------------
 	// Constants and variables
@@ -107,6 +127,13 @@ extends		AbstractComponent
 	/** port to connect to the electric meter.								*/
 	protected ElectricMeterOutboundPort		meterop;
 
+	/** port to connect to the batteries.									*/
+	protected BatteriesOutboundPort batteriesop;
+	/** port to connect to the solar panel.									*/
+	protected SolarPanelOutboundPort solarPanelop;
+	/** port to connect to the generator.									*/
+	protected GeneratorOutboundPort generatorop;
+
 	/** when true, manage the heater in a customised way, otherwise let
 	 *  it register itself as an adjustable appliance.						*/
 	protected boolean						isPreFirstStep;
@@ -118,8 +145,6 @@ extends		AbstractComponent
 	protected boolean						performTest;
 	/** accelerated clock used for the tests.								*/
 	protected AcceleratedClock				ac;
-	/** collector of test statistics.										*/
-	protected TestsStatistics				statistics;
 
 	/** Inbound Port used by the components to register into the hem */
 
@@ -129,9 +154,9 @@ extends		AbstractComponent
 
 	/**
 	 * return true if the implementation invariants are observed, false otherwise.
-	 * 
+	 *
 	 * <p><strong>Contract</strong></p>
-	 * 
+	 *
 	 * <pre>
 	 * pre	{@code hem != null}
 	 * post	{@code true}	// no postcondition.
@@ -150,9 +175,9 @@ extends		AbstractComponent
 
 	/**
 	 * return true if the invariants are observed, false otherwise.
-	 * 
+	 *
 	 * <p><strong>Contract</strong></p>
-	 * 
+	 *
 	 * <pre>
 	 * pre	{@code hem != null}
 	 * post	{@code true}	// no postcondition.
@@ -220,7 +245,6 @@ extends		AbstractComponent
 		// by default, consider this execution as one in the pre-first step
 		// and manage the heater in a customised way.
 		this.isPreFirstStep = true;
-		this.statistics = new TestsStatistics();
 
 		this.registrationTable = new Hashtable<>();
 		this.registrationInboundPort = new RegistrationInboundPort(RegistrationHEMURI, this);
@@ -259,6 +283,24 @@ extends		AbstractComponent
 					this.meterop.getPortURI(),
 					ElectricMeter.ELECTRIC_METER_INBOUND_PORT_URI,
 					ElectricMeterConnector.class.getCanonicalName());
+			this.batteriesop = new BatteriesOutboundPort(this);
+			this.batteriesop.publishPort();
+			this.doPortConnection(
+					batteriesop.getPortURI(),
+					Batteries.STANDARD_INBOUND_PORT_URI,
+					BatteriesConnector.class.getCanonicalName());
+			this.solarPanelop = new SolarPanelOutboundPort(this);
+			this.solarPanelop.publishPort();
+			this.doPortConnection(
+					this.solarPanelop.getPortURI(),
+					SolarPanel.STANDARD_INBOUND_PORT_URI,
+					SolarPanelConnector.class.getCanonicalName());
+			this.generatorop = new GeneratorOutboundPort(this);
+			this.generatorop.publishPort();
+			this.doPortConnection(
+					this.generatorop.getPortURI(),
+					Generator.STANDARD_INBOUND_PORT_URI,
+					GeneratorConnector.class.getCanonicalName());
 
 			if (this.isPreFirstStep) {
 				// in this case, connect using the statically customised
@@ -304,6 +346,15 @@ extends		AbstractComponent
 			this.logMessage("Electric meter tests start.");
 			this.testMeter();
 			this.logMessage("Electric meter tests end.");
+			this.logMessage("Batteries tests start.");
+			this.testBatteries();
+			this.logMessage("Batteries tests end.");
+			this.logMessage("Solar Panel tests start.");
+			this.testSolarPanel();
+			this.logMessage("Solar Panel tests end.");
+			this.logMessage("Generator tests start.");
+			this.testGenerator();
+			this.logMessage("Generator tests end.");
 			if (this.isPreFirstStep) {
 				this.scheduleTestHeater();
 				this.scheduleTestHeatPump();
@@ -319,6 +370,9 @@ extends		AbstractComponent
 	public synchronized void	finalise() throws Exception
 	{
 		this.doPortDisconnection(this.meterop.getPortURI());
+		this.doPortDisconnection(this.batteriesop.getPortURI());
+		this.doPortDisconnection(this.solarPanelop.getPortURI());
+		this.doPortDisconnection(this.generatorop.getPortURI());
 		if (this.isPreFirstStep) {
 			this.doPortDisconnection(this.heaterop.getPortURI());
 		}
@@ -338,6 +392,9 @@ extends		AbstractComponent
 	{
 		try {
 			this.meterop.unpublishPort();
+			this.batteriesop.unpublishPort();
+			this.solarPanelop.unpublishPort();
+			this.generatorop.unpublishPort();
 			if (this.isPreFirstStep) {
 				this.heaterop.unpublishPort();
 			}
@@ -434,15 +491,15 @@ extends		AbstractComponent
 
 	/**
 	 * test the {@code ElectricMeter} component.
-	 * 
+	 *
 	 * <p><strong>Description</strong></p>
-	 * 
+	 *
 	 * <p>
 	 * Calls the test methods defined in {@code ElectricMeterUnitTester}.
 	 * </p>
-	 * 
+	 *
 	 * <p><strong>Contract</strong></p>
-	 * 
+	 *
 	 * <pre>
 	 * pre	{@code true}	// no precondition.
 	 * post	{@code true}	// no postcondition.
@@ -452,14 +509,69 @@ extends		AbstractComponent
 	 */
 	protected void		testMeter() throws Exception
 	{
-		ElectricMeterUnitTester.runAllTests(this, this.meterop, this.statistics);
+		ElectricMeterUnitTester.runAllTests(this, this.meterop,
+				new TestsStatistics());
+	}
+
+	/**
+	 * test the {@code Batteries} component.
+	 *
+	 * <p><strong>Contract</strong></p>
+	 *
+	 * <pre>
+	 * pre	{@code true}	// no precondition.
+	 * post	{@code true}	// no postcondition.
+	 * </pre>
+	 * @throws Exception	<i>to do</i>.
+	 *
+	 */
+	protected void		testBatteries() throws Exception
+	{
+		BatteriesUnitTester.runAllTests(this, this.batteriesop,
+				new TestsStatistics());
+	}
+
+	/**
+	 * test the {@code SolarPanel} component.
+	 *
+	 * <p><strong>Contract</strong></p>
+	 *
+	 * <pre>
+	 * pre	{@code true}	// no precondition.
+	 * post	{@code true}	// no postcondition.
+	 * </pre>
+	 * @throws Exception	<i>to do</i>.
+	 *
+	 */
+	protected void		testSolarPanel() throws Exception
+	{
+		SolarPanelUnitTester.runAllTests(this, this.solarPanelop,
+				new TestsStatistics());
+	}
+
+	/**
+	 * test the {@code Generator} component.
+	 *
+	 * <p><strong>Contract</strong></p>
+	 *
+	 * <pre>
+	 * pre	{@code true}	// no precondition.
+	 * post	{@code true}	// no postcondition.
+	 * </pre>
+	 * @throws Exception	<i>to do</i>.
+	 *
+	 */
+	protected void		testGenerator() throws Exception
+	{
+		GeneratorUnitTester.runAllTests(this, this.generatorop,
+				new TestsStatistics());
 	}
 
 	/**
 	 * test the heater.
-	 * 
+	 *
 	 * <p><strong>Gherkin specification</strong></p>
-	 * 
+	 *
 	 * <pre>
 	 * Feature: adjustable appliance mode management
 	 *   Scenario: getting the max mode index
@@ -505,6 +617,26 @@ extends		AbstractComponent
 	 *     When I call suspend()
 	 *     Then the method returns true
 	 *     And the heater is suspended
+	 *   Scenario: going down one mode index when suspended
+	 *     Given the heater is turned on
+	 *     And the heater is suspended
+	 *     When I call downMode()
+	 *     Then a precondition exception is thrown
+	 *   Scenario: going up one mode index when suspended
+	 *     Given the heater is turned on
+	 *     And the heater is suspended
+	 *     When I call upMode()
+	 *     Then a precondition exception is thrown
+	 *   Scenario: going up one mode index when suspended
+	 *     Given the heater is turned on
+	 *     And the heater is suspended
+	 *     When I call upMode()
+	 *     Then a precondition exception is thrown
+	 *   Scenario: getting the current mode when suspended
+	 *     Given the heater is turned on
+	 *     And the heater is suspended
+	 *     When I get the current mode
+	 *     Then a precondition exception is thrown
 	 *   Scenario: checking the emergency
 	 *     Given the heater is turned on
 	 *     And it has just been suspended
@@ -517,9 +649,9 @@ extends		AbstractComponent
 	 *     Then the method returns true
 	 *     And the heater is not suspended
 	 * </pre>
-	 * 
+	 *
 	 * <p><strong>Contract</strong></p>
-	 * 
+	 *
 	 * <pre>
 	 * pre	{@code true}	// no precondition.
 	 * post	{@code true}	// no postcondition.
@@ -530,7 +662,7 @@ extends		AbstractComponent
 	protected void		testHeater() throws Exception
 	{
 		this.logMessage("Heater tests start.");
-		this.statistics = new TestsStatistics();
+		TestsStatistics statistics = new TestsStatistics();
 		try {
 			this.logMessage("Feature: adjustable appliance mode management");
 			this.logMessage("  Scenario: getting the max mode index");
@@ -539,7 +671,7 @@ extends		AbstractComponent
 			this.logMessage("    Then the result is its max mode index");
 			final int maxMode = heaterop.maxMode();
 
-			this.statistics.updateStatistics();
+			statistics.updateStatistics();
 
 			this.logMessage("  Scenario: getting the current mode index");
 			this.logMessage("    Given the heater has just been turned on");
@@ -548,10 +680,10 @@ extends		AbstractComponent
 			int result = heaterop.currentMode();
 			if (result != maxMode) {
 				this.logMessage("      but was: " + result);
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 
-			this.statistics.updateStatistics();
+			statistics.updateStatistics();
 
 			this.logMessage("  Scenario: going down one mode index");
 			this.logMessage("    Given the heater is turned on");
@@ -559,23 +691,23 @@ extends		AbstractComponent
 			result = heaterop.currentMode();
 			if (result != maxMode) {
 				this.logMessage("      but was: " + result);
-				this.statistics.failedCondition();
+				statistics.failedCondition();
 			}
 			this.logMessage("    When I call downMode()");
 			this.logMessage("    Then the method returns true");
 			boolean bResult = heaterop.downMode();
 			if (!bResult) {
 				this.logMessage("      but was: " + bResult);
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 			this.logMessage("    And the current mode is its max mode minus one");
 			result = heaterop.currentMode();
 			if (result != maxMode - 1) {
 				this.logMessage("      but was: " + result);
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 
-			this.statistics.updateStatistics();
+			statistics.updateStatistics();
 
 			this.logMessage("  Scenario: going up one mode index");
 			this.logMessage("    Given the heater is turned on");
@@ -583,47 +715,47 @@ extends		AbstractComponent
 			result = heaterop.currentMode();
 			if (result != maxMode - 1) {
 				this.logMessage("      but was: " + result);
-				this.statistics.failedCondition();
+				statistics.failedCondition();
 			}
 			this.logMessage("    When I call upMode()");
 			this.logMessage("    Then the method returns true");
 			bResult = heaterop.upMode();
 			if (!bResult) {
 				this.logMessage("      but was: " + bResult);
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 			this.logMessage("    And the current mode is its max mode");
 			result = heaterop.currentMode();
 			if (result != maxMode) {
 				this.logMessage("      but was: " + result);
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 
-			this.statistics.updateStatistics();
+			statistics.updateStatistics();
 
 			this.logMessage("  Scenario: setting the mode index");
-			this.logMessage("    Scenario: setting the mode index");
+			this.logMessage("    Given the heater is turned on");
 			int index = 1;
 			this.logMessage("    And the mode index 1 is legitimate");
 			if (index > maxMode) {
 				this.logMessage("      but was not!");
-				this.statistics.failedCondition();
+				statistics.failedCondition();
 			}
 			this.logMessage("    When I call setMode(1)");
 			this.logMessage("    Then the method returns true");
 			bResult = heaterop.setMode(1);
 			if (!bResult) {
 				this.logMessage("      but was: " + bResult);
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 			this.logMessage("    And the current mode is 1");
 			result = heaterop.currentMode();
 			if (result != 1) {
 				this.logMessage("      but was: " + result);
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 
-			this.statistics.updateStatistics();
+			statistics.updateStatistics();
 
 			this.logMessage("Feature: Getting the power consumption given a mode");
 			this.logMessage("  Scenario: getting the power consumption of the maximum mode");
@@ -632,7 +764,7 @@ extends		AbstractComponent
 			double dResult = heaterop.getModeConsumption(maxMode);
 			this.logMessage("    Then the result is the maximum power consumption of the heater");
 
-			this.statistics.updateStatistics();
+			statistics.updateStatistics();
 
 			this.logMessage("Feature: suspending and resuming");
 			this.logMessage("  Scenario: checking if suspended when not");
@@ -643,10 +775,10 @@ extends		AbstractComponent
 			this.logMessage("    Then it is not");
 			if (bResult) {
 				this.logMessage("      but it was!");
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 
-			this.statistics.updateStatistics();
+			statistics.updateStatistics();
 
 			this.logMessage("  Scenario: suspending");
 			this.logMessage("    Given the heater is turned on");
@@ -654,23 +786,120 @@ extends		AbstractComponent
 			bResult = heaterop.suspended();
 			if (bResult) {
 				this.logMessage("      but it was!");
-				this.statistics.failedCondition();;
+				statistics.failedCondition();;
 			}
 			this.logMessage("    When I call suspend()");
 			bResult = heaterop.suspend();
 			this.logMessage("    Then the method returns true");
 			if (!bResult) {
 				this.logMessage("      but was: " + bResult);
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 			this.logMessage("    And the heater is suspended");
 			bResult = heaterop.suspended();
 			if (!bResult) {
 				this.logMessage("      but it was not!");
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 
-			this.statistics.updateStatistics();
+			statistics.updateStatistics();
+
+			this.logMessage("  Scenario: going down one mode index when suspended");
+			this.logMessage("    Given the heater is turned on");
+			this.logMessage("    And the heater is suspended");
+			bResult = heaterop.suspended();
+			if (!bResult) {
+				this.logMessage("      but it was not!");
+				statistics.failedCondition();;
+			}
+			this.logMessage("    When I call downMode()");
+			this.logMessage("    Then a precondition exception is thrown");
+			boolean old = BCMException.VERBOSE;
+			try {
+				BCMException.VERBOSE = false;
+				heaterop.downMode();
+				this.logMessage("      but it was not!");
+				statistics.incorrectResult();
+			} catch (Throwable e) {
+			} finally {
+				BCMException.VERBOSE = old;
+			}
+
+			statistics.updateStatistics();
+
+			this.logMessage("  Scenario: going up one mode index when suspended");
+			this.logMessage("    Given the heater is turned on");
+			this.logMessage("    And the heater is suspended");
+			bResult = heaterop.suspended();
+			if (!bResult) {
+				this.logMessage("      but it was not!");
+				statistics.failedCondition();;
+			}
+			this.logMessage("    When I call upMode()");
+			this.logMessage("    Then a precondition exception is thrown");
+			old = BCMException.VERBOSE;
+			try {
+				BCMException.VERBOSE = false;
+				heaterop.upMode();
+				this.logMessage("      but it was not!");
+				statistics.incorrectResult();
+			} catch (Throwable e) {
+			} finally {
+				BCMException.VERBOSE = old;
+			}
+
+			statistics.updateStatistics();
+
+			this.logMessage("  Scenario: setting the mode when suspended");
+			this.logMessage("    Given the heater is turned on");
+			this.logMessage("    And the heater is suspended");
+			bResult = heaterop.suspended();
+			if (!bResult) {
+				this.logMessage("      but it was not!");
+				statistics.failedCondition();;
+			}
+			this.logMessage("    And the mode index 1 is legitimate");
+			if (index > maxMode) {
+				this.logMessage("      but was not!");
+				statistics.failedCondition();
+			}
+			this.logMessage("    When I call setMode(1)");
+			this.logMessage("    Then a precondition exception is thrown");
+			old = BCMException.VERBOSE;
+			try {
+				BCMException.VERBOSE = false;
+				heaterop.upMode();
+				this.logMessage("      but it was not!");
+				statistics.incorrectResult();
+			} catch (Throwable e) {
+			} finally {
+				BCMException.VERBOSE = old;
+			}
+
+			statistics.updateStatistics();
+
+			this.logMessage("  Scenario: getting the current mode when suspended");
+			this.logMessage("    Given the heater is turned on");
+			this.logMessage("    And the heater is suspended");
+			bResult = heaterop.suspended();
+			if (!bResult) {
+				this.logMessage("      but it was not!");
+				statistics.failedCondition();;
+			}
+			this.logMessage("    When I get the current mode");
+			this.logMessage("    Then a precondition exception is thrown");
+			old = BCMException.VERBOSE;
+			try {
+				BCMException.VERBOSE = false;
+				heaterop.currentMode();
+				this.logMessage("      but it was not!");
+				statistics.incorrectResult();
+			} catch (Throwable e) {
+			} finally {
+				BCMException.VERBOSE = old;
+			}
+
+			statistics.updateStatistics();
 
 			this.logMessage("  Scenario: checking the emergency");
 			this.logMessage("    Given the heater is turned on");
@@ -678,17 +907,17 @@ extends		AbstractComponent
 			bResult = heaterop.suspended();
 			if (!bResult) {
 				this.logMessage("      but it was not!");
-				this.statistics.failedCondition();;
+				statistics.failedCondition();;
 			}
 			this.logMessage("    When I call emergency()");
 			dResult = heaterop.emergency();
 			this.logMessage("    Then the emergency is between 0.0 and 1.0");
 			if (dResult < 0.0 || dResult > 1.0) {
 				this.logMessage("      but was: " + dResult);
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 
-			this.statistics.updateStatistics();
+			statistics.updateStatistics();
 
 			this.logMessage("  Scenario: resuming");
 			this.logMessage("    Given the heater is turned on");
@@ -696,27 +925,27 @@ extends		AbstractComponent
 			bResult = heaterop.suspended();
 			if (!bResult) {
 				this.logMessage("      but it was not!");
-				this.statistics.failedCondition();;
+				statistics.failedCondition();;
 			}
 			this.logMessage("    When I call resume()");
 			bResult = heaterop.resume();
 			this.logMessage("    Then the method returns true");
 			if (!bResult) {
 				this.logMessage("      but was: " + bResult);
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 			this.logMessage("    And the heater is not suspended");
 			bResult = heaterop.suspended();
 			if (bResult) {
 				this.logMessage("      but it was!");
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			e.printStackTrace();
 		}
 
-		this.statistics.updateStatistics();
-		this.statistics.statisticsReport(this);
+		statistics.updateStatistics();
+		statistics.statisticsReport(this);
 
 		this.logMessage("Heater tests end.");
 	}
@@ -724,9 +953,9 @@ extends		AbstractComponent
 	/**
 	 * test the {@code Heater} component, in cooperation with the
 	 * {@code HeaterTester} component.
-	 * 
+	 *
 	 * <p><strong>Contract</strong></p>
-	 * 
+	 *
 	 * <pre>
 	 * pre	{@code true}	// no precondition.
 	 * post	{@code true}	// no postcondition.
@@ -738,19 +967,19 @@ extends		AbstractComponent
 		// Test for the heater
 		Instant heaterTestStart =
 				this.ac.getStartInstant().plusSeconds(
-							(HeaterUnitTester.SWITCH_ON_DELAY +
-											HeaterUnitTester.SWITCH_OFF_DELAY)/2);
+						(HeaterUnitTester.SWITCH_ON_DELAY +
+								HeaterUnitTester.SWITCH_OFF_DELAY)/2);
 		this.traceMessage("HEM schedules the heater test.\n");
 		long delay = this.ac.nanoDelayUntilInstant(heaterTestStart);
 
 		// schedule the switch on heater in one second
 		this.scheduleTaskOnComponent(
-				new AbstractTask() {
+				new AbstractComponent.AbstractTask() {
 					@Override
 					public void run() {
 						try {
 							testHeater();
-						} catch (Exception e) {
+						} catch (Throwable e) {
 							throw new BCMRuntimeException(e) ;
 						}
 					}
@@ -919,7 +1148,7 @@ extends		AbstractComponent
 		AdjustableOutboundPort outbound = this.registrationTable.get(HeatPump.EQUIPMENT_UID);
 
 		this.logMessage("Heat pump tests starts.");
-		this.statistics = new TestsStatistics();
+		TestsStatistics statistics = new TestsStatistics();
 		try {
 			this.logMessage("Feature: adjustable appliance mode management");
 			this.logMessage("	Scenario: getting the max mode index");
@@ -928,7 +1157,7 @@ extends		AbstractComponent
 			this.logMessage("   	Then the result is its max mode index");
 			final int maxMode = outbound.maxMode();
 
-			this.statistics.updateStatistics();
+			statistics.updateStatistics();
 
 			this.logMessage("  Scenario: getting the current mode index");
 			this.logMessage("    Given the heat pump has just been turned on");
@@ -937,10 +1166,10 @@ extends		AbstractComponent
 			int result = outbound.currentMode();
 			if ( result != maxMode ) {
 				this.logMessage("		but was: " + result);
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 
-			this.statistics.updateStatistics();
+			statistics.updateStatistics();
 
 			this.logMessage("	Scenario: going down one mode index");
 			this.logMessage("    Given the heat pump is turned on");
@@ -951,17 +1180,17 @@ extends		AbstractComponent
 			boolean downResult = outbound.downMode();
 			if ( !downResult ) {
 				this.logMessage("	but was: false");
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 			this.logMessage("	And the current mode is its max mode minus one");
 			result = outbound.currentMode();
 			if (result != maxMode - 1) {
 				this.logMessage("	but was: " + result);
 
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 
-			this.statistics.updateStatistics();
+			statistics.updateStatistics();
 
 			this.logMessage("   Scenario: going up one mode index");
 			this.logMessage("		Given the heat pump is turned on");
@@ -971,16 +1200,16 @@ extends		AbstractComponent
 			boolean upResult = outbound.upMode();
 			if (!upResult) {
 				this.logMessage("	but was false");
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 			this.logMessage("	And the current mode is its max mode");
 			result = outbound.currentMode();
 			if (result != maxMode) {
 				this.logMessage("	but was: " + result);
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 
-			this.statistics.updateStatistics();
+			statistics.updateStatistics();
 
 			this.logMessage("	Scenario: setting the mode index");
 			this.logMessage("		Given the heat pump is turned on");
@@ -988,23 +1217,23 @@ extends		AbstractComponent
 			this.logMessage("		And the mode index 1 is legitimate");
 			if (index > maxMode) {
 				this.logMessage("	but was not");
-				this.statistics.failedCondition();
+				statistics.failedCondition();
 			}
 			this.logMessage("	When I call setMode(1)");
 			this.logMessage("	Then the method returns true");
 			boolean setResult = outbound.setMode(index);
 			if (!setResult) {
 				this.logMessage("	but was false");
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 			this.logMessage("	And the current mode is 1");
 			result = outbound.currentMode();
 			if (result != index) {
 				this.logMessage("	but was: " + result);
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 
-			this.statistics.updateStatistics();
+			statistics.updateStatistics();
 
 			this.logMessage("Feature MAXIMIZE_POWER");
 			this.logMessage("	Scenario: set the mode index to the maximum");
@@ -1014,16 +1243,16 @@ extends		AbstractComponent
 			setResult = outbound.setMode(maxMode);
 			if (!setResult) {
 				this.logMessage("	but was false");
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 			this.logMessage("		And the current mode is max mode");
 			result = outbound.currentMode();
 			if (result == maxMode) {
 				this.logMessage("	but was not: " + result);
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 
-			this.statistics.updateStatistics();
+			statistics.updateStatistics();
 
 			this.logMessage("Feature: Getting the power consumption given a mode");
 			this.logMessage("  Scenario: getting the power consumption of the maximum mode");
@@ -1032,7 +1261,7 @@ extends		AbstractComponent
 			double modeConsumption = outbound.getModeConsumption(maxMode);
 			this.logMessage("    Then the result is the maximum power consumption of the heater");
 
-			this.statistics.updateStatistics();
+			statistics.updateStatistics();
 
 			this.logMessage("Feature: suspending and resuming");
 			this.logMessage("  Scenario: checking if suspended when not");
@@ -1043,10 +1272,10 @@ extends		AbstractComponent
 			this.logMessage("    Then it is not");
 			if (suspendedResult) {
 				this.logMessage("      but it was!");
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 
-			this.statistics.updateStatistics();
+			statistics.updateStatistics();
 
 			this.logMessage("  Scenario: suspending");
 			this.logMessage("    Given the heat pump is turned on");
@@ -1056,16 +1285,16 @@ extends		AbstractComponent
 			this.logMessage("    Then the method returns true");
 			if (!suspendedResult) {
 				this.logMessage("      but was false");
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 			this.logMessage("    And the heat pump is suspended");
 			suspendedResult = outbound.suspended();
 			if (!suspendedResult) {
 				this.logMessage("      but it was not!");
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 
-			this.statistics.updateStatistics();
+			statistics.updateStatistics();
 
 			this.logMessage("  Scenario: checking the emergency");
 			this.logMessage("    Given the heat pump is turned on");
@@ -1075,10 +1304,10 @@ extends		AbstractComponent
 			this.logMessage("    Then the emergency is between 0.0 and 1.0");
 			if (emergencyResult < 0.0 || emergencyResult > 1.0) {
 				this.logMessage("      but was: " + emergencyResult);
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 
-			this.statistics.updateStatistics();
+			statistics.updateStatistics();
 
 			this.logMessage("  Scenario: resuming");
 			this.logMessage("    Given the heat pump is turned on");
@@ -1088,16 +1317,16 @@ extends		AbstractComponent
 			this.logMessage("    Then the method returns true");
 			if (!resumeResult) {
 				this.logMessage("      but was false");
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 			this.logMessage("    And the heat pump is not suspended");
 			suspendedResult = outbound.suspended();
 			if (suspendedResult) {
 				this.logMessage("      but it was!");
-				this.statistics.incorrectResult();
+				statistics.incorrectResult();
 			}
 
-			this.statistics.updateStatistics();
+			statistics.updateStatistics();
 
 
 
@@ -1105,7 +1334,7 @@ extends		AbstractComponent
 			e.printStackTrace();
 		}
 
-		this.statistics.statisticsReport(this);
+		statistics.statisticsReport(this);
 
 		this.logMessage("Heat pump tests end");
 	}

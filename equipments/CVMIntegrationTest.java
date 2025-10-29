@@ -44,51 +44,52 @@ import equipments.dimmerlamp.connections.DimmerLampUserConnector;
 import equipments.dimmerlamp.test.DimmerLampTester;
 import equipments.hem.HEM;
 import equipments.hem.RegistrationConnector;
-import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.cvm.AbstractCVM;
 import fr.sorbonne_u.components.exceptions.BCMException;
+import fr.sorbonne_u.components.hem2025e1.equipments.batteries.Batteries;
+import fr.sorbonne_u.components.hem2025e1.equipments.generator.Generator;
 import fr.sorbonne_u.components.hem2025e1.equipments.hairdryer.HairDryer;
 import fr.sorbonne_u.components.hem2025e1.equipments.hairdryer.HairDryerTester;
 import fr.sorbonne_u.components.hem2025e1.equipments.heater.Heater;
 import fr.sorbonne_u.components.hem2025e1.equipments.heater.HeaterUnitTester;
 import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeter;
+import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.SolarPanel;
 import fr.sorbonne_u.exceptions.AssertionChecking;
 import fr.sorbonne_u.exceptions.InvariantException;
 import fr.sorbonne_u.exceptions.PreconditionException;
 import fr.sorbonne_u.utils.aclocks.ClocksServer;
-
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
+import fr.sorbonne_u.components.AbstractComponent;
 
 // -----------------------------------------------------------------------------
-
 /**
  * The class <code>CVMIntegrationTest</code> defines the integration test
  * for the household energy management example.
  *
  * <p><strong>Description</strong></p>
- * 
+ *
  * <p><strong>Implementation Invariants</strong></p>
- * 
+ *
  * <pre>
  * invariant	{@code true}	// no more invariant
  * </pre>
- * 
+ *
  * <p><strong>Invariants</strong></p>
- * 
+ *
  * <pre>
  * invariant	{@code CLOCK_URI != null && !CLOCK_URI.isEmpty()}
  * invariant	{@code DELAY_TO_START_IN_MILLIS >= 0}
  * invariant	{@code ACCELERATION_FACTOR > 0.0}
  * invariant	{@code START_INSTANT != null}
  * </pre>
- * 
+ *
  * <p>Created on : 2021-09-10</p>
- * 
+ *
  * @author	<a href="mailto:Jacques.Malenfant@lip6.fr">Jacques Malenfant</a>
  */
-public class CVMIntegrationTest
-extends		AbstractCVM
+public class			CVMIntegrationTest
+		extends		AbstractCVM
 {
 	/** for integration tests, a {@code Clock} is used to get a
 	 *  time-triggered synchronisation of the actions of the components
@@ -102,7 +103,9 @@ extends		AbstractCVM
 	public static final double	ACCELERATION_FACTOR = 1.0;
 	/** start instant in test scenarios, as a string to be parsed.			*/
 	public static final Instant	START_INSTANT =
-									Instant.parse("2024-09-18T14:00:00.00Z");
+			Instant.parse("2024-09-18T14:00:00.00Z");
+	/** number of square meters in the test solar panel.					*/
+	public static final int	NB_OF_SQUARE_METERS = 10;
 
 	public static final String COMPRESSOR_INBOUND_URI = "COMPRESSOR-INBOUND-URI";
 
@@ -249,6 +252,18 @@ extends		AbstractCVM
 				new Object[]{});
 
 		AbstractComponent.createComponent(
+				Batteries.class.getCanonicalName(),
+				new Object[]{});
+
+		AbstractComponent.createComponent(
+				SolarPanel.class.getCanonicalName(),
+				new Object[]{NB_OF_SQUARE_METERS});
+
+		AbstractComponent.createComponent(
+				Generator.class.getCanonicalName(),
+				new Object[]{});
+
+		AbstractComponent.createComponent(
 				HairDryer.class.getCanonicalName(),
 				new Object[]{});
 		// At this stage, the tester for the hair dryer is added only
@@ -268,10 +283,6 @@ extends		AbstractCVM
 		AbstractComponent.createComponent(
 				HeaterUnitTester.class.getCanonicalName(),
 				new Object[]{false});
-
-		AbstractComponent.createComponent(
-				HEM.class.getCanonicalName(),
-				new Object[]{});
 
 		AbstractComponent.createComponent(
 				Compressor.class.getCanonicalName(),
@@ -322,13 +333,16 @@ extends		AbstractCVM
 						DimmerLampExternalConnector.class
 				});	// is unit test
 
+		AbstractComponent.createComponent(
+				HEM.class.getCanonicalName(),
+				new Object[]{});
+
 		super.deploy();
 	}
 
 	public static void	main(String[] args)
 	{
 		BCMException.VERBOSE = true;
-		HairDryerTester.EXCEPTIONS_VERBOSE = true;
 		try {
 			CVMIntegrationTest cvm = new CVMIntegrationTest();
 			cvm.startStandardLifeCycle(20000L);
