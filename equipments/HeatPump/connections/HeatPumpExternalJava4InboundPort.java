@@ -1,6 +1,6 @@
 package equipments.HeatPump.connections;
 
-import equipments.HeatPump.interfaces.HeatPumpExternalJava4CI;;
+import equipments.HeatPump.interfaces.HeatPumpExternalJava4CI;
 import equipments.HeatPump.powerRepartitionPolicy.PowerRepartitionPolicyI;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.alasca.physical_data.MeasurementUnit;

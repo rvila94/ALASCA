@@ -7,10 +7,14 @@ import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.alasca.physical_data.SignalData;
 import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.annotations.OfferedInterfaces;
+import fr.sorbonne_u.components.annotations.RequiredInterfaces;
 import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
-import equipments.oven.connections.OvenExternalControlInboundPort;
+import fr.sorbonne_u.components.exceptions.ComponentStartException;
+import fr.sorbonne_u.components.hem2025.bases.RegistrationCI;
+import equipments.hem.RegistrationOutboundPort;
+import equipments.oven.connections.OvenExternalControlJava4InboundPort;
 import equipments.oven.connections.OvenInternalControlInboundPort;
-import equipments.oven.connections.OvenUserInboundPort;
+import equipments.oven.connections.OvenUserJava4InboundPort;
 import fr.sorbonne_u.exceptions.AssertionChecking;
 import fr.sorbonne_u.exceptions.ImplementationInvariantException;
 import fr.sorbonne_u.exceptions.InvariantException;
@@ -58,10 +62,14 @@ import fr.sorbonne_u.exceptions.PreconditionException;
  * @author	<a href="mailto:Rodrigo.Vila@etu.sorbonne-universite.fr">Rodrigo Vila</a>
  * @author	<a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
  */
-@OfferedInterfaces(offered={OvenUserCI.class, OvenInternalControlCI.class, OvenExternalControlCI.class})
+@RequiredInterfaces(required = RegistrationCI.class)
+@OfferedInterfaces(offered={OvenUserJava4CI.class, 
+		OvenInternalControlCI.class, 
+		OvenExternalControlJava4CI.class})
 public class			Oven
 extends		AbstractComponent
-implements	OvenUserI, OvenInternalControlI
+implements	OvenUserI, 
+			OvenInternalControlI
 {
 	// -------------------------------------------------------------------------
 	// Inner types
@@ -124,11 +132,20 @@ implements	OvenUserI, OvenInternalControlI
 	public static final String USER_INBOUND_PORT_URI = "OVEN-USER-INBOUND-PORT-URI";
 	public static final String INTERNAL_CONTROL_INBOUND_PORT_URI = "OVEN-INTERNAL-CONTROL-INBOUND-PORT-URI";
 	public static final String EXTERNAL_CONTROL_INBOUND_PORT_URI = "OVEN-EXTERNAL-CONTROL-INBOUND-PORT-URI";
-
+	
+	public static final String EQUIPMENT_UID = "1A10026";
+	
+	protected static final String PATH_TO_CONNECTOR_DESCRIPTOR = "src/connectorGenerator/ovenci-descriptor.xml";
+	
 	/** Inbound ports. */
-	protected OvenUserInboundPort ouip;
+	protected OvenUserJava4InboundPort ouip;
 	protected OvenInternalControlInboundPort oicip;
-	protected OvenExternalControlInboundPort oecip;
+	protected OvenExternalControlJava4InboundPort oecip;
+	
+	/** Registration**/
+	protected RegistrationOutboundPort registrationOutboundPort;
+    protected String registrationHEMURI;
+    protected String registrationHEMConnectorClassName;
 
 	/** Tracing. */
 	public static boolean VERBOSE = false;
@@ -151,6 +168,8 @@ implements	OvenUserI, OvenInternalControlI
 	protected OvenMode currentMode;
 	protected SignalData<Double> currentPowerLevel;
 	protected Measure<Double> targetTemperature;
+	
+	protected boolean isUnitTest;
 
 	// -------------------------------------------------------------------------
 	// Invariants
@@ -304,6 +323,7 @@ implements	OvenUserI, OvenInternalControlI
 			) throws Exception 
 	{
 		super(1, 0);
+		this.isUnitTest = true;
 		this.initialise(userInboundPortURI, internalControlInboundPortURI, externalControlInboundPortURI);
 	}
 	
@@ -334,11 +354,62 @@ implements	OvenUserI, OvenInternalControlI
 			) throws Exception 
 	{
 		super(reflectionInboundPortURI, 1, 0);
+		this.isUnitTest = true;
 		this.initialise(userInboundPortURI, internalControlInboundPortURI, externalControlInboundPortURI);
 	}
 	
 	/**
-	 * create a new oven.
+	 * create a new oven integrated with the HEM.
+	 *
+	 * <p><strong>Description</strong></p>
+	 * 
+	 * <p>
+	 * This constructor creates an oven component that will automatically
+	 * register itself into the Home Energy Manager upon activation.
+	 * It sets up all inbound ports for user, internal, and external
+	 * control, as well as the outbound registration port for the HEM.
+	 * </p>
+	 *
+	 * <p><strong>Contract</strong></p>
+	 *
+	 * <pre>
+	 * pre  {@code reflectionInboundPortURI != null && !reflectionInboundPortURI.isEmpty()}
+	 * pre  {@code userInboundPortURI != null && !userInboundPortURI.isEmpty()}
+	 * pre  {@code internalControlInboundPortURI != null && !internalControlInboundPortURI.isEmpty()}
+	 * pre  {@code externalControlInboundPortURI != null && !externalControlInboundPortURI.isEmpty()}
+	 * pre  {@code registrationHEMURI != null && !registrationHEMURI.isEmpty()}
+	 * pre  {@code registrationHEMConnectorClassName != null && !registrationHEMConnectorClassName.isEmpty()}
+	 * post {@code true} // no postcondition.
+	 * </pre>
+	 *
+	 * @param reflectionInboundPortURI        URI of the reflection inbound port of the component.
+	 * @param userInboundPortURI              URI of the inbound port to call the oven component for user interactions.
+	 * @param internalControlInboundPortURI   URI of the inbound port to call the oven component for internal control.
+	 * @param externalControlInboundPortURI   URI of the inbound port to call the oven component for external control.
+	 * @param registrationHEMURI              URI of the registration inbound port of the Home Energy Manager.
+	 * @param registrationHEMConnectorClassName canonical name of the connector class used for the registration link.
+	 * @throws Exception                      <i>to do</i>.
+	 */
+	protected Oven(
+		    String reflectionInboundPortURI,
+		    String userInboundPortURI,
+		    String internalControlInboundPortURI,
+		    String externalControlInboundPortURI,
+		    String registrationHEMURI,
+		    String registrationHEMConnectorClassName
+		) throws Exception {
+		    super(reflectionInboundPortURI, 1, 0);
+		    this.isUnitTest = false;
+		    this.initialise(userInboundPortURI, internalControlInboundPortURI, externalControlInboundPortURI);
+
+		    this.registrationOutboundPort = new RegistrationOutboundPort(this);
+		    this.registrationOutboundPort.publishPort();
+		    this.registrationHEMURI = registrationHEMURI;
+		    this.registrationHEMConnectorClassName = registrationHEMConnectorClassName;
+	}
+	
+	/**
+	 * initialize a new oven.
 	 * 
 	 * <p><strong>Contract</strong></p>
 	 * 
@@ -369,11 +440,11 @@ implements	OvenUserI, OvenInternalControlI
 		this.currentPowerLevel = new SignalData<>(new Measure<>(0.0, POWER_UNIT));
 		this.targetTemperature = new Measure<>(0.0, TEMPERATURE_UNIT);
 
-		this.ouip = new OvenUserInboundPort(ovenUserInboundPortURI, this);
+		this.ouip = new OvenUserJava4InboundPort(ovenUserInboundPortURI, this);
 		this.ouip.publishPort();
 		this.oicip = new OvenInternalControlInboundPort(ovenInternalControlInboundPortURI, this);
 		this.oicip.publishPort();
-		this.oecip = new OvenExternalControlInboundPort(ovenExternalControlInboundPortURI, this);
+		this.oecip = new OvenExternalControlJava4InboundPort(ovenExternalControlInboundPortURI, this);
 		this.oecip.publishPort();
 
 		if (VERBOSE) {
@@ -395,16 +466,51 @@ implements	OvenUserI, OvenInternalControlI
 	// -------------------------------------------------------------------------
 
 	@Override
-	public synchronized void shutdown() throws ComponentShutdownException {
-		try {
-			this.ouip.unpublishPort();
-			this.oicip.unpublishPort();
-			this.oecip.unpublishPort();
-		} catch (Throwable e) {
-			throw new ComponentShutdownException(e);
-		}
-		super.shutdown();
+	public synchronized void start() throws ComponentStartException {
+	    super.start();
+
+	    try {
+	        if (!this.isUnitTest) {
+	            // Connexion au HEM via le port d’enregistrement
+	            this.doPortConnection(
+	                    this.registrationOutboundPort.getPortURI(),
+	                    this.registrationHEMURI,
+	                    this.registrationHEMConnectorClassName
+	            );
+	        }
+
+	    } catch (Exception e) {
+	        throw new ComponentStartException(e);
+	    }
 	}
+	
+	@Override
+	public synchronized void finalise() throws Exception {
+	    if (!this.isUnitTest) {
+	        this.doPortDisconnection(this.registrationOutboundPort.getPortURI());
+	    }
+
+	    super.finalise();
+	}
+
+	@Override
+	public synchronized void shutdown() throws ComponentShutdownException {
+	    try {
+	        if (!this.isUnitTest) {
+	            this.registrationOutboundPort.unpublishPort();
+	        }
+
+	        this.ouip.unpublishPort();
+	        this.oicip.unpublishPort();
+	        this.oecip.unpublishPort();
+
+	    } catch (Exception e) {
+	        throw new ComponentShutdownException(e);
+	    }
+
+	    super.shutdown();
+	}
+
 
 	// -------------------------------------------------------------------------
 	// Component services implementation
@@ -428,8 +534,19 @@ implements	OvenUserI, OvenInternalControlI
 		}
 
 		assert	!this.on() : new PreconditionException("!on()");
-
+		
 		this.currentState = OvenState.ON;
+		
+		if (!this.isUnitTest) {
+	        boolean registration = this.registrationOutboundPort.register(
+	            EQUIPMENT_UID,
+	            this.oecip.getPortURI(),
+	            PATH_TO_CONNECTOR_DESCRIPTOR
+	        );
+	        if (Oven.VERBOSE) {
+	            this.traceMessage("Oven registered to HEM: " + registration + "\n");
+	        }
+	    }
 
 		assert	 this.on() : new PostconditionException("on()");
 	}
@@ -449,6 +566,14 @@ implements	OvenUserI, OvenInternalControlI
 		
 		this.currentMode  = OvenMode.CUSTOM;
 		this.currentState = OvenState.OFF;
+		
+		if (!this.isUnitTest) {
+	        this.registrationOutboundPort.unregister(EQUIPMENT_UID);
+
+	        if (Oven.VERBOSE) {
+	            this.traceMessage("Oven unregistered from HEM.\n");
+	        }
+	    }
 
 		assert	 !this.on() : new PostconditionException("!on()");
 		assert getMode() == OvenMode.CUSTOM :

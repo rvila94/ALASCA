@@ -36,6 +36,8 @@ import connectorGenerator.ConnectorConfigurationParser;
 import equipments.CVMIntegrationTest;
 import equipments.HeatPump.HeatPump;
 import equipments.HeatPump.Test.HeatPumpTester;
+import equipments.oven.Oven;
+import equipments.oven.OvenUnitTester;
 import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.annotations.OfferedInterfaces;
 import fr.sorbonne_u.components.annotations.RequiredInterfaces;
@@ -58,6 +60,7 @@ import fr.sorbonne_u.components.hem2025e1.equipments.generator.connections.Gener
 import fr.sorbonne_u.components.hem2025e1.equipments.generator.connections.GeneratorOutboundPort;
 import fr.sorbonne_u.components.hem2025e1.equipments.heater.Heater;
 import fr.sorbonne_u.components.hem2025e1.equipments.heater.HeaterUnitTester;
+import fr.sorbonne_u.components.hem2025e1.equipments.hem.AdjustableOutboundPort;
 import fr.sorbonne_u.components.hem2025e1.equipments.meter.*;
 import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.SolarPanel;
 import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.SolarPanelCI;
@@ -138,7 +141,7 @@ public class			HEM
 	 *  it register itself as an adjustable appliance.						*/
 	protected boolean						isPreFirstStep;
 	/** port to connect to the heater when managed in a customised way.		*/
-	protected AdjustableOutboundPort heaterop;
+	protected AdjustableOutboundPort heaterop;	
 
 	/** when true, this implementation of the HEM performs the tests
 	 *  that are planned in the method execute.								*/
@@ -357,7 +360,8 @@ public class			HEM
 			this.logMessage("Generator tests end.");
 			if (this.isPreFirstStep) {
 				this.scheduleTestHeater();
-				this.scheduleTestHeatPump();
+				//this.scheduleTestHeatPump();
+				this.scheduleTestOven();
 			}
 		}
 
@@ -431,7 +435,6 @@ public class			HEM
 			String controlPortURI,
 			String xmlControlAdapter
 	) throws Exception {
-
 		assert uid != null && ! uid.isEmpty():
 				new PreconditionException("uid == null || uid.isEmpty()");
 		assert controlPortURI != null && !controlPortURI.isEmpty():
@@ -444,19 +447,17 @@ public class			HEM
 		boolean res;
 
 		try {
-
 			ConnectorConfigurationParser.ClassFromXml(uid, AdjustableCI.class, xmlControlAdapter);
-
 			AdjustableOutboundPort newOutboundPort = new AdjustableOutboundPort(this);
 			newOutboundPort.publishPort();
-
 			this.doPortConnection(
 					newOutboundPort.getPortURI(),
 					controlPortURI,
 					uid
 			);
-
 			this.registrationTable.put(uid, newOutboundPort);
+			
+
 
 			res = true;
 		} catch (Exception e) {
@@ -980,6 +981,314 @@ public class			HEM
 						try {
 							testHeater();
 						} catch (Throwable e) {
+							throw new BCMRuntimeException(e) ;
+						}
+					}
+				}, delay, TimeUnit.NANOSECONDS);
+	}
+	
+	/**
+	 * test the oven.
+	 * 
+	 * <p><strong>Gherkin specification</strong></p>
+	 * 
+	 * <pre>
+	 * Feature: adjustable appliance mode management
+	 *   Scenario: getting the max mode index
+	 *     Given the oven has just been turned on
+	 *     When I call maxMode()
+	 *     Then the result is its max mode index
+	 *   Scenario: getting the current mode index
+	 *     Given the oven has just been turned on
+	 *     When I call currentMode()
+	 *     Then the current mode is 2 (custom)
+	 *   Scenario: going down one mode index
+	 *     Given the oven is turned on
+	 *     And the current mode index is the second mode index
+	 *     When I call downMode()
+	 *     Then the method returns true
+	 *     And the current mode is the first mode index
+	 *   Scenario: going up one mode index
+	 *     Given the oven is turned on
+	 *     And the current mode index is first mode index
+	 *     When I call upMode()
+	 *     Then the method returns true
+	 *     And the current mode is the second mode index
+	 *   Scenario: setting the mode index
+	 *     Given the oven is turned on
+	 *     And the mode index 1 is legitimate
+	 *     When I call setMode(1)
+	 *     Then the method returns true
+	 *     And the current mode is 1
+	 * Feature: Getting the power consumption given a mode
+	 *   Scenario: getting the power consumption of the defrost mode
+	 *     Given the oven is turned on
+	 *     When I get the power consumption of the first mode (defrost)
+	 *     Then the result is the power consumption of the ovenor the defrost mode
+	 * Feature: suspending and resuming
+	 *   Scenario: checking if suspended when not
+	 *     Given the oven is turned on
+	 *     And it has not been suspended yet
+	 *     When I check if suspended
+	 *     Then it is not
+	 *   Scenario: suspending
+	 *     Given the oven is turned on
+	 *     And it is not suspended
+	 *     When I call suspend()
+	 *     Then the method returns true
+	 *     And the oven is suspended
+	 *   Scenario: checking the emergency
+	 *     Given the oven is turned on
+	 *     And it has just been suspended
+	 *     When I call emergency()
+	 *     Then the emergency is between 0.0 and 1.0
+	 *   Scenario: resuming
+	 *     Given the oven is turned on
+	 *     And it is suspended
+	 *     When I call resume()
+	 *     Then the method returns true
+	 *     And the oven is not suspended
+	 * </pre>
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * pre	{@code true}	// no precondition.
+	 * post	{@code true}	// no postcondition.
+	 * </pre>
+	 *
+	 * @throws Exception	<i>to do</i>.
+	 */
+	protected void		testOven() throws Exception
+	{
+		AdjustableOutboundPort ovenop = this.registrationTable.get(Oven.EQUIPMENT_UID);
+		
+		this.logMessage("Oven tests start.");
+		TestsStatistics statistics = new TestsStatistics();
+		try {
+			this.logMessage("Feature: adjustable appliance mode management");
+			this.logMessage("  Scenario: getting the max mode index");
+			this.logMessage("    Given the Oven has just been turned on");
+			this.logMessage("    When I call maxMode()");
+			this.logMessage("    Then the result is its max mode index");
+			final int maxMode = ovenop.maxMode();
+			if (maxMode != 3) {
+				this.logMessage("      but was: " + maxMode + " instead of 3");
+				statistics.incorrectResult();
+			}
+
+			statistics.updateStatistics();
+
+			this.logMessage("  Scenario: getting the current mode index");
+			this.logMessage("    Given the oven has just been turned on");
+			this.logMessage("    When I call currentMode()");
+			this.logMessage("    Then the current mode is its mode 2 (custom)");
+			int result = ovenop.currentMode();
+			if (result != 2) {
+				this.logMessage("      but was: " + result);
+				statistics.incorrectResult();
+			}
+
+			statistics.updateStatistics();
+
+			this.logMessage("  Scenario: going down one mode index");
+			this.logMessage("    Given the oven is turned on");
+			this.logMessage("    And the current mode index is the second mode index");
+			result = ovenop.currentMode();
+			if (result != 2) {
+				this.logMessage("      but was: " + result);
+				statistics.failedCondition();
+			}
+			this.logMessage("    When I call downMode()");
+			this.logMessage("    Then the method returns true");
+			boolean bResult = ovenop.downMode();
+			if (!bResult) {
+				this.logMessage("      but was: " + bResult);
+				statistics.incorrectResult();
+			}
+			this.logMessage("    And the current mode is the first mode index");
+			result = ovenop.currentMode();
+			if (result != 1) {
+				this.logMessage("      but was: " + result);
+				statistics.incorrectResult();
+			}
+
+			statistics.updateStatistics();
+
+			this.logMessage("  Scenario: going up one mode index");
+			this.logMessage("    Given the oven is turned on");
+			this.logMessage("    And the current mode index is the first mode index");
+			result = ovenop.currentMode();
+			if (result != 1) {
+				this.logMessage("      but was: " + result);
+				statistics.failedCondition();
+			}
+			this.logMessage("    When I call upMode()");
+			this.logMessage("    Then the method returns true");
+			bResult = ovenop.upMode();
+			if (!bResult) {
+				this.logMessage("      but was: " + bResult);
+				statistics.incorrectResult();
+			}
+			this.logMessage("    And the current mode is 2");
+			result = ovenop.currentMode();
+			if (result != 2) {
+				this.logMessage("      but was: " + result);
+				statistics.incorrectResult();
+			}
+
+			statistics.updateStatistics();
+
+			this.logMessage("  Scenario: setting the mode index");
+			this.logMessage("    Scenario: setting the mode index");
+			int index = 1;
+			this.logMessage("    And the mode index 1 is legitimate");
+			if (index > maxMode) {
+				this.logMessage("      but was not!");
+				statistics.failedCondition();
+			}
+			this.logMessage("    When I call setMode(1)");
+			this.logMessage("    Then the method returns true");
+			bResult = ovenop.setMode(1);
+			if (!bResult) {
+				this.logMessage("      but was: " + bResult);
+				statistics.incorrectResult();
+			}
+			this.logMessage("    And the current mode is 1");
+			result = ovenop.currentMode();
+			if (result != 1) {
+				this.logMessage("      but was: " + result);
+				statistics.incorrectResult();
+			}
+
+			statistics.updateStatistics();
+
+			this.logMessage("Feature: Getting the power consumption given a mode");
+			this.logMessage("  Scenario: getting the power consumption of the first mode (defrost)");
+			this.logMessage("    Given the oven is turned on");
+			this.logMessage("    When I get the power consumption of the defrost mode");
+			double dResult = ovenop.getModeConsumption(maxMode);
+			this.logMessage("    Then the result is the power consumption of the oven in defrost mode");
+
+			statistics.updateStatistics();
+
+			this.logMessage("Feature: suspending and resuming");
+			this.logMessage("  Scenario: checking if suspended when not");
+			this.logMessage("    Given the oven is turned on");
+			this.logMessage("    And it has not been suspended yet");
+			this.logMessage("    When I check if suspended");
+			bResult = ovenop.suspended();
+			this.logMessage("    Then it is not");
+			if (bResult) {
+				this.logMessage("      but it was!");
+				statistics.incorrectResult();
+			}
+
+			statistics.updateStatistics();
+
+			this.logMessage("  Scenario: suspending");
+			this.logMessage("    Given the oven is turned on");
+			this.logMessage("    And it is not suspended");
+			bResult = ovenop.suspended();
+			if (bResult) {
+				this.logMessage("      but it was!");
+				statistics.failedCondition();;
+			}
+			this.logMessage("    When I call suspend()");
+			bResult = ovenop.suspend();
+			this.logMessage("    Then the method returns true");
+			if (!bResult) {
+				this.logMessage("      but was: " + bResult);
+				statistics.incorrectResult();
+			}
+			this.logMessage("    And the oven is suspended");
+			bResult = ovenop.suspended();
+			if (!bResult) {
+				this.logMessage("      but it was not!");
+				statistics.incorrectResult();
+			}
+
+			statistics.updateStatistics();
+
+			this.logMessage("  Scenario: checking the emergency");
+			this.logMessage("    Given the oven is turned on");
+			this.logMessage("    And it has just been suspended");
+			bResult = ovenop.suspended();
+			if (!bResult) {
+				this.logMessage("      but it was not!");
+				statistics.failedCondition();;
+			}
+			this.logMessage("    When I call emergency()");
+			dResult = ovenop.emergency();
+			this.logMessage("    Then the emergency is between 0.0 and 1.0");
+			if (dResult < 0.0 || dResult > 1.0) {
+				this.logMessage("      but was: " + dResult);
+				statistics.incorrectResult();
+			}
+
+			statistics.updateStatistics();
+
+			this.logMessage("  Scenario: resuming");
+			this.logMessage("    Given the oven is turned on");
+			this.logMessage("    And it is suspended");
+			bResult = ovenop.suspended();
+			if (!bResult) {
+				this.logMessage("      but it was not!");
+				statistics.failedCondition();;
+			}
+			this.logMessage("    When I call resume()");
+			bResult = ovenop.resume();
+			this.logMessage("    Then the method returns true");
+			if (!bResult) {
+				this.logMessage("      but was: " + bResult);
+				statistics.incorrectResult();
+			}
+			this.logMessage("    And the oven is not suspended");
+			bResult = ovenop.suspended();
+			if (bResult) {
+				this.logMessage("      but it was!");
+				statistics.incorrectResult();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		statistics.updateStatistics();
+		statistics.statisticsReport(this);
+
+		this.logMessage("Oven tests end.");
+	}
+	
+	/**
+	 * test the {@code Heater} component, in cooperation with the
+	 * {@code HeaterTester} component.
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * pre	{@code true}	// no precondition.
+	 * post	{@code true}	// no postcondition.
+	 * </pre>
+	 *
+	 */
+	protected void		scheduleTestOven()
+	{
+		// Test for the oven
+		Instant ovenTestStart =
+				this.ac.getStartInstant().plusSeconds(
+							(OvenUnitTester.SWITCH_ON_DELAY +
+											OvenUnitTester.SWITCH_OFF_DELAY)/2);
+		this.traceMessage("HEM schedules the oven test.\n");
+		long delay = this.ac.nanoDelayUntilInstant(ovenTestStart);
+
+		// schedule the switch on oven in one second
+		this.scheduleTaskOnComponent(
+				new AbstractTask() {
+					@Override
+					public void run() {
+						try {
+							testOven();
+						} catch (Exception e) {
 							throw new BCMRuntimeException(e) ;
 						}
 					}

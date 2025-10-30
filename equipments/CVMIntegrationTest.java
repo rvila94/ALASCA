@@ -42,8 +42,13 @@ import equipments.dimmerlamp.DimmerLamp;
 import equipments.dimmerlamp.connections.DimmerLampExternalConnector;
 import equipments.dimmerlamp.connections.DimmerLampUserConnector;
 import equipments.dimmerlamp.test.DimmerLampTester;
+import equipments.fan.Fan;
+import equipments.fan.FanTester;
 import equipments.hem.HEM;
 import equipments.hem.RegistrationConnector;
+import equipments.oven.Oven;
+import equipments.oven.OvenUnitTester;
+import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.cvm.AbstractCVM;
 import fr.sorbonne_u.components.exceptions.BCMException;
 import fr.sorbonne_u.components.hem2025e1.equipments.batteries.Batteries;
@@ -190,33 +195,86 @@ public class			CVMIntegrationTest
 	public CVMIntegrationTest() throws Exception
 	{
 		// Trace and trace window positions
+		// -------------------------------------------------------------------------
+		// Trace and trace window positions
+		// -------------------------------------------------------------------------
+
 		ClocksServer.VERBOSE = true;
 		ClocksServer.X_RELATIVE_POSITION = 0;
 		ClocksServer.Y_RELATIVE_POSITION = 0;
+
 		HEM.VERBOSE = true;
-		HEM.X_RELATIVE_POSITION = 0;
-		HEM.Y_RELATIVE_POSITION = 1;
+		HEM.X_RELATIVE_POSITION = 1;
+		HEM.Y_RELATIVE_POSITION = 0;
+
 		ElectricMeter.VERBOSE = true;
-		ElectricMeter.X_RELATIVE_POSITION = 1;
-		ElectricMeter.Y_RELATIVE_POSITION = 1;
+		ElectricMeter.X_RELATIVE_POSITION = 2;
+		ElectricMeter.Y_RELATIVE_POSITION = 0;
+		
+		// Ligne 2 : chauffage et four
+		HeaterUnitTester.VERBOSE = true;
+		HeaterUnitTester.X_RELATIVE_POSITION = 0;
+		HeaterUnitTester.Y_RELATIVE_POSITION = 1;
+
+		Heater.VERBOSE = true;
+		Heater.X_RELATIVE_POSITION = 1;
+		Heater.Y_RELATIVE_POSITION = 1;
+		
+		OvenUnitTester.VERBOSE = true;
+		OvenUnitTester.X_RELATIVE_POSITION = 2;
+		OvenUnitTester.Y_RELATIVE_POSITION = 1;
+
+		Oven.VERBOSE = true;
+		Oven.X_RELATIVE_POSITION = 3;
+		Oven.Y_RELATIVE_POSITION = 1;
+
+		// Ligne 3 : sèche-cheveux et ventilateur
 		HairDryerTester.VERBOSE = true;
 		HairDryerTester.X_RELATIVE_POSITION = 0;
 		HairDryerTester.Y_RELATIVE_POSITION = 2;
+
 		HairDryer.VERBOSE = true;
 		HairDryer.X_RELATIVE_POSITION = 1;
 		HairDryer.Y_RELATIVE_POSITION = 2;
-		HeaterUnitTester.VERBOSE = true;
-		HeaterUnitTester.X_RELATIVE_POSITION = 0;
-		HeaterUnitTester.Y_RELATIVE_POSITION = 3;
-		Heater.VERBOSE = true;
-		Heater.X_RELATIVE_POSITION = 1;
-		Heater.Y_RELATIVE_POSITION = 3;
-		HeatPump.VERBOSE = true;
-		HeatPump.X_RELATIVE_POSITION = 2;
-		HeatPump.Y_RELATIVE_POSITION = 0;
+
+		FanTester.VERBOSE = true;
+		FanTester.X_RELATIVE_POSITION = 2;
+		FanTester.Y_RELATIVE_POSITION = 2;
+
+		Fan.VERBOSE = true;
+		Fan.X_RELATIVE_POSITION = 3;
+		Fan.Y_RELATIVE_POSITION = 2;
+
+		// Ligne 4 : lampe et pompe à chaleur
+		DimmerLampTester.VERBOSE = true;
+		DimmerLampTester.X_RELATIVE_POSITION = 2;
+		DimmerLampTester.Y_RELATIVE_POSITION = 3;
+
+		DimmerLamp.VERBOSE = true;
+		DimmerLamp.X_RELATIVE_POSITION = 3;
+		DimmerLamp.Y_RELATIVE_POSITION = 3;
+		
+
 		HeatPumpTester.VERBOSE = true;
-		HeatPumpTester.X_RELATIVE_POSITION = 3;
-		HeatPumpTester.Y_RELATIVE_POSITION = 0;
+		HeatPumpTester.X_RELATIVE_POSITION = 2;
+		HeatPumpTester.Y_RELATIVE_POSITION = 3;
+
+		HeatPump.VERBOSE = true;
+		HeatPump.X_RELATIVE_POSITION = 3;
+		HeatPump.Y_RELATIVE_POSITION = 3;
+		
+		// Ligne 5 : producteurs d'énergie
+		Batteries.VERBOSE = true;
+		Batteries.X_RELATIVE_POSITION = 0;
+		Batteries.Y_RELATIVE_POSITION = 4;
+
+		SolarPanel.VERBOSE = true;
+		SolarPanel.X_RELATIVE_POSITION = 1;
+		SolarPanel.Y_RELATIVE_POSITION = 4;
+
+		Generator.VERBOSE = true;
+		Generator.X_RELATIVE_POSITION = 2;
+		Generator.Y_RELATIVE_POSITION = 4;
 
 		assert	implementationInvariants(this) :
 				new InvariantException(
@@ -272,26 +330,23 @@ public class			CVMIntegrationTest
 		AbstractComponent.createComponent(
 				HairDryerTester.class.getCanonicalName(),
 				new Object[]{false});
+		
+		AbstractComponent.createComponent(
+				Fan.class.getCanonicalName(),
+				new Object[]{});
+		AbstractComponent.createComponent(
+				FanTester.class.getCanonicalName(),
+				new Object[]{false});
 
 		AbstractComponent.createComponent(
 				Heater.class.getCanonicalName(),
 				new Object[]{});
-
-		// At this stage, the tester for the heater is added only
-		// to switch on and off the heater; later on, it will be replaced
-		// by a simulation of users' actions.
 		AbstractComponent.createComponent(
 				HeaterUnitTester.class.getCanonicalName(),
 				new Object[]{false});
-
-		AbstractComponent.createComponent(
-				Compressor.class.getCanonicalName(),
-				new Object[]{COMPRESSOR_INBOUND_URI});
-
-		AbstractComponent.createComponent(
-				TemperatureSensor.class.getCanonicalName(),
-				new Object[]{SENSOR_INBOUND_URI});
-
+	
+// FIXME
+/**
 		AbstractComponent.createComponent(
 				HeatPump.class.getCanonicalName(),
 				new Object[]{
@@ -305,7 +360,6 @@ public class			CVMIntegrationTest
 						HEM.RegistrationHEMURI,
 						RegistrationConnector.class.getCanonicalName()
 				});
-
 		AbstractComponent.createComponent(
 				HeatPumpTester.class.getCanonicalName(),
 				new Object[]{
@@ -314,7 +368,7 @@ public class			CVMIntegrationTest
 						HEATPUMP_INTERNAL_INBOUND_URI,
 						HEATPUMP_EXTERNAL_INBOUND_URI
 				});	// is unit test
-
+		
 		AbstractComponent.createComponent(
 				DimmerLamp.class.getCanonicalName(),
 				new Object[]{
@@ -322,7 +376,6 @@ public class			CVMIntegrationTest
 						RegistrationConnector.class.getCanonicalName()
 				}
 		);
-
 		AbstractComponent.createComponent(
 				DimmerLampTester.class.getCanonicalName(),
 				new Object[]{
@@ -332,7 +385,21 @@ public class			CVMIntegrationTest
 						DimmerLampUserConnector.class,
 						DimmerLampExternalConnector.class
 				});	// is unit test
-
+**/
+		
+		AbstractComponent.createComponent(
+			    Oven.class.getCanonicalName(),
+			    new Object[]{
+			        Oven.REFLECTION_INBOUND_PORT_URI,
+			        Oven.USER_INBOUND_PORT_URI,
+			        Oven.INTERNAL_CONTROL_INBOUND_PORT_URI,
+			        Oven.EXTERNAL_CONTROL_INBOUND_PORT_URI,
+			        HEM.RegistrationHEMURI,
+			        RegistrationConnector.class.getCanonicalName()});
+		AbstractComponent.createComponent(
+		    OvenUnitTester.class.getCanonicalName(),
+		    new Object[]{false});
+		
 		AbstractComponent.createComponent(
 				HEM.class.getCanonicalName(),
 				new Object[]{});
