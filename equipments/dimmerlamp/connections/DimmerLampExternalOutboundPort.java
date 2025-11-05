@@ -6,7 +6,7 @@ import fr.sorbonne_u.components.ComponentI;
 import fr.sorbonne_u.components.ports.AbstractOutboundPort;
 
 /**
- * The class <code>equipments.dimmerlamp.connections.DimmerLampExternalOutboundPort</code>.
+ * The class <code>connections.dimmerlamp.equipments.DimmerLampExternalOutboundPort</code>.
  *
  * <p><strong>Description</strong></p>
  *

@@ -1,11 +1,11 @@
 package equipments.oven.connections;
 
+import equipments.oven.OvenUserJava4CI;
 import fr.sorbonne_u.components.ComponentI;
 import fr.sorbonne_u.exceptions.PreconditionException;
 import equipments.oven.OvenUserI;
 import equipments.oven.Oven;
 import equipments.oven.OvenUserCI;
-import equipments.oven.OvenUserJava4CI;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 
 /**
@@ -33,7 +33,7 @@ import fr.sorbonne_u.alasca.physical_data.Measure;
  */
 public class			OvenUserJava4InboundPort
 extends		OvenUserInboundPort
-implements	OvenUserJava4CI
+implements OvenUserJava4CI
 {
 	// -------------------------------------------------------------------------
 	// Constants and variables
@@ -95,7 +95,7 @@ implements	OvenUserJava4CI
 	// -------------------------------------------------------------------------
 
 	/**
-	 * @see equipments.oven.OvenUserJava4CI#setTargetTemperatureJava4(double)
+	 * @see OvenUserJava4CI#setTargetTemperatureJava4(double)
 	 */
 	@Override
 	public void			setTargetTemperatureJava4(double target)
@@ -106,7 +106,7 @@ implements	OvenUserJava4CI
 	}
 
 	/**
-	 * @see equipments.oven.OvenUserJava4CI#getMaxPowerLevelJava4()
+	 * @see OvenUserJava4CI#getMaxPowerLevelJava4()
 	 */
 	@Override
 	public double		getMaxPowerLevelJava4() throws Exception
@@ -115,7 +115,7 @@ implements	OvenUserJava4CI
 	}
 
 	/**
-	 * @see equipments.oven.OvenUserJava4CI#setCurrentPowerLevelJava4(double)
+	 * @see OvenUserJava4CI#setCurrentPowerLevelJava4(double)
 	 */
 	@Override
 	public void			setCurrentPowerLevelJava4(double powerLevel)
@@ -126,7 +126,7 @@ implements	OvenUserJava4CI
 	}
 
 	/**
-	 * @see equipments.oven.OvenUserJava4CI#getCurrentPowerLevelJava4()
+	 * @see OvenUserJava4CI#getCurrentPowerLevelJava4()
 	 */
 	@Override
 	public double		getCurrentPowerLevelJava4() throws Exception
@@ -135,7 +135,7 @@ implements	OvenUserJava4CI
 	}
 
 	/**
-	 * @see equipments.oven.OvenUserJava4CI#getTargetTemperatureJava4()
+	 * @see OvenUserJava4CI#getTargetTemperatureJava4()
 	 */
 	@Override
 	public double		getTargetTemperatureJava4() throws Exception
@@ -144,7 +144,7 @@ implements	OvenUserJava4CI
 	}
 
 	/**
-	 * @see equipments.oven.OvenUserJava4CI#getCurrentTemperatureJava4()
+	 * @see OvenUserJava4CI#getCurrentTemperatureJava4()
 	 */
 	@Override
 	public double		getCurrentTemperatureJava4() throws Exception

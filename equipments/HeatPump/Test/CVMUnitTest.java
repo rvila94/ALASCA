@@ -7,11 +7,9 @@ import equipments.HeatPump.temperatureSensor.TemperatureSensor;
 import equipments.HeatPump.temperatureSensor.TemperatureSensorConnector;
 import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.cvm.AbstractCVM;
-import fr.sorbonne_u.components.hem2025e1.equipments.heater.Heater;
-import fr.sorbonne_u.components.hem2025e1.equipments.heater.HeaterUnitTester;
 
 /**
- * The class <code>equipments.HeatPump.Test.CVMUnitTest</code>.
+ * The class <code>Test.HeatPump.equipments.CVMUnitTest</code>.
  *
  * <p><strong>Description</strong></p>
  *

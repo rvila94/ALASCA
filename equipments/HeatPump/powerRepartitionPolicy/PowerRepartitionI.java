@@ -3,7 +3,7 @@ package equipments.HeatPump.powerRepartitionPolicy;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 
 /**
- * The class <code>equipments.HeatPump.powerRepartitionPolicy.PowerRepartitionI</code>.
+ * The class <code>powerRepartitionPolicy.HeatPump.equipments.PowerRepartitionI</code>.
  *
  * <p><strong>Description</strong></p>
  *

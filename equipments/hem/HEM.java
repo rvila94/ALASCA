@@ -61,7 +61,11 @@ import fr.sorbonne_u.components.hem2025e1.equipments.generator.connections.Gener
 import fr.sorbonne_u.components.hem2025e1.equipments.heater.Heater;
 import fr.sorbonne_u.components.hem2025e1.equipments.heater.HeaterUnitTester;
 import fr.sorbonne_u.components.hem2025e1.equipments.hem.AdjustableOutboundPort;
-import fr.sorbonne_u.components.hem2025e1.equipments.meter.*;
+import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeter;
+import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeterCI;
+import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeterConnector;
+import fr.sorbonne_u.components.hem2025e1.equipments.meter.connections.ElectricMeterOutboundPort;
+import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeterUnitTester;
 import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.SolarPanel;
 import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.SolarPanelCI;
 import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.SolarPanelUnitTester;
@@ -128,7 +132,7 @@ public class			HEM
 	public static int						Y_RELATIVE_POSITION = 0;
 
 	/** port to connect to the electric meter.								*/
-	protected ElectricMeterOutboundPort		meterop;
+	protected ElectricMeterOutboundPort meterop;
 
 	/** port to connect to the batteries.									*/
 	protected BatteriesOutboundPort batteriesop;

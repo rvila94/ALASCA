@@ -1,10 +1,9 @@
 package equipments.HeatPump.interfaces;
 
-import equipments.HeatPump.powerRepartitionPolicy.PowerRepartition;
 import equipments.HeatPump.powerRepartitionPolicy.PowerRepartitionPolicyI;
 
 /**
- * The class <code>equipments.HeatPump.interfaces.HeatPumpExternalJava4CI</code>.
+ * The class <code>interfaces.HeatPump.equipments.HeatPumpExternalJava4CI</code>.
  *
  * <p><strong>Description</strong></p>
  *

@@ -22,7 +22,7 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The class <code>equipments.dimmerlamp.test.DimmerLampTester</code>.
+ * The class <code>test.dimmerlamp.equipments.DimmerLampTester</code>.
  *
  * <p><strong>Description</strong></p>
  *

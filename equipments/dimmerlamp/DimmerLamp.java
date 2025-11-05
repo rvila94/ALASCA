@@ -2,10 +2,10 @@ package equipments.dimmerlamp;
 
 import equipments.dimmerlamp.connections.DimmerLampExternalJava4InboundPort;
 import equipments.dimmerlamp.connections.DimmerLampUserInboundPort;
-import equipments.dimmerlamp.interfaces.DimmerLampExternalI;
-import equipments.dimmerlamp.interfaces.DimmerLampExternalJava4CI;
 import equipments.dimmerlamp.interfaces.DimmerLampUserCI;
 import equipments.dimmerlamp.interfaces.DimmerLampUserI;
+import equipments.dimmerlamp.interfaces.DimmerLampExternalI;
+import equipments.dimmerlamp.interfaces.DimmerLampExternalJava4CI;
 import equipments.hem.RegistrationOutboundPort;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.alasca.physical_data.MeasurementUnit;
@@ -42,7 +42,7 @@ implements DimmerLampUserI, DimmerLampExternalI {
 
     public static final String EQUIPMENT_UID = "1A1003584";
 
-    protected static final String PATH_TO_CONNECTOR_DESCRIPTOR = "connectorGenerator/dimmerlamp-descriptor.xml";
+    protected static final String PATH_TO_CONNECTOR_DESCRIPTOR = "src/connectorGenerator/dimmerlamp-descriptor.xml";
 
     // Maximum value for the variator
     protected static final Measure<Double> MAX_POWER_VARIATION = new Measure<>(100., MeasurementUnit.RAW);

@@ -36,7 +36,7 @@ import fr.sorbonne_u.components.ports.AbstractOutboundPort;
  */
 public class			OvenExternalControlOutboundPort
 extends		AbstractOutboundPort
-implements	OvenExternalControlCI
+implements OvenExternalControlCI
 {
 	// -------------------------------------------------------------------------
 	// Constants and variables
@@ -95,7 +95,7 @@ implements	OvenExternalControlCI
 	// -------------------------------------------------------------------------
 
 	/**
-	 * @see equipments.oven.OvenExternalControlCI#getMaxPowerLevel()
+	 * @see OvenExternalControlCI#getMaxPowerLevel()
 	 */
 	@Override
 	public Measure<Double>	getMaxPowerLevel() throws Exception
@@ -105,7 +105,7 @@ implements	OvenExternalControlCI
 	}
 
 	/**
-	 * @see equipments.oven.OvenExternalControlCI#setCurrentPowerLevel(fr.sorbonne_u.alasca.physical_data.Measure)
+	 * @see OvenExternalControlCI#setCurrentPowerLevel(fr.sorbonne_u.alasca.physical_data.Measure)
 	 */
 	@Override
 	public void			setCurrentPowerLevel(Measure<Double> powerLevel)
@@ -116,7 +116,7 @@ implements	OvenExternalControlCI
 	}
 
 	/**
-	 * @see equipments.oven.OvenExternalControlCI#getCurrentPowerLevel()
+	 * @see OvenExternalControlCI#getCurrentPowerLevel()
 	 */
 	@Override
 	public SignalData<Double>	getCurrentPowerLevel() throws Exception
@@ -126,7 +126,7 @@ implements	OvenExternalControlCI
 	}
 
 	/**
-	 * @see equipments.oven.OvenExternalControlCI#getTargetTemperature()
+	 * @see OvenExternalControlCI#getTargetTemperature()
 	 */
 	@Override
 	public Measure<Double>	getTargetTemperature() throws Exception
@@ -136,7 +136,7 @@ implements	OvenExternalControlCI
 	}
 
 	/**
-	 * @see equipments.oven.OvenExternalControlCI#getCurrentTemperature()
+	 * @see OvenExternalControlCI#getCurrentTemperature()
 	 */
 	@Override
 	public SignalData<Double>	getCurrentTemperature() throws Exception

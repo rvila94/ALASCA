@@ -5,6 +5,7 @@ import fr.sorbonne_u.components.ComponentI;
 import fr.sorbonne_u.components.ports.AbstractOutboundPort;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.alasca.physical_data.SignalData;
+import equipments.oven.OvenInternalControlI;
 
 /**
  * The class <code>OvenInternalControlOutboundPort</code> implements an
@@ -95,7 +96,7 @@ implements	OvenInternalControlCI
 	// -------------------------------------------------------------------------
 
 	/**
-	 * @see equipments.oven.OvenInternalControlI#heating()
+	 * @see OvenInternalControlI#heating()
 	 */
 	@Override
 	public boolean		heating() throws Exception
@@ -104,7 +105,7 @@ implements	OvenInternalControlCI
 	}
 
 	/**
-	 * @see equipments.oven.OvenInternalControlCI#getTargetTemperature()
+	 * @see OvenInternalControlCI#getTargetTemperature()
 	 */
 	@Override
 	public Measure<Double>	getTargetTemperature() throws Exception
@@ -114,7 +115,7 @@ implements	OvenInternalControlCI
 	}
 
 	/**
-	 * @see equipments.oven.OvenInternalControlCI#getCurrentTemperature()
+	 * @see OvenInternalControlCI#getCurrentTemperature()
 	 */
 	@Override
 	public SignalData<Double>	getCurrentTemperature() throws Exception
@@ -124,7 +125,7 @@ implements	OvenInternalControlCI
 	}
 
 	/**
-	 * @see equipments.oven.OvenInternalControlI#startHeating()
+	 * @see OvenInternalControlI#startHeating()
 	 */
 	@Override
 	public void			startHeating() throws Exception
@@ -133,7 +134,7 @@ implements	OvenInternalControlCI
 	}
 
 	/**
-	 * @see equipments.oven.OvenInternalControlI#stopHeating()
+	 * @see OvenInternalControlI#stopHeating()
 	 */
 	@Override
 	public void			stopHeating() throws Exception

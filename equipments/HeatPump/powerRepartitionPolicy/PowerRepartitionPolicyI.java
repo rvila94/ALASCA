@@ -1,7 +1,7 @@
 package equipments.HeatPump.powerRepartitionPolicy;
 
 /**
- * The class <code>equipments.HeatPump.powerRepartitionPolicy.PowerRepartitionPolicyI</code>.
+ * The class <code>powerRepartitionPolicy.HeatPump.equipments.PowerRepartitionPolicyI</code>.
  *
  * <p><strong>Description</strong></p>
  *

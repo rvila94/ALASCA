@@ -3,7 +3,7 @@ package equipments.dimmerlamp.interfaces;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 
 /**
- * The class <code>equipments.dimmerlamp.interfaces.DimmerLampExternalI</code>.
+ * The class <code>interfaces.dimmerlamp.equipments.DimmerLampExternalI</code>.
  *
  * <p><strong>Description</strong></p>
  *

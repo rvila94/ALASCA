@@ -7,8 +7,6 @@ import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.components.hem2025.tests_utils.TestsStatistics;
 import fr.sorbonne_u.components.hem2025e1.CVMIntegrationTest;
-import equipments.oven.Oven.OvenMode;
-import equipments.oven.Oven.OvenState;
 import equipments.oven.connections.OvenExternalControlConnector;
 import equipments.oven.connections.OvenExternalControlOutboundPort;
 import equipments.oven.connections.OvenInternalControlConnector;
@@ -353,8 +351,8 @@ extends AbstractComponent
         this.logMessage("    And the oven has not been used yet");
         try {
             this.logMessage("    When I test the mode of the oven");
-            OvenMode mode = this.oop.getMode();
-            if (mode == OvenMode.CUSTOM) {
+            Oven.OvenMode mode = this.oop.getMode();
+            if (mode == Oven.OvenMode.CUSTOM) {
                 this.logMessage("    Then the mode of the oven is CUSTOM");
             } else {
                 this.logMessage("     but was: " + mode);
@@ -417,10 +415,10 @@ extends AbstractComponent
     		this.oop.switchOn();
 
     		result = this.oop.on();
-    		OvenState state = this.oop.getState();
-    		OvenMode mode = this.oop.getMode();
+    		Oven.OvenState state = this.oop.getState();
+    		Oven.OvenMode mode = this.oop.getMode();
 
-    		if (result && state == OvenState.ON && mode == OvenMode.CUSTOM) {
+    		if (result && state == Oven.OvenState.ON && mode == Oven.OvenMode.CUSTOM) {
     			this.logMessage("    Then the oven state is ON and mode is CUSTOM");
     		} else {
     			this.statistics.incorrectResult();
@@ -433,10 +431,10 @@ extends AbstractComponent
     		this.logMessage("    Given the oven is on");
     		this.logMessage("    When I change the mode to GRILL");
 
-    		this.oop.setMode(OvenMode.GRILL);
+    		this.oop.setMode(Oven.OvenMode.GRILL);
     		mode = this.oop.getMode();
 
-    		if (mode == OvenMode.GRILL) {
+    		if (mode == Oven.OvenMode.GRILL) {
     			this.logMessage("    Then the oven mode is GRILL");
     		} else {
     			this.statistics.incorrectResult();
@@ -456,7 +454,7 @@ extends AbstractComponent
     		state = this.oop.getState();
     		mode = this.oop.getMode();
 
-    		if (result && state == OvenState.OFF && mode == OvenMode.CUSTOM) {
+    		if (result && state == Oven.OvenState.OFF && mode == Oven.OvenMode.CUSTOM) {
     			this.logMessage("    Then the oven state is OFF and mode is reset to CUSTOM");
     		} else {
     			this.statistics.incorrectResult();
@@ -548,10 +546,10 @@ extends AbstractComponent
     	this.logMessage("    And the current mode is CUSTOM");
     	try {
 			this.oop.switchOn();
-    		OvenState state = this.oop.getState();
-    		OvenMode mode = this.oop.getMode();
+    		Oven.OvenState state = this.oop.getState();
+    		Oven.OvenMode mode = this.oop.getMode();
 
-    		if ( !(this.oop.on() && state == OvenState.ON && mode == OvenMode.CUSTOM)) {
+    		if ( !(this.oop.on() && state == Oven.OvenState.ON && mode == Oven.OvenMode.CUSTOM)) {
     			this.statistics.incorrectResult();
     			this.logMessage("     but was: state=" + state + ", mode=" + mode);
     		}
@@ -1297,8 +1295,8 @@ extends AbstractComponent
         try {
             this.oop.switchOn();
             this.oop.startCooking(0);
-            OvenState s = this.oop.getState();
-            if (s != OvenState.HEATING) {
+            Oven.OvenState s = this.oop.getState();
+            if (s != Oven.OvenState.HEATING) {
                 this.logMessage("     but was: " + s);
                 this.statistics.incorrectResult();
             }
@@ -1331,8 +1329,8 @@ extends AbstractComponent
         this.logMessage("    Then the oven stops heating and its state becomes ON");
         try {
             this.oop.stopCooking();
-            OvenState s = this.oop.getState();
-            if (s != OvenState.ON && this.oicop.heating()) {
+            Oven.OvenState s = this.oop.getState();
+            if (s != Oven.OvenState.ON && this.oicop.heating()) {
             	this.logMessage("     but was: " + s);
                 this.statistics.incorrectResult();
             }
@@ -1365,8 +1363,8 @@ extends AbstractComponent
         this.logMessage("    Then the oven state becomes WAITING");
         try {
             this.oop.startCooking(10);
-            OvenState s = this.oop.getState();
-            if (s != OvenState.WAITING) {
+            Oven.OvenState s = this.oop.getState();
+            if (s != Oven.OvenState.WAITING) {
             	this.logMessage("     but was: " + s);
                 this.statistics.incorrectResult();
             }
@@ -1382,8 +1380,8 @@ extends AbstractComponent
         this.logMessage("    Then the oven state becomes ON");
         try {
             this.oop.stopCooking();
-            OvenState s = this.oop.getState();
-            if (s != OvenState.ON) {
+            Oven.OvenState s = this.oop.getState();
+            if (s != Oven.OvenState.ON) {
             	this.logMessage("     but was: " + s);
                 this.statistics.incorrectResult();
             }
@@ -1417,8 +1415,8 @@ extends AbstractComponent
             this.logMessage("    When I try to turn off the oven");
             this.logMessage("    Then the oven state is OFF");
             this.oop.switchOff();
-            OvenState s = this.oop.getState();
-            if (s != OvenState.OFF) {
+            Oven.OvenState s = this.oop.getState();
+            if (s != Oven.OvenState.OFF) {
             	this.logMessage("     but was: " + s);
                 this.statistics.incorrectResult();
             }
@@ -1437,8 +1435,8 @@ extends AbstractComponent
             this.logMessage("    When I try to turn off the oven");
             this.logMessage("    Then the oven stops heating and its state becomes OFF");
             this.oop.switchOff();
-            OvenState s = this.oop.getState();
-            if (s != OvenState.OFF && this.oicop.heating()) {
+            Oven.OvenState s = this.oop.getState();
+            if (s != Oven.OvenState.OFF && this.oicop.heating()) {
             	this.logMessage("     but was: " + s);
                 this.statistics.incorrectResult();
             }

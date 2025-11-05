@@ -29,31 +29,31 @@ extends		OfferedCI,
 			OvenInternalControlI
 {
 	/**
-	 * @see equipments.oven.OvenInternalControlI#heating()
+	 * @see OvenInternalControlI#heating()
 	 */
 	@Override
 	public boolean				heating() throws Exception;
 	
 	/**
-	 * @see equipments.oven.OvenInternalControlI#startHeating()
+	 * @see OvenInternalControlI#startHeating()
 	 */
 	@Override
 	public void					startHeating() throws Exception;
 	
 	/**
-	 * @see equipments.oven.OvenInternalControlI#stopHeating()
+	 * @see OvenInternalControlI#stopHeating()
 	 */
 	@Override
 	public void					stopHeating() throws Exception;
 	
 	/**
-	 * @see equipments.oven.OvenTemperatureI#getTargetTemperature()
+	 * @see OvenTemperatureI#getTargetTemperature()
 	 */
 	@Override
 	public Measure<Double> 		getTargetTemperature() throws Exception;
 	
 	/**
-	 * @see equipments.oven.OvenTemperatureI#getCurrentTemperature()
+	 * @see OvenTemperatureI#getCurrentTemperature()
 	 */
 	@Override
 	public SignalData<Double> getCurrentTemperature() throws Exception;

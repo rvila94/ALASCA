@@ -1,15 +1,11 @@
 package equipments.hem;
 
-import equipments.HeatPump.connections.HeatPumpExternalControlInboundPort;
-import equipments.HeatPump.interfaces.HeatPumpExternalControlCI;
-import equipments.HeatPump.interfaces.HeatPumpExternalControlI;
 import fr.sorbonne_u.components.ComponentI;
 import fr.sorbonne_u.components.hem2025.bases.RegistrationCI;
 import fr.sorbonne_u.components.ports.AbstractInboundPort;
-import fr.sorbonne_u.exceptions.PreconditionException;
 
 /**
- * The class <code>equipments.hem.RegistrationInboundPort</code>.
+ * The class <code>hem.equipments.RegistrationInboundPort</code>.
  *
  * <p><strong>Description</strong></p>
  *

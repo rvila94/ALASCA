@@ -6,7 +6,7 @@ import fr.sorbonne_u.alasca.physical_data.SignalData;
 import fr.sorbonne_u.components.connectors.AbstractConnector;
 
 /**
- * The class <code>equipments.HeatPump.connections.HeatPumpUserConnector</code>.
+ * The class <code>connections.HeatPump.equipments.HeatPumpUserConnector</code>.
  *
  * <p><strong>Description</strong></p>
  *

@@ -1,5 +1,7 @@
 package equipments.oven.connections;
 
+import equipments.oven.Oven;
+import equipments.oven.OvenUserCI;
 import fr.sorbonne_u.components.ComponentI;
 import fr.sorbonne_u.components.interfaces.OfferedCI;
 import fr.sorbonne_u.components.ports.AbstractInboundPort;
@@ -7,10 +9,7 @@ import fr.sorbonne_u.exceptions.PreconditionException;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.alasca.physical_data.SignalData;
 
-import equipments.oven.OvenUserCI;
 import equipments.oven.OvenUserI;
-import equipments.oven.Oven.OvenMode;
-import equipments.oven.Oven.OvenState;
 import equipments.oven.OvenExternalControlI;
 import equipments.oven.OvenTemperatureI;
 
@@ -145,7 +144,7 @@ implements OvenUserCI
 	// -------------------------------------------------------------------------
 
 	/**
-	 * @see equipments.oven.OvenUserCI#on()
+	 * @see OvenUserCI#on()
 	 */
 	@Override
 	public boolean on() throws Exception {
@@ -153,7 +152,7 @@ implements OvenUserCI
 	}
 
 	/**
-	 * @see equipments.oven.OvenUserCI#switchOn()
+	 * @see OvenUserCI#switchOn()
 	 */
 	@Override
 	public void switchOn() throws Exception {
@@ -161,7 +160,7 @@ implements OvenUserCI
 	}
 
 	/**
-	 * @see equipments.oven.OvenUserCI#switchOff()
+	 * @see OvenUserCI#switchOff()
 	 */
 	@Override
 	public void switchOff() throws Exception {
@@ -169,7 +168,7 @@ implements OvenUserCI
 	}
 
 	/**
-	 * @see equipments.oven.OvenUserCI#setTargetTemperature(fr.sorbonne_u.alasca.physical_data.Measure)
+	 * @see OvenUserCI#setTargetTemperature(fr.sorbonne_u.alasca.physical_data.Measure)
 	 */
 	@Override
 	public void setTargetTemperature(Measure<Double> target) throws Exception {
@@ -177,15 +176,15 @@ implements OvenUserCI
 	}
 
 	/**
-	 * @see equipments.oven.OvenUserCI#setMode(equipments.oven.OvenMode)
+	 * @see OvenUserCI#setMode(equipments.oven.OvenMode)
 	 */
 	@Override
-	public void setMode(OvenMode mode) throws Exception {
+	public void setMode(Oven.OvenMode mode) throws Exception {
 		this.getOwner().handleRequest(o -> { ((OvenUserI)o).setMode(mode); return null; });
 	}
 	
 	/**
-	 * @see equipments.oven.OvenUserCI#startCooking(double)
+	 * @see OvenUserCI#startCooking(double)
 	 */
 	@Override
 	public void startCooking(double delayInSeconds) throws Exception {
@@ -193,7 +192,7 @@ implements OvenUserCI
 	}
 	
 	/**
-	 * @see equipments.oven.OvenUserCI#stopCooking()
+	 * @see OvenUserCI#stopCooking()
 	 */
 	@Override
 	public void stopCooking() throws Exception {
@@ -226,12 +225,12 @@ implements OvenUserCI
 	}
 
 	@Override
-	public OvenState getState() throws Exception {
+	public Oven.OvenState getState() throws Exception {
 		return this.getOwner().handleRequest(o -> ((OvenUserI)o).getState());
 	}
 
 	@Override
-	public OvenMode getMode() throws Exception {
+	public Oven.OvenMode getMode() throws Exception {
 		return this.getOwner().handleRequest(o -> ((OvenUserI)o).getMode());
 	}
 }

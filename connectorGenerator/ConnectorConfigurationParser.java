@@ -12,7 +12,7 @@ import javax.xml.parsers.SAXParserFactory;
 import java.io.IOException;
 
 /**
- * The class <code>connectorGenerator.ConnectorConfigurationParser</code>.
+ * The class <code>ConnectorConfigurationParser</code>.
  *
  * <p><strong>Description</strong></p>
  *

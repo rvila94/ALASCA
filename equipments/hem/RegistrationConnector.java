@@ -4,7 +4,7 @@ import fr.sorbonne_u.components.connectors.AbstractConnector;
 import fr.sorbonne_u.components.hem2025.bases.RegistrationCI;
 
 /**
- * The class <code>equipments.hem.RegistrationConnector</code>.
+ * The class <code>hem.equipments.RegistrationConnector</code>.
  *
  * <p><strong>Description</strong></p>
  *

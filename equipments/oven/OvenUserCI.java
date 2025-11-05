@@ -37,79 +37,79 @@ extends		OfferedCI,
 			OvenUserI
 {
 	/**
-	 * @see equipments.oven.OvenUserI#on()
+	 * @see OvenUserI#on()
 	 */
 	@Override
 	public boolean		on() throws Exception;
 
 	/**
-	 * @see equipments.oven.OvenUserI#switchOn()
+	 * @see OvenUserI#switchOn()
 	 */
 	@Override
 	public void			switchOn() throws Exception;
 
 	/**
-	 * @see equipments.oven.OvenUserI#switchOff()
+	 * @see OvenUserI#switchOff()
 	 */
 	@Override
 	public void			switchOff() throws Exception;
 	
 	/**
-	 * @see equipments.oven.OvenUserI#startCooking(double delayInSeconds)
+	 * @see OvenUserI#startCooking(double delayInSeconds)
 	 */
 	public void 		startCooking(double delayInSeconds) throws Exception;
 	
 	/**
-	 * @see equipments.oven.OvenUserI#stopCooking
+	 * @see OvenUserI#stopCooking
 	 */
 	public void stopCooking() throws Exception;
 
 	/**
-	 * @see equipments.oven.OvenExternalControlI#getMaxPowerLevel()
+	 * @see OvenExternalControlI#getMaxPowerLevel()
 	 */
 	@Override
 	public Measure<Double>	getMaxPowerLevel() throws Exception;
 
 	/**
-	 * @see equipments.oven.OvenExternalControlI#setCurrentPowerLevel(fr.sorbonne_u.alasca.physical_data.Measure)
+	 * @see OvenExternalControlI#setCurrentPowerLevel(fr.sorbonne_u.alasca.physical_data.Measure)
 	 */
 	@Override
 	public void			setCurrentPowerLevel(Measure<Double> powerLevel)
 	throws Exception;
 
 	/**
-	 * @see equipments.oven.OvenExternalControlI#getCurrentPowerLevel()
+	 * @see OvenExternalControlI#getCurrentPowerLevel()
 	 */
 	@Override
 	public SignalData<Double> getCurrentPowerLevel() throws Exception;
 	
 	/**
-	 * @see equipments.oven.OvenUserI#setTargetTemperature(fr.sorbonne_u.alasca.physical_data.Measure)
+	 * @see OvenUserI#setTargetTemperature(fr.sorbonne_u.alasca.physical_data.Measure)
 	 */
 	@Override
 	public void			setTargetTemperature(Measure<Double> target)
 	throws Exception;
 
 	/**
-	 * @see equipments.oven.OvenTemperatureI#getTargetTemperature()
+	 * @see OvenTemperatureI#getTargetTemperature()
 	 */
 	@Override
 	public Measure<Double> getTargetTemperature() throws Exception;
 
 	/**
-	 * @see equipments.oven.OvenTemperatureI#getCurrentTemperature()
+	 * @see OvenTemperatureI#getCurrentTemperature()
 	 */
 	@Override
 	public SignalData<Double> getCurrentTemperature() throws Exception;
 	
 	/**
-	 * @see equipments.oven.OvenUserI#getState()
+	 * @see OvenUserI#getState()
 	 */
 	@Override
 	public OvenState getState() throws Exception;
 	
 	/**
-	 * @see equipments.oven.OvenUserI#getMode()
+	 * @see OvenUserI#getMode()
 	 */
 	@Override
 	public OvenMode getMode() throws Exception;

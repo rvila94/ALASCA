@@ -1,12 +1,11 @@
 package equipments.oven.connections;
 
+import equipments.oven.Oven;
+import equipments.oven.OvenUserCI;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.alasca.physical_data.SignalData;
 import fr.sorbonne_u.components.ComponentI;
 import fr.sorbonne_u.components.ports.AbstractOutboundPort;
-import equipments.oven.Oven.OvenMode;
-import equipments.oven.Oven.OvenState;
-import equipments.oven.OvenUserCI;
 
 /**
  * The class <code>OvenUserOutboundPort</code> implements an outbound port for
@@ -104,7 +103,7 @@ implements OvenUserCI
 	}
 	
 	@Override
-	public void setMode(equipments.oven.Oven.OvenMode mode) throws Exception {
+	public void setMode(Oven.OvenMode mode) throws Exception {
 		((OvenUserCI) this.getConnector()).setMode(mode);
 	}
 
@@ -144,12 +143,12 @@ implements OvenUserCI
 	}
 
 	@Override
-	public OvenState getState() throws Exception {
+	public Oven.OvenState getState() throws Exception {
 		return ((OvenUserCI) this.getConnector()).getState();
 	}
 
 	@Override
-	public OvenMode getMode() throws Exception {
+	public Oven.OvenMode getMode() throws Exception {
 		return ((OvenUserCI) this.getConnector()).getMode();
 	}	
 }

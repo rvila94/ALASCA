@@ -3,6 +3,7 @@ package equipments.HeatPump.Test;
 import equipments.HeatPump.HeatPump;
 import equipments.HeatPump.compressor.Compressor;
 import equipments.HeatPump.connections.*;
+import equipments.HeatPump.connections.*;
 import equipments.HeatPump.interfaces.HeatPumpExternalControlCI;
 import equipments.HeatPump.interfaces.HeatPumpInternalControlCI;
 import equipments.HeatPump.interfaces.HeatPumpUserCI;
@@ -23,7 +24,7 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The class <code>equipments.HeatPump.Test.HeatPumpTester</code>.
+ * The class <code>Test.HeatPump.equipments.HeatPumpTester</code>.
  *
  * <p><strong>Description</strong></p>
  *

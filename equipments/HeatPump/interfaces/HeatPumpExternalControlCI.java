@@ -4,7 +4,7 @@ import fr.sorbonne_u.components.interfaces.OfferedCI;
 import fr.sorbonne_u.components.interfaces.RequiredCI;
 
 /**
- * The class <code>equipments.HeatPump.interfaces.HeatPumpExternalControlCI</code>.
+ * The class <code>interfaces.HeatPump.equipments.HeatPumpExternalControlCI</code>.
  *
  * <p><strong>Description</strong></p>
  *

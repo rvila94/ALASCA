@@ -10,7 +10,7 @@ import fr.sorbonne_u.components.ports.AbstractInboundPort;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
 /**
- * The class <code>equipments.HeatPump.connections.HeatPumpInternalControlInboundPort</code>.
+ * The class <code>connections.HeatPump.equipments.HeatPumpInternalControlInboundPort</code>.
  *
  * <p><strong>Description</strong></p>
  *

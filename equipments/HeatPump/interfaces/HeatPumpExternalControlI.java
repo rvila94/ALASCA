@@ -5,7 +5,7 @@ import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.alasca.physical_data.SignalData;
 
 /**
- * The class <code>equipments.HeatPump.interfaces.HeatPumpExternalControlI</code>.
+ * The class <code>interfaces.HeatPump.equipments.HeatPumpExternalControlI</code>.
  *
  * <p><strong>Description</strong></p>
  *

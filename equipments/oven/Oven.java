@@ -3,6 +3,8 @@ package equipments.oven;
 import java.util.HashMap;
 import java.util.Map;
 
+import equipments.oven.connections.OvenExternalControlJava4InboundPort;
+import equipments.oven.connections.OvenUserJava4InboundPort;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.alasca.physical_data.SignalData;
 import fr.sorbonne_u.components.AbstractComponent;
@@ -12,9 +14,7 @@ import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.components.hem2025.bases.RegistrationCI;
 import equipments.hem.RegistrationOutboundPort;
-import equipments.oven.connections.OvenExternalControlJava4InboundPort;
 import equipments.oven.connections.OvenInternalControlInboundPort;
-import equipments.oven.connections.OvenUserJava4InboundPort;
 import fr.sorbonne_u.exceptions.AssertionChecking;
 import fr.sorbonne_u.exceptions.ImplementationInvariantException;
 import fr.sorbonne_u.exceptions.InvariantException;

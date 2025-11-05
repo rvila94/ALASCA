@@ -6,7 +6,7 @@ import fr.sorbonne_u.components.ComponentI;
 import fr.sorbonne_u.components.ports.AbstractOutboundPort;
 
 /**
- * The class <code>equipments.HeatPump.compressor.CompressorOutboundPort</code>.
+ * The class <code>compressor.HeatPump.equipments.CompressorOutboundPort</code>.
  *
  * <p><strong>Description</strong></p>
  *

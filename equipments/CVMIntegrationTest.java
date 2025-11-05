@@ -34,19 +34,13 @@ package equipments;
 
 import equipments.HeatPump.HeatPump;
 import equipments.HeatPump.Test.HeatPumpTester;
-import equipments.HeatPump.compressor.Compressor;
-import equipments.HeatPump.compressor.CompressorConnector;
-import equipments.HeatPump.temperatureSensor.TemperatureSensor;
-import equipments.HeatPump.temperatureSensor.TemperatureSensorConnector;
 import equipments.dimmerlamp.DimmerLamp;
-import equipments.dimmerlamp.connections.DimmerLampExternalConnector;
-import equipments.dimmerlamp.connections.DimmerLampUserConnector;
 import equipments.dimmerlamp.test.DimmerLampTester;
 import equipments.fan.Fan;
-import equipments.fan.FanTester;
-import equipments.hem.HEM;
 import equipments.hem.RegistrationConnector;
 import equipments.oven.Oven;
+import equipments.fan.FanTester;
+import equipments.hem.HEM;
 import equipments.oven.OvenUnitTester;
 import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.cvm.AbstractCVM;
@@ -63,9 +57,9 @@ import fr.sorbonne_u.exceptions.AssertionChecking;
 import fr.sorbonne_u.exceptions.InvariantException;
 import fr.sorbonne_u.exceptions.PreconditionException;
 import fr.sorbonne_u.utils.aclocks.ClocksServer;
+
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
-import fr.sorbonne_u.components.AbstractComponent;
 
 // -----------------------------------------------------------------------------
 /**

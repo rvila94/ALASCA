@@ -1,7 +1,5 @@
 package equipments.oven;
 
-import equipments.oven.Oven.OvenMode;
-import equipments.oven.Oven.OvenState;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 
 /**
@@ -138,7 +136,7 @@ extends		OvenExternalControlI
 	 * @param mode the new oven mode.
 	 * @throws Exception if an error occurs or if preconditions are violated.
 	 */
-	public void setMode(OvenMode mode) throws Exception;
+	public void setMode(Oven.OvenMode mode) throws Exception;
 	
 	/**
 	 * Start the oven cooking cycle, immediately or after a specified delay.
@@ -205,7 +203,7 @@ extends		OvenExternalControlI
 	 * @return the current {@code OvenState} of the oven.
 	 * @throws Exception if an error occurs.
 	 */
-	public OvenState getState() throws Exception;
+	public Oven.OvenState getState() throws Exception;
 	
 	/**
 	 * Return the mode of the oven.
@@ -220,6 +218,6 @@ extends		OvenExternalControlI
 	 * @return the current {@code OvenMode} of the oven.
 	 * @throws Exception if an error occurs.
 	 */
-	public OvenMode getMode() throws Exception;
+	public Oven.OvenMode getMode() throws Exception;
 
 }

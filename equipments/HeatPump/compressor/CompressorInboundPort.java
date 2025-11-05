@@ -7,7 +7,7 @@ import fr.sorbonne_u.components.ports.AbstractInboundPort;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
 /**
- * The class <code>equipments.HeatPump.compressor.CompressorInboundPort</code>.
+ * The class <code>compressor.HeatPump.equipments.CompressorInboundPort</code>.
  *
  * <p><strong>Description</strong></p>
  *

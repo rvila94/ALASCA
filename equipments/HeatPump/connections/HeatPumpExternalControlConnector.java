@@ -1,13 +1,13 @@
 package equipments.HeatPump.connections;
 
-import equipments.HeatPump.interfaces.HeatPumpExternalControlCI;
 import equipments.HeatPump.powerRepartitionPolicy.PowerRepartitionPolicyI;
+import equipments.HeatPump.interfaces.HeatPumpExternalControlCI;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.alasca.physical_data.SignalData;
 import fr.sorbonne_u.components.connectors.AbstractConnector;
 
 /**
- * The class <code>equipments.HeatPump.connections.HeatPumpExternalControlConnector</code>.
+ * The class <code>connections.HeatPump.equipments.HeatPumpExternalControlConnector</code>.
  *
  * <p><strong>Description</strong></p>
  *

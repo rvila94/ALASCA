@@ -1,9 +1,7 @@
 package equipments.dimmerlamp.interfaces;
 
-import equipments.dimmerlamp.interfaces.DimmerLampExternalCI;
-
 /**
- * The class <code>equipments.dimmerlamp.interfaces.DimmerLampExternalJava4CI</code>.
+ * The class <code>interfaces.dimmerlamp.equipments.DimmerLampExternalJava4CI</code>.
  *
  * <p><strong>Description</strong></p>
  *

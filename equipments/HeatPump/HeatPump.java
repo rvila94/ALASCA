@@ -1,14 +1,14 @@
 package equipments.HeatPump;
 
+import equipments.HeatPump.compressor.CompressorOutboundPort;
+import equipments.HeatPump.powerRepartitionPolicy.PowerRepartitionPolicyI;
+import equipments.HeatPump.temperatureSensor.TemperatureSensorOutboundPort;
 import equipments.HeatPump.connections.HeatPumpExternalJava4InboundPort;
 import equipments.HeatPump.connections.HeatPumpInternalControlInboundPort;
 import equipments.HeatPump.connections.HeatPumpUserInboundPort;
-import equipments.HeatPump.powerRepartitionPolicy.PowerRepartitionPolicyI;
-import equipments.HeatPump.temperatureSensor.TemperatureSensorCI;
-import equipments.HeatPump.temperatureSensor.TemperatureSensorOutboundPort;
-import equipments.HeatPump.compressor.CompressorCI;
-import equipments.HeatPump.compressor.CompressorOutboundPort;
 import equipments.HeatPump.interfaces.*;
+import equipments.HeatPump.temperatureSensor.TemperatureSensorCI;
+import equipments.HeatPump.compressor.CompressorCI;
 import equipments.hem.RegistrationOutboundPort;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.alasca.physical_data.MeasurementUnit;
@@ -24,7 +24,7 @@ import fr.sorbonne_u.exceptions.PostconditionException;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
 /**
- * The class <code>equipments.HeatPump.HeatPump</code>.
+ * The class <code>HeatPump.equipments.HeatPump</code>.
  *
  * <p><strong>Description</strong></p>
  *
@@ -54,8 +54,8 @@ import fr.sorbonne_u.exceptions.PreconditionException;
 public class HeatPump
 extends AbstractComponent
 implements HeatPumpUserI,
-           HeatPumpInternalControlI,
-           HeatPumpExternalControlI {
+        HeatPumpInternalControlI,
+        HeatPumpExternalControlI {
 
     public static boolean VERBOSE = false;
 
@@ -74,7 +74,7 @@ implements HeatPumpUserI,
 
     public static final String EQUIPMENT_UID = "1A100354";
 
-    protected static final String PATH_TO_CONNECTOR_DESCRIPTOR = "connectorGenerator/heatpump-descriptor.xml";
+    protected static final String PATH_TO_CONNECTOR_DESCRIPTOR = "src/connectorGenerator/heatpump-descriptor.xml";
 
     /** measurement unit for power used by the heat pump					      */
     public static final MeasurementUnit POWER_UNIT = MeasurementUnit.WATTS;

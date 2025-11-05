@@ -1,7 +1,7 @@
 package equipments.HeatPump.interfaces;
 
 /**
- * The class <code>equipments.HeatPump.interfaces.HeatPumpInternalControlI</code>.
+ * The class <code>interfaces.HeatPump.equipments.HeatPumpInternalControlI</code>.
  *
  * <p><strong>Description</strong></p>
  *

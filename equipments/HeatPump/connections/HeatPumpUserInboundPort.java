@@ -1,8 +1,8 @@
 package equipments.HeatPump.connections;
 
 import equipments.HeatPump.HeatPump;
-import equipments.HeatPump.interfaces.HeatPumpUserCI;
 import equipments.HeatPump.interfaces.HeatPumpUserI;
+import equipments.HeatPump.interfaces.HeatPumpUserCI;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.alasca.physical_data.SignalData;
 import fr.sorbonne_u.components.ComponentI;
@@ -10,7 +10,7 @@ import fr.sorbonne_u.components.ports.AbstractInboundPort;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
 /**
- * The class <code>equipments.HeatPump.connections.HeatPumpUserInboundPort</code>.
+ * The class <code>connections.HeatPump.equipments.HeatPumpUserInboundPort</code>.
  *
  * <p><strong>Description</strong></p>
  *

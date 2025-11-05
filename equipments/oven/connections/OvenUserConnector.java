@@ -1,11 +1,10 @@
 package equipments.oven.connections;
 
+import equipments.oven.Oven;
+import equipments.oven.OvenUserCI;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.alasca.physical_data.SignalData;
 import fr.sorbonne_u.components.connectors.AbstractConnector;
-import equipments.oven.Oven.OvenMode;
-import equipments.oven.Oven.OvenState;
-import equipments.oven.OvenUserCI;
 
 /**
  * The class <code>OvenUserConnector</code> implements a connector for the
@@ -36,14 +35,14 @@ import equipments.oven.OvenUserCI;
  */
 public class			OvenUserConnector
 extends		AbstractConnector
-implements	OvenUserCI
+implements OvenUserCI
 {
 	// -------------------------------------------------------------------------
 	// Methods
 	// -------------------------------------------------------------------------
 
 	/**
-	 * @see equipments.oven.OvenUserCI#on()
+	 * @see OvenUserCI#on()
 	 */
 	@Override
 	public boolean		on() throws Exception
@@ -52,7 +51,7 @@ implements	OvenUserCI
 	}
 
 	/**
-	 * @see equipments.oven.OvenUserCI#switchOn()
+	 * @see OvenUserCI#switchOn()
 	 */
 	@Override
 	public void			switchOn() throws Exception
@@ -61,7 +60,7 @@ implements	OvenUserCI
 	}
 
 	/**
-	 * @see equipments.oven.OvenUserCI#switchOff()
+	 * @see OvenUserCI#switchOff()
 	 */
 	@Override
 	public void			switchOff() throws Exception
@@ -70,7 +69,7 @@ implements	OvenUserCI
 	}
 
 	/**
-	 * @see equipments.oven.OvenUserCI#setTargetTemperature(fr.sorbonne_u.alasca.physical_data.Measure)
+	 * @see OvenUserCI#setTargetTemperature(fr.sorbonne_u.alasca.physical_data.Measure)
 	 */
 	@Override
 	public void			setTargetTemperature(Measure<Double> target)
@@ -80,7 +79,7 @@ implements	OvenUserCI
 	}
 	
 	@Override
-	public void setMode(OvenMode mode) throws Exception 
+	public void setMode(Oven.OvenMode mode) throws Exception
 	{
 		((OvenUserCI)this.offering).setMode(mode);
 	}
@@ -126,12 +125,12 @@ implements	OvenUserCI
 	}
 
 	@Override
-	public OvenState getState() throws Exception {
+	public Oven.OvenState getState() throws Exception {
 		return ((OvenUserCI)this.offering).getState();
 	}
 
 	@Override
-	public OvenMode getMode() throws Exception {
+	public Oven.OvenMode getMode() throws Exception {
 		return ((OvenUserCI)this.offering).getMode();
 	}
 }

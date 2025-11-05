@@ -5,7 +5,7 @@ import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.components.connectors.AbstractConnector;
 
 /**
- * The class <code>equipments.dimmerlamp.connections.DimmerLampExternalConnector</code>.
+ * The class <code>connections.dimmerlamp.equipments.DimmerLampExternalConnector</code>.
  *
  * <p><strong>Description</strong></p>
  *

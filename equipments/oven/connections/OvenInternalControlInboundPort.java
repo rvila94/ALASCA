@@ -106,7 +106,7 @@ implements	OvenInternalControlCI
 	// -------------------------------------------------------------------------
 
 	/**
-	 * @see equipments.oven.OvenInternalControlI#heating()
+	 * @see OvenInternalControlI#heating()
 	 */
 	@Override
 	public boolean		heating() throws Exception
@@ -116,7 +116,7 @@ implements	OvenInternalControlCI
 	}
 
 	/**
-	 * @see equipments.oven.OvenInternalControlCI#getTargetTemperature()
+	 * @see OvenInternalControlCI#getTargetTemperature()
 	 */
 	@Override
 	public Measure<Double>	getTargetTemperature() throws Exception
@@ -126,7 +126,7 @@ implements	OvenInternalControlCI
 	}
 
 	/**
-	 * @see equipments.oven.OvenInternalControlCI#getCurrentTemperature()
+	 * @see OvenInternalControlCI#getCurrentTemperature()
 	 */
 	@Override
 	public SignalData<Double>	getCurrentTemperature() throws Exception
@@ -136,7 +136,7 @@ implements	OvenInternalControlCI
 	}
 
 	/**
-	 * @see equipments.oven.OvenInternalControlI#startHeating()
+	 * @see OvenInternalControlI#startHeating()
 	 */
 	@Override
 	public void			startHeating() throws Exception
@@ -148,7 +148,7 @@ implements	OvenInternalControlCI
 	}
 
 	/**
-	 * @see equipments.oven.OvenInternalControlI#stopHeating()
+	 * @see OvenInternalControlI#stopHeating()
 	 */
 	@Override
 	public void			stopHeating() throws Exception

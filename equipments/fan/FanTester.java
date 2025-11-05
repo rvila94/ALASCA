@@ -1,5 +1,7 @@
 package equipments.fan;
 
+import equipments.fan.connections.FanConnector;
+import equipments.fan.connections.FanOutboundPort;
 import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.annotations.RequiredInterfaces;
 import fr.sorbonne_u.components.exceptions.BCMException;
@@ -16,13 +18,6 @@ import fr.sorbonne_u.utils.aclocks.ClocksServer;
 import fr.sorbonne_u.utils.aclocks.ClocksServerCI;
 import fr.sorbonne_u.utils.aclocks.ClocksServerConnector;
 import fr.sorbonne_u.utils.aclocks.ClocksServerOutboundPort;
-
-import static org.junit.Assert.assertTrue;
-
-import equipments.fan.FanImplementationI.FanMode;
-import equipments.fan.FanImplementationI.FanState;
-import equipments.fan.connections.FanConnector;
-import equipments.fan.connections.FanOutboundPort;
 
 /**
  * The class <code>FanTester</code> implements a component performing
@@ -68,7 +63,7 @@ public class FanTester extends AbstractComponent
 	public static int					Y_RELATIVE_POSITION = 0;
 
 	protected final boolean				isUnitTest;
-	protected FanOutboundPort			fop;
+	protected FanOutboundPort fop;
 	protected String					fanInboundPortURI;
 	protected TestsStatistics			statistics;
 
@@ -262,12 +257,12 @@ public class FanTester extends AbstractComponent
 		this.logMessage("Feature: Getting the state of the fan");
 		this.logMessage("  Scenario: getting the state when off");
 		this.logMessage("    Given the fan is initialised");
-		FanState result = null;
+		FanImplementationI.FanState result = null;
 		try {
 			this.logMessage("    When I test the state of the fan");
 			result = this.fop.getState();
 			this.logMessage("    Then the state of the fan is off");
-			if (!FanState.OFF.equals(result)) {
+			if (!FanImplementationI.FanState.OFF.equals(result)) {
 				this.statistics.incorrectResult();
 				this.logMessage("     but was: " + result);
 			}
@@ -305,12 +300,12 @@ public class FanTester extends AbstractComponent
 		this.logMessage("Feature: Getting the mode of the fan");
 		this.logMessage("  Scenario: getting the mode when off");
 		this.logMessage("    Given the fan is initialised");
-		FanMode result = null;
+		FanImplementationI.FanMode result = null;
 		try {
 			this.logMessage("    When the fan has not been used yet");
 			result = this.fop.getMode();
 			this.logMessage("    Then the fan is low");
-			if (!FanMode.LOW.equals(result)) {
+			if (!FanImplementationI.FanMode.LOW.equals(result)) {
 				this.statistics.incorrectResult();
 				this.logMessage("     but was: " + result);
 			}
@@ -364,12 +359,12 @@ public class FanTester extends AbstractComponent
 		
 		this.logMessage("Feature: turning the fan on and off");
 		this.logMessage("  Scenario: turning on when off");
-		FanState resultState = null;
-		FanMode resultMode = null;
+		FanImplementationI.FanState resultState = null;
+		FanImplementationI.FanMode resultMode = null;
 		try {
 			this.logMessage("    Given the fan is off");
 			resultState = this.fop.getState();
-			if (!FanState.OFF.equals(resultState)) {
+			if (!FanImplementationI.FanState.OFF.equals(resultState)) {
 				this.logMessage("     but was: " + resultState);
 				this.statistics.failedCondition();
 			}
@@ -377,13 +372,13 @@ public class FanTester extends AbstractComponent
 			this.fop.turnOn();
 			this.logMessage("    Then the fan is on");
 			resultState = this.fop.getState();
-			if (!FanState.ON.equals(resultState)) {
+			if (!FanImplementationI.FanState.ON.equals(resultState)) {
 				this.logMessage("     but was: " + resultState);
 				this.statistics.incorrectResult();
 			}
 			this.logMessage("    And the fan is in mode low");
 			resultMode = this.fop.getMode();
-			if (!FanMode.LOW.equals(resultMode)) {
+			if (!FanImplementationI.FanMode.LOW.equals(resultMode)) {
 				this.logMessage("     but was: " + resultState);
 				this.statistics.incorrectResult();
 			}
@@ -398,7 +393,7 @@ public class FanTester extends AbstractComponent
 		this.logMessage("    Given the fan is on");
 		try {
 			resultState = this.fop.getState();
-			if (!FanState.ON.equals(resultState)) {
+			if (!FanImplementationI.FanState.ON.equals(resultState)) {
 				this.logMessage("     but was: " + resultState);
 				this.statistics.failedCondition();
 			}
@@ -426,7 +421,7 @@ public class FanTester extends AbstractComponent
 		this.logMessage("    Given the fan is on");
 		try {
 			resultState = this.fop.getState();
-			if (!FanState.ON.equals(resultState)) {
+			if (!FanImplementationI.FanState.ON.equals(resultState)) {
 				this.logMessage("     but was: " + resultState);
 				this.statistics.failedCondition();
 			}
@@ -439,7 +434,7 @@ public class FanTester extends AbstractComponent
 			this.fop.turnOff();
 			this.logMessage("    Then the fan is off");
 			resultState = this.fop.getState();
-			if (!FanState.OFF.equals(resultState)) {
+			if (!FanImplementationI.FanState.OFF.equals(resultState)) {
 				this.logMessage("     but was: " + resultState);
 				this.statistics.incorrectResult();
 			}
@@ -454,7 +449,7 @@ public class FanTester extends AbstractComponent
 		this.logMessage("    Given the fan is off");
 		try {
 			resultState = this.fop.getState();
-			if (!FanState.OFF.equals(resultState)) {
+			if (!FanImplementationI.FanState.OFF.equals(resultState)) {
 				this.logMessage("     but was: " + resultState);
 				this.statistics.failedCondition();
 			}
@@ -555,14 +550,14 @@ public class FanTester extends AbstractComponent
 		this.logMessage("Feature: switching the fan between LOW, MEDIUM and HIGH.");
 		this.logMessage("  Scenario: set the fan to medium from low");
 		this.logMessage("    Given the fan is on");
-		FanState resultState = null;
-		FanMode resultMode = null;
+		FanImplementationI.FanState resultState = null;
+		FanImplementationI.FanMode resultMode = null;
 
 		// Always start with fan ON and LOW
 		try {
 			this.fop.turnOn();
 			resultState = this.fop.getState();
-			if (!FanState.ON.equals(resultState)) {
+			if (!FanImplementationI.FanState.ON.equals(resultState)) {
 				this.logMessage("     but was: " + resultState);
 				this.statistics.failedCondition();
 			}
@@ -574,7 +569,7 @@ public class FanTester extends AbstractComponent
 		try {
 			this.logMessage("    And the fan is low");
 			resultMode = this.fop.getMode();
-			if (!FanMode.LOW.equals(resultMode)) {
+			if (!FanImplementationI.FanMode.LOW.equals(resultMode)) {
 				this.logMessage("     but was: " + resultMode);
 				this.statistics.failedCondition();
 			}
@@ -587,7 +582,7 @@ public class FanTester extends AbstractComponent
 			this.logMessage("    Then the fan is on");
 			this.fop.setMedium();
 			resultState = this.fop.getState();
-			if (!FanState.ON.equals(resultState)) {
+			if (!FanImplementationI.FanState.ON.equals(resultState)) {
 				this.logMessage("     but was: " + resultState);
 				this.statistics.incorrectResult();
 			}
@@ -598,7 +593,7 @@ public class FanTester extends AbstractComponent
 		try {
 			this.logMessage("    And the fan is medium");
 			resultMode = this.fop.getMode();
-			if (!FanMode.MEDIUM.equals(resultMode)) {
+			if (!FanImplementationI.FanMode.MEDIUM.equals(resultMode)) {
 				this.logMessage("     but was: " + resultMode);
 				this.statistics.incorrectResult();
 			}
@@ -616,13 +611,13 @@ public class FanTester extends AbstractComponent
 			this.fop.setHigh();
 			this.logMessage("    Then the fan is on");
 			resultState = this.fop.getState();
-			if (!FanState.ON.equals(resultState)) {
+			if (!FanImplementationI.FanState.ON.equals(resultState)) {
 				this.logMessage("     but was: " + resultState);
 				this.statistics.incorrectResult();
 			}
 			this.logMessage("    And the fan is high");
 			resultMode = this.fop.getMode();
-			if (!FanMode.HIGH.equals(resultMode)) {
+			if (!FanImplementationI.FanMode.HIGH.equals(resultMode)) {
 				this.logMessage("     but was: " + resultMode);
 				this.statistics.incorrectResult();
 			}
@@ -640,13 +635,13 @@ public class FanTester extends AbstractComponent
 			this.fop.setMedium();
 			this.logMessage("    Then the fan is on");
 			resultState = this.fop.getState();
-			if (!FanState.ON.equals(resultState)) {
+			if (!FanImplementationI.FanState.ON.equals(resultState)) {
 				this.logMessage("     but was: " + resultState);
 				this.statistics.incorrectResult();
 			}
 			this.logMessage("    And the fan is medium");
 			resultMode = this.fop.getMode();
-			if (!FanMode.MEDIUM.equals(resultMode)) {
+			if (!FanImplementationI.FanMode.MEDIUM.equals(resultMode)) {
 				this.logMessage("     but was: " + resultMode);
 				this.statistics.incorrectResult();
 			}
@@ -682,13 +677,13 @@ public class FanTester extends AbstractComponent
 			this.fop.setLow();
 			this.logMessage("    Then the fan is on");
 			resultState = this.fop.getState();
-			if (!FanState.ON.equals(resultState)) {
+			if (!FanImplementationI.FanState.ON.equals(resultState)) {
 				this.logMessage("     but was: " + resultState);
 				this.statistics.incorrectResult();
 			}
 			this.logMessage("    And the fan is low");
 			resultMode = this.fop.getMode();
-			if (!FanMode.LOW.equals(resultMode)) {
+			if (!FanImplementationI.FanMode.LOW.equals(resultMode)) {
 				this.logMessage("     but was: " + resultMode);
 				this.statistics.incorrectResult();
 			}
@@ -724,13 +719,13 @@ public class FanTester extends AbstractComponent
 			this.fop.setHigh();
 			this.logMessage("    Then the fan is on");
 			resultState = this.fop.getState();
-			if (!FanState.ON.equals(resultState)) {
+			if (!FanImplementationI.FanState.ON.equals(resultState)) {
 				this.logMessage("     but was: " + resultState);
 				this.statistics.incorrectResult();
 			}
 			this.logMessage("    And the fan is high");
 			resultMode = this.fop.getMode();
-			if (!FanMode.HIGH.equals(resultMode)) {
+			if (!FanImplementationI.FanMode.HIGH.equals(resultMode)) {
 				this.logMessage("     but was: " + resultMode);
 				this.statistics.incorrectResult();
 			}
@@ -766,13 +761,13 @@ public class FanTester extends AbstractComponent
 			this.fop.setLow();
 			this.logMessage("    Then the fan is on");
 			resultState = this.fop.getState();
-			if (!FanState.ON.equals(resultState)) {
+			if (!FanImplementationI.FanState.ON.equals(resultState)) {
 				this.logMessage("     but was: " + resultState);
 				this.statistics.incorrectResult();
 			}
 			this.logMessage("    And the fan is low");
 			resultMode = this.fop.getMode();
-			if (!FanMode.LOW.equals(resultMode)) {
+			if (!FanImplementationI.FanMode.LOW.equals(resultMode)) {
 				this.logMessage("     but was: " + resultMode);
 				this.statistics.incorrectResult();
 			}
@@ -782,11 +777,12 @@ public class FanTester extends AbstractComponent
 		}
 		this.statistics.updateStatistics();
 
-		// turn off at the end of the tests
+		// Turn off at the end of the test
 		try {
 			this.fop.turnOff();
 		} catch (Throwable e) {
-			assertTrue(false);
+			this.logMessage("     but could not switch off the oven: " + e);
+			this.statistics.incorrectResult();
 		}
 	}
 

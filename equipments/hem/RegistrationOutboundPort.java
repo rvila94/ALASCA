@@ -6,7 +6,7 @@ import fr.sorbonne_u.components.interfaces.RequiredCI;
 import fr.sorbonne_u.components.ports.AbstractOutboundPort;
 
 /**
- * The class <code>equipments.hem.RegistrationOutboundPort</code>.
+ * The class <code>hem.equipments.RegistrationOutboundPort</code>.
  *
  * <p><strong>Description</strong></p>
  *

@@ -29,31 +29,31 @@ extends		RequiredCI,
 			OvenExternalControlI
 {
 	/**
-	 * @see equipments.oven.OvenExternalControlI#getMaxPowerLevel()
+	 * @see OvenExternalControlI#getMaxPowerLevel()
 	 */
 	public Measure<Double>	getMaxPowerLevel() throws Exception;
 	
 	/**
-	 * @see equipments.oven.OvenExternalControlI#setCurrentPowerLevel(fr.sorbonne_u.alasca.physical_data.Measure)
+	 * @see OvenExternalControlI#setCurrentPowerLevel(fr.sorbonne_u.alasca.physical_data.Measure)
 	 */
 	@Override
 	public void			setCurrentPowerLevel(Measure<Double> powerLevel)
 	throws Exception;
 	
 	/**
-	 * @see equipments.oven.OvenExternalControlI#getCurrentPowerLevel()
+	 * @see OvenExternalControlI#getCurrentPowerLevel()
 	 */
 	@Override
 	public SignalData<Double> getCurrentPowerLevel() throws Exception;
 	
 	/**
-	 * @see equipments.oven.OvenTemperatureI#getTargetTemperature()
+	 * @see OvenTemperatureI#getTargetTemperature()
 	 */
 	@Override
 	public Measure<Double> getTargetTemperature() throws Exception;
 	
 	/**
-	 * @see equipments.oven.OvenTemperatureI#getCurrentTemperature()
+	 * @see OvenTemperatureI#getCurrentTemperature()
 	 */
 	@Override
 	public SignalData<Double> getCurrentTemperature() throws Exception;

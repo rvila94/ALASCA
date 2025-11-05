@@ -7,7 +7,7 @@ import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.cvm.AbstractCVM;
 
 /**
- * The class <code>equipments.dimmerlamp.test.CVMUnitTest</code>.
+ * The class <code>test.dimmerlamp.equipments.CVMUnitTest</code>.
  *
  * <p><strong>Description</strong></p>
  *

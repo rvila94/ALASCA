@@ -4,7 +4,7 @@ import fr.sorbonne_u.components.interfaces.OfferedCI;
 import fr.sorbonne_u.components.interfaces.RequiredCI;
 
 /**
- * The class <code>equipments.dimmerlamp.interfaces.DimmerLampExternalCI</code>.
+ * The class <code>interfaces.dimmerlamp.equipments.DimmerLampExternalCI</code>.
  *
  * <p><strong>Description</strong></p>
  *

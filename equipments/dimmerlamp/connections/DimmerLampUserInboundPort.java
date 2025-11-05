@@ -1,8 +1,8 @@
 package equipments.dimmerlamp.connections;
 
-import equipments.dimmerlamp.DimmerLamp;
-import equipments.dimmerlamp.interfaces.DimmerLampUserI;
 import equipments.dimmerlamp.interfaces.DimmerLampUserCI;
+import equipments.dimmerlamp.interfaces.DimmerLampUserI;
+import equipments.dimmerlamp.DimmerLamp;
 import fr.sorbonne_u.components.ComponentI;
 import fr.sorbonne_u.components.ports.AbstractInboundPort;
 import fr.sorbonne_u.exceptions.PreconditionException;

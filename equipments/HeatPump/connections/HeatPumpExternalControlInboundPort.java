@@ -1,8 +1,8 @@
 package equipments.HeatPump.connections;
 
 import equipments.HeatPump.HeatPump;
-import equipments.HeatPump.interfaces.HeatPumpExternalControlCI;
 import equipments.HeatPump.powerRepartitionPolicy.PowerRepartitionPolicyI;
+import equipments.HeatPump.interfaces.HeatPumpExternalControlCI;
 import equipments.HeatPump.interfaces.HeatPumpExternalControlI;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.alasca.physical_data.SignalData;
@@ -11,7 +11,7 @@ import fr.sorbonne_u.components.ports.AbstractInboundPort;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
 /**
- * The class <code>equipments.HeatPump.connections.HeatPumpExternalControlInboundPort</code>.
+ * The class <code>connections.HeatPump.equipments.HeatPumpExternalControlInboundPort</code>.
  *
  * <p><strong>Description</strong></p>
  *

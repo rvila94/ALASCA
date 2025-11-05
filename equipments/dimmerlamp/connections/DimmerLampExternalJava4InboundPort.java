@@ -5,7 +5,7 @@ import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.components.ComponentI;
 
 /**
- * The class <code>equipments.dimmerlamp.connections.DimmerLampExternalJava4InboundPort</code>.
+ * The class <code>connections.dimmerlamp.equipments.DimmerLampExternalJava4InboundPort</code>.
  *
  * <p><strong>Description</strong></p>
  *

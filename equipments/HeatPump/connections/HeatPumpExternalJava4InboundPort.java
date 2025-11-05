@@ -7,7 +7,7 @@ import fr.sorbonne_u.alasca.physical_data.MeasurementUnit;
 import fr.sorbonne_u.components.ComponentI;
 
 /**
- * The class <code>equipments.HeatPump.connections.HeatPumpExternalJava4InboundPort</code>.
+ * The class <code>connections.HeatPump.equipments.HeatPumpExternalJava4InboundPort</code>.
  *
  * <p><strong>Description</strong></p>
  *
