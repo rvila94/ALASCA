@@ -33,7 +33,7 @@ public class Compressor
 extends AbstractComponent
 implements CompressorI {
 
-    protected static final String REFLECTION_INBOUND_URI = "HEAT-PUMP-INBOUND-URI";
+    protected static final String REFLECTION_INBOUND_URI = "COMPRESSOR--REFL-INBOUND-URI";
 
     /** measurement unit for power used by the heat pump					      */
     protected static final MeasurementUnit POWER_UNIT = MeasurementUnit.WATTS;

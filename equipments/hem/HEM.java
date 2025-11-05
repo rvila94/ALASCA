@@ -364,7 +364,7 @@ public class			HEM
 			this.logMessage("Generator tests end.");
 			if (this.isPreFirstStep) {
 				this.scheduleTestHeater();
-				//this.scheduleTestHeatPump();
+				this.scheduleTestHeatPump();
 				this.scheduleTestOven();
 			}
 		}

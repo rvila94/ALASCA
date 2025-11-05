@@ -34,7 +34,13 @@ package equipments;
 
 import equipments.HeatPump.HeatPump;
 import equipments.HeatPump.Test.HeatPumpTester;
+import equipments.HeatPump.compressor.Compressor;
+import equipments.HeatPump.compressor.CompressorConnector;
+import equipments.HeatPump.temperatureSensor.TemperatureSensor;
+import equipments.HeatPump.temperatureSensor.TemperatureSensorConnector;
 import equipments.dimmerlamp.DimmerLamp;
+import equipments.dimmerlamp.connections.DimmerLampExternalConnector;
+import equipments.dimmerlamp.connections.DimmerLampUserConnector;
 import equipments.dimmerlamp.test.DimmerLampTester;
 import equipments.fan.Fan;
 import equipments.hem.RegistrationConnector;
@@ -338,9 +344,15 @@ public class			CVMIntegrationTest
 		AbstractComponent.createComponent(
 				HeaterUnitTester.class.getCanonicalName(),
 				new Object[]{false});
-	
-// FIXME
-/**
+
+		AbstractComponent.createComponent(
+				Compressor.class.getCanonicalName(),
+				new Object[]{COMPRESSOR_INBOUND_URI});
+
+		AbstractComponent.createComponent(
+				TemperatureSensor.class.getCanonicalName(),
+				new Object[]{SENSOR_INBOUND_URI});
+
 		AbstractComponent.createComponent(
 				HeatPump.class.getCanonicalName(),
 				new Object[]{
@@ -379,7 +391,6 @@ public class			CVMIntegrationTest
 						DimmerLampUserConnector.class,
 						DimmerLampExternalConnector.class
 				});	// is unit test
-**/
 		
 		AbstractComponent.createComponent(
 			    Oven.class.getCanonicalName(),
