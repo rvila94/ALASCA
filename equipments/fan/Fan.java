@@ -4,12 +4,12 @@ import equipments.fan.connections.FanInboundPort;
 import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.annotations.OfferedInterfaces;
 import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
+import fr.sorbonne_u.components.hem2025e1.equipments.hairdryer.HairDryer;
 import fr.sorbonne_u.exceptions.AssertionChecking;
 import fr.sorbonne_u.exceptions.ImplementationInvariantException;
 import fr.sorbonne_u.exceptions.InvariantException;
 import fr.sorbonne_u.exceptions.PreconditionException;
 import fr.sorbonne_u.alasca.physical_data.Measure;
-import fr.sorbonne_u.alasca.physical_data.MeasurementUnit;
 
 /**
  * The class <code>Fan</code> implements the fan component.
@@ -67,20 +67,20 @@ implements FanImplementationI
     public static int Y_RELATIVE_POSITION = 0;
 
     // --- (adjust if needed) ---
-    public static final Measure<Double> HIGH_POWER_IN_WATTS =
-            new Measure<Double>(75.0, MeasurementUnit.WATTS);
-    public static final Measure<Double> MEDIUM_POWER_IN_WATTS =
-            new Measure<Double>(50.0, MeasurementUnit.WATTS);
-    public static final Measure<Double> LOW_POWER_IN_WATTS =
-            new Measure<Double>(25.0, MeasurementUnit.WATTS);
+    public static final Measure<Double> HIGH_POWER =
+            new Measure<Double>(75.0, POWER_UNIT);
+    public static final Measure<Double> MEDIUM_POWER =
+            new Measure<Double>(50.0, POWER_UNIT);
+    public static final Measure<Double> LOW_POWER =
+            new Measure<Double>(25.0, POWER_UNIT);
 
-    public static final Measure<Double> VOLTAGE =
-            new Measure<Double>(220.0, MeasurementUnit.VOLTS);
+    public static final Measure<Double> TENSION =
+            new Measure<Double>(220.0, TENSION_UNIT);
 
     /** initial state of the fan. */
-    protected static final FanState INITIAL_STATE = FanState.OFF;
+    public static final FanState INITIAL_STATE = FanState.OFF;
     /** initial mode of the fan. */
-    protected static final FanMode INITIAL_MODE = FanMode.LOW;
+    public static final FanMode INITIAL_MODE = FanMode.LOW;
 
     /** current state (on, off) of the fan. */
     protected FanState currentState;
@@ -95,6 +95,32 @@ implements FanImplementationI
     // -------------------------------------------------------------------------
     
     /**
+	 * return true if the static implementation invariants are observed, false
+	 * otherwise.
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * post	{@code true}	// no postcondition.
+	 * </pre>
+	 *
+	 * @return	true if the static invariants are observed, false otherwise.
+	 */
+	public static boolean	staticImplementationInvariants()
+	{
+		boolean ret = true;
+		ret &= AssertionChecking.checkStaticImplementationInvariant(
+				INITIAL_STATE != null,
+				Fan.class,
+				"INITIAL_STATE != null");
+		ret &= AssertionChecking.checkStaticImplementationInvariant(
+				INITIAL_MODE != null,
+				Fan.class,
+				"INITIAL_MODE != null");
+		return ret;
+	}
+
+	/**
 	 * return true if the implementation invariants are observed, false otherwise.
 	 * 
 	 * <p><strong>Contract</strong></p>
@@ -107,26 +133,87 @@ implements FanImplementationI
 	 * @param f	instance to be tested.
 	 * @return		true if the implementation invariants are observed, false otherwise.
 	 */
-    protected static boolean implementationInvariants(Fan f) {
-        assert f != null : new PreconditionException("f != null");
+	protected static boolean	implementationInvariants(Fan f)
+	{
+		assert	f != null : new PreconditionException("f != null");
 
-        boolean ret = true;
-        ret &= AssertionChecking.checkInvariant(
-                INITIAL_STATE != null, Fan.class, f,
-                "INITIAL_STATE != null");
-        ret &= AssertionChecking.checkInvariant(
-                INITIAL_MODE != null, Fan.class, f, 
-                "INITIAL_MODE != null");
-        ret &= AssertionChecking.checkInvariant(
-                f.currentState != null, Fan.class, f, 
-                "f.currentState != null");
-        ret &= AssertionChecking.checkInvariant(
-                f.currentMode != null, Fan.class, f, 
-                "f.currentMode != null");
-        return ret;
-    }
+		boolean ret = true;
+		ret &= staticImplementationInvariants();
+		ret &= AssertionChecking.checkInvariant(
+				f.currentState != null,
+				Fan.class, f,
+				"f.currentState != null");
+		ret &= AssertionChecking.checkInvariant(
+				f.currentMode != null,
+				Fan.class, f,
+				"f.currentMode != null");
+		return ret;
+	}
     
-    /**
+	/**
+	 * return true if the static invariants are observed, false otherwise.
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * post	{@code true}	// no postcondition.
+	 * </pre>
+	 *
+	 * @return	true if the static invariants are observed, false otherwise.
+	 */
+	public static boolean	staticInvariants()
+	{
+		boolean ret = true;
+		ret &= AssertionChecking.checkStaticInvariant(
+				REFLECTION_INBOUND_PORT_URI != null &&
+									!REFLECTION_INBOUND_PORT_URI.isEmpty(),
+				Fan.class,
+				"REFLECTION_INBOUND_PORT_URI != null && "
+								+ "!REFLECTION_INBOUND_PORT_URI.isEmpty()");
+		ret &= AssertionChecking.checkStaticInvariant(
+				INBOUND_PORT_URI != null && !INBOUND_PORT_URI.isEmpty(),
+				Fan.class,
+				"INBOUND_PORT_URI != null && !INBOUND_PORT_URI.isEmpty()");
+		ret &= AssertionChecking.checkStaticInvariant(
+				HIGH_POWER != null &&
+					HIGH_POWER.getData() > 0.0 &&
+					HIGH_POWER.getMeasurementUnit().equals(POWER_UNIT),
+				HairDryer.class,
+				"HIGH_POWER_IN_WATTS != null && HIGH_POWER_IN_WATTS.getData()"
+				+ " > 0.0 && HIGH_POWER_IN_WATTS.getMeasurementUnit().equals("
+				+ "POWER_UNIT)");
+		ret &= AssertionChecking.checkStaticInvariant(
+				LOW_POWER != null &&
+					LOW_POWER.getData() > 0.0 &&
+					LOW_POWER.getMeasurementUnit().equals(POWER_UNIT),
+				HairDryer.class,
+				"LOW_POWER_IN_WATTS != null && LOW_POWER_IN_WATTS.getData() >"
+				+ " 0.0 && LOW_POWER_IN_WATTS.getMeasurementUnit().equals("
+				+ "POWER_UNIT)");
+		ret &= AssertionChecking.checkStaticInvariant(
+				TENSION != null &&
+					(TENSION.getData() == 110.0 || TENSION.getData() == 220.0) &&
+					TENSION.getMeasurementUnit().equals(TENSION_UNIT),
+				HairDryer.class,
+				"TENSION != null && (TENSION.getData() == 110.0 || TENSION."
+				+ "getData() == 220.0) && TENSION.getMeasurementUnit().equals("
+				+ "TENSION_UNIT)");
+		ret &= AssertionChecking.checkStaticInvariant(
+				INITIAL_STATE != null && INITIAL_MODE != null,
+				Fan.class,
+				"INITIAL_STATE != null && INITIAL_MODE != null");
+		ret &= AssertionChecking.checkStaticInvariant(
+				X_RELATIVE_POSITION >= 0,
+				Fan.class,
+				"X_RELATIVE_POSITION >= 0");
+		ret &= AssertionChecking.checkStaticInvariant(
+				Y_RELATIVE_POSITION >= 0,
+				Fan.class,
+				"Y_RELATIVE_POSITION >= 0");
+		return ret;
+	}
+
+	/**
 	 * return true if the invariants are observed, false otherwise.
 	 * 
 	 * <p><strong>Contract</strong></p>
@@ -139,26 +226,14 @@ implements FanImplementationI
 	 * @param f	instance to be tested.
 	 * @return		true if the invariants are observed, false otherwise.
 	 */
-    protected static boolean invariants(Fan f) {
-        assert f != null : new PreconditionException("f != null");
+	protected static boolean	invariants(Fan f)
+	{
+		assert	f != null : new PreconditionException("f != null");
 
-        boolean ret = true;
-        ret &= AssertionChecking.checkImplementationInvariant(
-                REFLECTION_INBOUND_PORT_URI != null && 
-                			!REFLECTION_INBOUND_PORT_URI.isEmpty(),
-                Fan.class, f,
-                "REFLECTION_INBOUND_PORT_URI != null && "
-                		+ "!REFLECTION_INBOUND_PORT_URI.isEmpty()");
-        ret &= AssertionChecking.checkImplementationInvariant(
-                INBOUND_PORT_URI != null && !INBOUND_PORT_URI.isEmpty(),
-                Fan.class, f,
-                "INBOUND_PORT_URI != null && !INBOUND_PORT_URI.isEmpty()");
-        ret &= AssertionChecking.checkImplementationInvariant(
-                X_RELATIVE_POSITION >= 0, Fan.class, f, "X_RELATIVE_POSITION >= 0");
-        ret &= AssertionChecking.checkImplementationInvariant(
-                Y_RELATIVE_POSITION >= 0, Fan.class, f, "Y_RELATIVE_POSITION >= 0");
-        return ret;
-    }
+		boolean ret = true;
+		ret &= staticInvariants();
+		return ret;
+	}
 
     // -------------------------------------------------------------------------
     // Constructors
