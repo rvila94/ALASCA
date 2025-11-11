@@ -63,7 +63,7 @@ import fr.sorbonne_u.components.hem2025e1.equipments.heater.HeaterUnitTester;
 import fr.sorbonne_u.components.hem2025e1.equipments.hem.AdjustableOutboundPort;
 import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeter;
 import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeterCI;
-import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeterConnector;
+import fr.sorbonne_u.components.hem2025e1.equipments.meter.connections.ElectricMeterConnector;
 import fr.sorbonne_u.components.hem2025e1.equipments.meter.connections.ElectricMeterOutboundPort;
 import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeterUnitTester;
 import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.SolarPanel;

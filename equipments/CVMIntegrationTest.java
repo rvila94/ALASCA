@@ -247,11 +247,11 @@ public class			CVMIntegrationTest
 
 		// Ligne 4 : lampe et pompe à chaleur
 		DimmerLampTester.VERBOSE = true;
-		DimmerLampTester.X_RELATIVE_POSITION = 2;
+		DimmerLampTester.X_RELATIVE_POSITION = 0;
 		DimmerLampTester.Y_RELATIVE_POSITION = 3;
 
 		DimmerLamp.VERBOSE = true;
-		DimmerLamp.X_RELATIVE_POSITION = 3;
+		DimmerLamp.X_RELATIVE_POSITION = 1;
 		DimmerLamp.Y_RELATIVE_POSITION = 3;
 		
 
