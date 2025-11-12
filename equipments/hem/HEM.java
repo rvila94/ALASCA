@@ -36,6 +36,8 @@ import connectorGenerator.ConnectorConfigurationParser;
 import equipments.CVMIntegrationTest;
 import equipments.HeatPump.HeatPump;
 import equipments.HeatPump.Test.HeatPumpTester;
+import equipments.dimmerlamp.DimmerLamp;
+import equipments.dimmerlamp.test.DimmerLampTester;
 import equipments.oven.Oven;
 import equipments.oven.OvenUnitTester;
 import fr.sorbonne_u.components.AbstractComponent;
@@ -364,6 +366,7 @@ public class			HEM
 			this.logMessage("Generator tests end.");
 			if (this.isPreFirstStep) {
 				this.scheduleTestHeater();
+				this.scheduleTestDimmerLamp();
 				this.scheduleTestHeatPump();
 				this.scheduleTestOven();
 			}
@@ -1386,34 +1389,30 @@ public class			HEM
 	}
 
 	/**
-	 * test the heater.
+	 * test the heat pump
 	 *
 	 * <p><strong>Gherkin specification</strong></p>
 	 *
 	 * <pre>
-	 *   Feature:
-	 * </pre>
-	 *
-	 * <p><strong>Contract</strong></p>
 	 * Feature: adjustable appliance mode management
 	 *   Scenario: getting the max mode index
-	 *      Given the heat pump has just been turned on
-	 *      When I call maxMode()
+	 *      	Given the heat pump has just been turned on
+	 *      	When I call maxMode()
 	 *   Scenario: getting the current mode index
-	 *   	Given the heat pump has just been turned on
-	 *   	When I call currentMode()
-	 *   	Then the result is its max mode index
+	 *   		Given the heat pump has just been turned on
+	 *   		When I call currentMode()
+	 *   		Then the result is its max mode index
 	 *   Scenario: going down one mode index
-	 *       Given the heater is turned on
-	 *       And the current mode index is the max mode index
-	 *       When I call downMode()
-	 *       Then the method returns true
-	 *       And the current mode is its max mode minus one
+	 *       	Given the heater is turned on
+	 *       	And the current mode index is the max mode index
+	 *       	When I call downMode()
+	 *       	Then the method returns true
+	 *       	And the current mode is its max mode minus one
 	 *   Scenario: going up one mode index
-	 *   	Given the heat pump is turned on
-	 *   	And the current mode index is the max mode index minus one
-	 *   	When I call upMode()
-	 *   	Then the method returns true
+	 *   		Given the heat pump is turned on
+	 *   		And the current mode index is the max mode index minus one
+	 *   		When I call upMode()
+	 *   		Then the method returns true
 	 *   Scenario: setting the mode index
 	 *   		Given the heat pump is turned on
 	 *   		And the mode index 1 is legitimate
@@ -1443,14 +1442,18 @@ public class			HEM
 	 * 		 	When I call emergency()
 	 * 		 	Then the emergency is between 0.0 and 1.0
 	 * 		 Scenario: resuming
-	 * 		 Given the heat pump is turned on
-	 * 		 And it is suspended
-	 * 		 When I call resume()
-	 * 		 Then the method returns true
-	 * 		 And the heat pump is not suspended
+	 * 		 	Given the heat pump is turned on
+	 * 		 	And it is suspended
+	 * 		 	When I call resume()
+	 * 		 	Then the method returns true
+	 * 		 	And the heat pump is not suspended
+	 * </pre>
+	 *
+	 *
+	 * <p><strong>Contract</strong></p>
 	 *
 	 * <pre>
-	 * pre	{@code true}	// no precondition.
+	 * pre  {@code this.registrationTable.has(HeatPump.EQUIPMENT_UID)}
 	 * post	{@code true}	// no postcondition.
 	 * </pre>
 	 *
@@ -1560,7 +1563,7 @@ public class			HEM
 			}
 			this.logMessage("		And the current mode is max mode");
 			result = outbound.currentMode();
-			if (result == maxMode) {
+			if (result != maxMode) {
 				this.logMessage("	but was not: " + result);
 				statistics.incorrectResult();
 			}
@@ -1650,6 +1653,313 @@ public class			HEM
 		statistics.statisticsReport(this);
 
 		this.logMessage("Heat pump tests end");
+	}
+
+	/**
+	 * test the dimmer lamp.
+	 *
+	 * <p><strong>Gherkin specification</strong></p>
+	 *
+	 * <pre>
+	 * Feature: adjustable appliance mode management
+	 *   Scenario: getting the max mode index
+	 *      	Given the heat pump has just been turned on
+	 *      	When I call maxMode()
+	 *   Scenario: getting the current mode index
+	 *   		Given the dimmer lamp has just been turned on
+	 *   		When I call currentMode()
+	 *   		Then the result is its max mode index
+	 *   Scenario: going down one mode index
+	 *       	Given the heater is turned on
+	 *       	And the current mode index is the max mode index
+	 *       	When I call downMode()
+	 *       	Then the method returns true
+	 *       	And the current mode is its max mode minus one
+	 *   Scenario: going up one mode index
+	 *   		Given the dimmer lamp is turned on
+	 *   		And the current mode index is the max mode index minus one
+	 *   		When I call upMode()
+	 *   		Then the method returns true
+	 *   Scenario: setting the mode index
+	 *   		Given the dimmer lamp is turned on
+	 *   		And the mode index 1 is legitimate
+	 *   		When I call setMode(1)
+	 *   		Then the method returns true
+	 *   		And the current mode is 1
+	 * Feature: Getting the power consumption given a mode
+	 *   	Scenario: getting the power consumption of the maximum mode
+	 *   		Given the dimmer lamp is turned on
+	 *   		When I get the power consumption of the maximum mode
+	 *   		Then the result is the maximum power consumption of the heater
+	 * Feature: suspending and resuming
+	 * 		Scenario: checking if suspended when not
+	 * 			Given the dimmer lamp is turned on
+	 * 			And it has not been suspended yet
+	 * 			When I check if suspended
+	 * 			Then it is not
+	 * 		Scenario: suspending
+	 * 			Given the dimmer lamp is turned on
+	 * 			And it is not suspended
+	 * 			When I call suspend()
+	 * 			Then the method returns true
+	 * 			And the dimmer lamp is suspended
+	 * 		Scenario: checking the emergency
+	 * 			Given the dimmer lamp is turned on
+	 * 			And it has just been suspended
+	 * 		 	When I call emergency()
+	 * 		 	Then the emergency is between 0.0 and 1.0
+	 * 		 Scenario: resuming
+	 * 		 	Given the dimmer lamp is turned on
+	 * 		 	And it is suspended
+	 * 		 	When I call resume()
+	 * 		 	Then the method returns true
+	 * 		 	And the dimmer lamp is not suspended
+	 * </pre>
+	 *
+	 * <p><strong>Contract</strong></p>
+	 *
+	 * <pre>
+	 *  pre {@code this.registrationTable.has(DimmerLamp.EQUIPMENT_UID)}
+	 *  post {@code true} // no postcondition
+	 * </pre>
+	 * @throws Exception
+	 */
+	public void	integrationTestDimmerLamp() throws Exception {
+
+		AdjustableOutboundPort outbound = this.registrationTable.get(DimmerLamp.EQUIPMENT_UID);
+
+		this.logMessage("Dimmer lamp tests starts.");
+		TestsStatistics statistics = new TestsStatistics();
+		try {
+			this.logMessage("Feature: adjustable appliance mode management");
+			this.logMessage("	Scenario: getting the max mode index");
+			this.logMessage("		Given the dimmer lamp has just been turned on");
+			this.logMessage("		When I call maxMode()");
+			this.logMessage("   	Then the result is its max mode index");
+			final int maxMode = outbound.maxMode();
+
+			statistics.updateStatistics();
+
+			this.logMessage("  Scenario: getting the current mode index");
+			this.logMessage("    Given the dimmer lamp has just been turned on");
+			this.logMessage("    When I call currentMode()");
+			this.logMessage("    Then the current mode is its max mode");
+			int result = outbound.currentMode();
+			if ( result != maxMode ) {
+				this.logMessage("		but was: " + result);
+				statistics.incorrectResult();
+			}
+
+			statistics.updateStatistics();
+
+			this.logMessage("	Scenario: going down one mode index");
+			this.logMessage("    Given the dimmer lamp is turned on");
+			this.logMessage("    And the current mode index is the max mode index");
+			this.logMessage("	 When I call downMode()");
+			this.logMessage("	 Then the method returns true");
+
+			boolean downResult = outbound.downMode();
+			if ( !downResult ) {
+				this.logMessage("	but was: false");
+				statistics.incorrectResult();
+			}
+			this.logMessage("	And the current mode is its max mode minus one");
+			result = outbound.currentMode();
+			if (result != maxMode - 1) {
+				this.logMessage("	but was: " + result);
+
+				statistics.incorrectResult();
+			}
+
+			statistics.updateStatistics();
+
+			this.logMessage("   Scenario: going up one mode index");
+			this.logMessage("		Given the dimmer lamp is turned on");
+			this.logMessage("    And the current mode index is the max mode index minus one");
+			this.logMessage("    When I call upMode()");
+			this.logMessage("    Then the method returns true");
+			boolean upResult = outbound.upMode();
+			if (!upResult) {
+				this.logMessage("	but was false");
+				statistics.incorrectResult();
+			}
+			this.logMessage("	And the current mode is its max mode");
+			result = outbound.currentMode();
+			if (result != maxMode) {
+				this.logMessage("	but was: " + result);
+				statistics.incorrectResult();
+			}
+
+			statistics.updateStatistics();
+
+			this.logMessage("	Scenario: setting the mode index");
+			this.logMessage("		Given the dimmer lamp is turned on");
+			int index = 1;
+			this.logMessage("		And the mode index 1 is legitimate");
+			if (index > maxMode) {
+				this.logMessage("	but was not");
+				statistics.failedCondition();
+			}
+			this.logMessage("	When I call setMode(1)");
+			this.logMessage("	Then the method returns true");
+			boolean setResult = outbound.setMode(index);
+			if (!setResult) {
+				this.logMessage("	but was false");
+				statistics.incorrectResult();
+			}
+			this.logMessage("	And the current mode is 1");
+			result = outbound.currentMode();
+			if (result != index) {
+				this.logMessage("	but was: " + result);
+				statistics.incorrectResult();
+			}
+
+			statistics.updateStatistics();
+
+			this.logMessage("Feature MAXIMIZE_POWER");
+			this.logMessage("	Scenario: set the mode index to the maximum");
+			this.logMessage("		Given the dimmer lamp is turned on");
+			this.logMessage(" 		When I call setMode(maxMode)");
+			this.logMessage("		Then the method returns true");
+			setResult = outbound.setMode(maxMode);
+			if (!setResult) {
+				this.logMessage("	but was false");
+				statistics.incorrectResult();
+			}
+			this.logMessage("		And the current mode is max mode");
+			result = outbound.currentMode();
+			if (result != maxMode) {
+				this.logMessage("	but was not " + maxMode + " instead "+ result);
+				statistics.incorrectResult();
+			}
+
+			statistics.updateStatistics();
+
+			this.logMessage("Feature: Getting the power consumption given a mode");
+			this.logMessage("  Scenario: getting the power consumption of the maximum mode");
+			this.logMessage("    Given the dimmer lamp is turned on");
+			this.logMessage("    When I get the power consumption of the maximum mode");
+			double modeConsumption = outbound.getModeConsumption(maxMode);
+			this.logMessage("    Then the result is the maximum power consumption of the dimmer lamp");
+
+			statistics.updateStatistics();
+
+			this.logMessage("Feature: suspending and resuming");
+			this.logMessage("  Scenario: checking if suspended when not");
+			this.logMessage("    Given the dimmer lamp is turned on");
+			this.logMessage("    And it has not been suspended yet");
+			this.logMessage("    When I check if suspended");
+			boolean suspendedResult = outbound.suspended();
+			this.logMessage("    Then it is not");
+			if (suspendedResult) {
+				this.logMessage("      but it was!");
+				statistics.incorrectResult();
+			}
+
+			statistics.updateStatistics();
+
+			this.logMessage("  Scenario: suspending");
+			this.logMessage("    Given the dimmer lamp is turned on");
+			this.logMessage("    And it is not suspended");
+			this.logMessage("    When I call suspend()");
+			suspendedResult = outbound.suspend();
+			this.logMessage("    Then the method returns true");
+			if (!suspendedResult) {
+				this.logMessage("      but was false");
+				statistics.incorrectResult();
+			}
+			this.logMessage("    And the dimmer lamp is suspended");
+			suspendedResult = outbound.suspended();
+			if (!suspendedResult) {
+				this.logMessage("      but it was not!");
+				statistics.incorrectResult();
+			}
+
+			statistics.updateStatistics();
+
+			this.logMessage("  Scenario: checking the emergency");
+			this.logMessage("    Given the dimmer lamp is turned on");
+			this.logMessage("    And it has just been suspended");
+			this.logMessage("    When I call emergency()");
+			double emergencyResult = outbound.emergency();
+			this.logMessage("    Then the emergency is between 0.0 and 1.0");
+			if (emergencyResult < 0.0 || emergencyResult > 1.0) {
+				this.logMessage("      but was: " + emergencyResult);
+				statistics.incorrectResult();
+			}
+
+			statistics.updateStatistics();
+
+			this.logMessage("  Scenario: resuming");
+			this.logMessage("    Given the dimmer lamp is turned on");
+			this.logMessage("    And it is suspended");
+			this.logMessage("    When I call resume()");
+			boolean resumeResult = outbound.resume();
+			this.logMessage("    Then the method returns true");
+			if (!resumeResult) {
+				this.logMessage("      but was false");
+				statistics.incorrectResult();
+			}
+			this.logMessage("    And the dimmer lamp is not suspended");
+			suspendedResult = outbound.suspended();
+			if (suspendedResult) {
+				this.logMessage("      but it was!");
+				statistics.incorrectResult();
+			}
+
+			statistics.updateStatistics();
+
+
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		statistics.statisticsReport(this);
+
+		this.logMessage("Heat pump tests end");
+	}
+
+
+	protected void		scheduleTestDimmerLamp() {
+		// Test for the heater
+		Instant dimmerLampTestOn1=
+				this.ac.getStartInstant().plusSeconds(
+						(DimmerLampTester.SWITCH_ON_DELAY1 +
+								DimmerLampTester.SWITCH_OFF_DELAY1) / 2);
+		Instant dimmerLampTestOn2 =
+				this.ac.getStartInstant().plusSeconds(
+						(DimmerLampTester.SWITCH_ON_DELAY2 +
+								DimmerLampTester.SWITCH_OFF_DELAY2) / 2);
+		this.traceMessage("HEM schedules the heat pump test.\n");
+		long delayOn1 = this.ac.nanoDelayUntilInstant(dimmerLampTestOn1);
+		long delayOn2 = this.ac.nanoDelayUntilInstant(dimmerLampTestOn2);
+
+		// schedule the switch on heater in one second
+		this.scheduleTaskOnComponent(
+				new AbstractTask() {
+					@Override
+					public void run() {
+						try {
+							integrationTestDimmerLamp();
+						} catch (Exception e) {
+							throw new BCMRuntimeException(e);
+						}
+					}
+				}, delayOn1, TimeUnit.NANOSECONDS);
+
+		this.scheduleTaskOnComponent(
+				new AbstractTask() {
+					@Override
+					public void run() {
+						try {
+							integrationTestDimmerLamp();
+						} catch (Exception e) {
+							throw new BCMRuntimeException(e);
+						}
+					}
+				}, delayOn2, TimeUnit.NANOSECONDS);
+
 	}
 
 }

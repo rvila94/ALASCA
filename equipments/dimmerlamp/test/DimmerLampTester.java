@@ -127,6 +127,12 @@ extends AbstractComponent {
         this.externalInboundPortURI = externalInboundPortURI;
         this.connectorExternalClassName = connectorExternalClass.getCanonicalName();
 
+        if (DimmerLampTester.VERBOSE) {
+            this.tracer.get().setTitle("Dimmer Lamp test component");
+            this.tracer.get().setRelativePosition(X_RELATIVE_POSITION,
+                    Y_RELATIVE_POSITION);
+            this.toggleTracing();
+        }
     }
 
     /**
@@ -356,8 +362,10 @@ extends AbstractComponent {
     public void runAllUnitTests() {
         this.testInitialState();
         this.testSwitchOn();
-        this.testSwitchOff();
         this.testManipulatePower();
+        this.testSwitchOff();
+
+        this.statistics.statisticsReport(this);
     }
 
     @Override
@@ -454,7 +462,7 @@ extends AbstractComponent {
                         }
                     }, delayToSwitchOn1, TimeUnit.NANOSECONDS);
 
-            /*this.scheduleTaskOnComponent(
+            this.scheduleTaskOnComponent(
                     new AbstractComponent.AbstractTask() {
                         @Override
                         public void run() {
@@ -492,7 +500,7 @@ extends AbstractComponent {
                                 e.printStackTrace();
                             }
                         }
-                    }, delayToSwitchOff2, TimeUnit.NANOSECONDS);*/
+                    }, delayToSwitchOff2, TimeUnit.NANOSECONDS);
         }
 
     }

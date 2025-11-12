@@ -253,7 +253,6 @@ public class			CVMIntegrationTest
 		DimmerLamp.VERBOSE = true;
 		DimmerLamp.X_RELATIVE_POSITION = 1;
 		DimmerLamp.Y_RELATIVE_POSITION = 3;
-		
 
 		HeatPumpTester.VERBOSE = true;
 		HeatPumpTester.X_RELATIVE_POSITION = 2;
