@@ -46,7 +46,7 @@ import java.util.Map;
  * invariant	{@code true}	// no more invariant
  * </pre>
  * 
- * <p>Created on : 2025-11-05</p>
+ * <p>Created on : 2025-11-11</p>
  * 
  * @author	<a href="mailto:Rodrigo.Vila@etu.sorbonne-universite.fr">Rodrigo Vila</a>
  * @author	<a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
