@@ -153,7 +153,7 @@ implements	OvenUserI,
 	public static int Y_RELATIVE_POSITION = 0;
 
 	/** Default temperatures per mode. */
-	protected static final Map<OvenMode, Measure<Double>> MODE_TEMPERATURES = new HashMap<>();
+	public static final Map<OvenMode, Measure<Double>> MODE_TEMPERATURES = new HashMap<>();
 	static {
 		MODE_TEMPERATURES.put(OvenMode.DEFROST, new Measure<>(80.0, TEMPERATURE_UNIT));
 		MODE_TEMPERATURES.put(OvenMode.GRILL, new Measure<>(220.0, TEMPERATURE_UNIT));
@@ -225,7 +225,7 @@ implements	OvenUserI,
 	}
 
 	/**
-	 * return true if the invariants are observed, false otherwise.
+	 * return true if the static invariants are observed, false otherwise.
 	 * 
 	 * <p><strong>Contract</strong></p>
 	 * 
@@ -234,48 +234,65 @@ implements	OvenUserI,
 	 * post	{@code true}	// no postcondition.
 	 * </pre>
 	 *
-	 * @param o	instance to be tested.
 	 * @return	true if the invariants are observed, false otherwise.
 	 */
-	protected static boolean	invariants(Oven o)
+	public static boolean	staticInvariants()
 	{
-		assert	o != null : new PreconditionException("o != null");
-
 		boolean ret = true;
-
-		ret &= OvenTemperatureI.invariants(o);
-		ret &= OvenExternalControlI.invariants(o);
-		ret &= AssertionChecking.checkInvariant(
+		ret &= OvenTemperatureI.staticInvariants();
+		ret &= OvenExternalControlI.staticInvariants();
+		ret &= AssertionChecking.checkStaticInvariant(
 				REFLECTION_INBOUND_PORT_URI != null &&
 									!REFLECTION_INBOUND_PORT_URI.isEmpty(),
-				Oven.class, o,
+				Oven.class,
 				"REFLECTION_INBOUND_PORT_URI != null && "
 								+ "!REFLECTION_INBOUND_PORT_URI.isEmpty()");
-		ret &= AssertionChecking.checkInvariant(
+		ret &= AssertionChecking.checkStaticInvariant(
 				USER_INBOUND_PORT_URI != null && !USER_INBOUND_PORT_URI.isEmpty(),
-				Oven.class, o,
+				Oven.class,
 				"USER_INBOUND_PORT_URI != null && !USER_INBOUND_PORT_URI.isEmpty()");
-		ret &= AssertionChecking.checkInvariant(
+		ret &= AssertionChecking.checkStaticInvariant(
 				INTERNAL_CONTROL_INBOUND_PORT_URI != null &&
 								!INTERNAL_CONTROL_INBOUND_PORT_URI.isEmpty(),
-				Oven.class, o,
+				Oven.class,
 				"INTERNAL_CONTROL_INBOUND_PORT_URI != null && "
 							+ "!INTERNAL_CONTROL_INBOUND_PORT_URI.isEmpty()");
-		ret &= AssertionChecking.checkInvariant(
+		ret &= AssertionChecking.checkStaticInvariant(
 				EXTERNAL_CONTROL_INBOUND_PORT_URI != null &&
 								!EXTERNAL_CONTROL_INBOUND_PORT_URI.isEmpty(),
-				Oven.class, o,
-				"EXTERNAL_CONTROL_INBOUND_PORT_URI != null && "
+				Oven.class,
+				"EXTERNAL_CONTROL_INBOUND_PORT_URI != null &&"
 							+ "!EXTERNAL_CONTROL_INBOUND_PORT_URI.isEmpty()");
-
-		ret &= AssertionChecking.checkInvariant(
+		ret &= AssertionChecking.checkStaticInvariant(
 				X_RELATIVE_POSITION >= 0,
-				Oven.class, o,
+				Oven.class,
 				"X_RELATIVE_POSITION >= 0");
-		ret &= AssertionChecking.checkInvariant(
+		ret &= AssertionChecking.checkStaticInvariant(
 				Y_RELATIVE_POSITION >= 0,
-				Oven.class, o,
+				Oven.class,
 				"Y_RELATIVE_POSITION >= 0");
+		return ret;
+	}
+
+	/**
+	 * return true if the invariants are observed, false otherwise.
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * pre	{@code h != null}
+	 * post	{@code true}	// no postcondition.
+	 * </pre>
+	 *
+	 * @param h	instance to be tested.
+	 * @return	true if the invariants are observed, false otherwise.
+	 */
+	protected static boolean	invariants(Oven h)
+	{
+		assert	h != null : new PreconditionException("h != null");
+
+		boolean ret = true;
+		ret &= staticInvariants();
 		return ret;
 	}
 

@@ -4,7 +4,6 @@ import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.alasca.physical_data.MeasurementUnit;
 import fr.sorbonne_u.alasca.physical_data.SignalData;
 import fr.sorbonne_u.exceptions.AssertionChecking;
-import fr.sorbonne_u.exceptions.PreconditionException;
 
 /**
  * The interface <code>OvenTemperatureI</code> declares the signatures of
@@ -58,35 +57,31 @@ public interface		OvenTemperatureI
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Return true if the invariants are observed, false otherwise.
+	 * return true if the static invariants are observed, false otherwise.
 	 * 
 	 * <p><strong>Contract</strong></p>
 	 * 
 	 * <pre>
-	 * pre	{@code o != null}
 	 * post	{@code true}	// no postcondition.
 	 * </pre>
 	 *
-	 * @param o	instance to be tested.
 	 * @return	true if the invariants are observed, false otherwise.
 	 */
-	public static boolean	invariants(OvenTemperatureI o)
+	public static boolean	staticInvariants()
 	{
-		assert	o != null : new PreconditionException("o != null");
-
 		boolean ret = true;
-		ret &= AssertionChecking.checkInvariant(
+		ret &= AssertionChecking.checkStaticInvariant(
 				MIN_TARGET_TEMPERATURE != null &&
 					MIN_TARGET_TEMPERATURE.getMeasurementUnit().equals(
 															TEMPERATURE_UNIT),
-				OvenTemperatureI.class, o,
+				OvenTemperatureI.class,
 				"MIN_TARGET_TEMPERATURE != null && MIN_TARGET_TEMPERATURE."
 				+ "getMeasurementUnit().equals(TEMPERATURE_UNIT)");
-		ret &= AssertionChecking.checkInvariant(
+		ret &= AssertionChecking.checkStaticInvariant(
 				MAX_TARGET_TEMPERATURE != null &&
 					MAX_TARGET_TEMPERATURE.getMeasurementUnit().equals(
 															TEMPERATURE_UNIT),
-				OvenTemperatureI.class, o,
+				OvenTemperatureI.class,
 				"MAX_TARGET_TEMPERATURE != null && MAX_TARGET_TEMPERATURE."
 				+ "getMeasurementUnit().equals(TEMPERATURE_UNIT)");
 		return ret;

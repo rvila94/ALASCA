@@ -1,0 +1,759 @@
+package equipments.oven.mil;
+
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
+
+import equipments.oven.mil.events.DoNotHeat;
+import equipments.oven.mil.events.Heat;
+import equipments.oven.mil.events.OvenEventI;
+import equipments.oven.mil.events.SetPowerOven;
+import equipments.oven.mil.events.SwitchOffOven;
+import equipments.oven.mil.events.SwitchOnOven;
+import equipments.oven.Oven.OvenState;
+import equipments.oven.OvenExternalControlI;
+import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeterImplementationI;
+import fr.sorbonne_u.components.hem2025e2.GlobalReportI;
+import fr.sorbonne_u.components.hem2025e2.utils.Electricity;
+import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
+import fr.sorbonne_u.devs_simulation.hioa.annotations.ExportedVariable;
+import fr.sorbonne_u.devs_simulation.hioa.annotations.ModelExportedVariable;
+import fr.sorbonne_u.devs_simulation.hioa.models.AtomicHIOA;
+import fr.sorbonne_u.devs_simulation.hioa.models.vars.Value;
+import fr.sorbonne_u.devs_simulation.models.annotations.ModelExternalEvents;
+import fr.sorbonne_u.devs_simulation.models.events.Event;
+import fr.sorbonne_u.devs_simulation.models.events.EventI;
+import fr.sorbonne_u.devs_simulation.models.time.Duration;
+import fr.sorbonne_u.devs_simulation.models.time.Time;
+import fr.sorbonne_u.devs_simulation.simulators.interfaces.AtomicSimulatorI;
+import fr.sorbonne_u.devs_simulation.simulators.interfaces.SimulationReportI;
+import fr.sorbonne_u.devs_simulation.utils.Pair;
+import fr.sorbonne_u.devs_simulation.utils.StandardLogger;
+import fr.sorbonne_u.devs_simulation.utils.AssertionChecking;
+
+// -----------------------------------------------------------------------------
+/**
+ * The class <code>OvenElectricityModel</code> defines a simulation model
+ * for the electricity consumption of the Oven.
+ *
+ * <p><strong>Description</strong></p>
+ * 
+ * <p>
+ * The electric power consumption (in amperes) depends upon the state and the
+ * current power level i.e., {@code State.OFF => consumption == 0.0},
+ * {@code State.ON => consumption == NOT_HEATING_POWER} and
+ * {@code State.HEATING => consumption >= NOT_HEATING_POWER && consumption <=
+ * MAX_HEATING_POWER}). The state of the Oven is modified by the reception of
+ * external events ({@code SwitchOnOven}, {@code SwitchOffOven},
+ * {@code Heat} and {@code DoNotHeat}). The power level is set through the
+ * external event {@code SetPowerOven} that has a parameter defining the
+ * required power level. The electric power consumption is stored in the
+ * exported variable {@code currentIntensity}.
+ * </p>
+ * <p>
+ * Initially, the mode is in state {@code State.OFF} and the electric power
+ * consumption at 0.0.
+ * </p>
+ * 
+ * <ul>
+ * <li>Imported events:
+ *   {@code SwitchOnOven},
+ *   {@code SwitchOffOven},
+ *   {@code SetPowerOven},
+ *   {@code Heat},
+ *   {@code DoNotHeat}</li>
+ * <li>Exported events: none</li>
+ * <li>Imported variables: none</li>
+ * <li>Exported variables:
+ *   name = {@code currentIntensity}, type = {@code Double}</li>
+ * </ul>
+ * 
+ * <p><strong>Implementation Invariants</strong></p>
+ * 
+ * <pre>
+ * invariant	{@code NOT_HEATING_POWER >= 0.0}
+ * invariant	{@code MAX_HEATING_POWER > NOT_HEATING_POWER}
+ * invariant	{@code TENSION > 0.0}
+ * invariant	{@code currentState != null}
+ * invariant	{@code totalConsumption >= 0.0}
+ * invariant	{@code !currentHeatingPower.isInitialised() || currentHeatingPower.getValue() >= 0.0}
+ * invariant	{@code !currentIntensity.isInitialised() || currentIntensity.getValue() >= 0.0}
+ * </pre>
+ * 
+ * <p><strong>Invariants</strong></p>
+ * 
+ * <pre>
+ * invariant	{@code URI != null && !URI.isEmpty()}
+ * invariant	{@code NOT_HEATING_POWER_RUNPNAME != null && !NOT_HEATING_POWER_RUNPNAME.isEmpty()}
+ * invariant	{@code MAX_HEATING_POWER_RUNPNAME != null && !MAX_HEATING_POWER_RUNPNAME.isEmpty()}
+ * invariant	{@code TENSION_RUNPNAME != null && !TENSION_RUNPNAME.isEmpty()}
+ * </pre>
+ * 
+ * <p>Created on : 2025-11-13</p>
+ * 
+ * @author	<a href="mailto:Rodrigo.Vila@etu.sorbonne-universite.fr">Rodrigo Vila</a>
+ * @author	<a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
+ */
+@ModelExternalEvents(imported = {SwitchOnOven.class,
+								 SwitchOffOven.class,
+								 SetPowerOven.class,
+								 Heat.class,
+								 DoNotHeat.class})
+@ModelExportedVariable(name = "currentIntensity", type = Double.class)
+@ModelExportedVariable(name = "currentHeatingPower", type = Double.class)
+//-----------------------------------------------------------------------------
+public class			OvenElectricityModel
+extends		AtomicHIOA
+{
+	// -------------------------------------------------------------------------
+	// Constants and variables
+	// -------------------------------------------------------------------------
+
+	private static final long	serialVersionUID = 1L;
+	/** URI for a model; works when only one instance is created.			*/
+	public static final String	URI = OvenElectricityModel.class.
+															getSimpleName();
+	/** when true, leaves a trace of the execution of the model.			*/
+	public static boolean		VERBOSE = true;
+	/** when true, leaves a debugging trace of the execution of the model.	*/
+	public static boolean		DEBUG = false;
+
+	/** current state of the Oven.										*/
+	protected OvenState		currentState = OvenState.OFF;
+										
+	// protected OvenMode		currentMode = OvenMode.CUSTOM;
+	/** true when the electricity consumption of the Oven has changed
+	 *  after executing an external event; the external event changes the
+	 *  value of <code>currentState</code> and then an internal transition
+	 *  will be triggered by putting through in this variable which will
+	 *  update the variable <code>currentIntensity</code>.					*/
+	protected boolean			consumptionHasChanged = false;
+
+	/** total consumption of the Oven during the simulation in kwh.		*/
+	protected double			totalConsumption;
+
+	// -------------------------------------------------------------------------
+	// HIOA model variables
+	// -------------------------------------------------------------------------
+
+	/** the current heating power between 0 and
+	 *  {@code OvenElectricityModel.MAX_HEATING_POWER} in the power unit
+	 *  used by the Oven.													*/
+	@ExportedVariable(type = Double.class)
+	protected final Value<Double>	currentHeatingPower =
+														new Value<Double>(this);
+	/** current intensity in the power unit used by the electric meter.		*/
+	@ExportedVariable(type = Double.class)
+	protected final Value<Double>	currentIntensity = new Value<Double>(this);
+
+	// -------------------------------------------------------------------------
+	// Invariants
+	// -------------------------------------------------------------------------
+
+	/**
+	 * return true if the static implementation invariants are observed, false
+	 * otherwise.
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * pre	{@code true}	// no precondition.
+	 * post	{@code true}	// no postcondition.
+	 * </pre>
+	 *
+	 * @return			true if the static implementation invariants are observed, false otherwise.
+	 */
+	protected static boolean	staticImplementationInvariants()
+	{
+		boolean ret = true;
+		return ret;
+	}
+
+	/**
+	 * return true if the implementation invariants are observed, false otherwise.
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * pre	{@code instance != null}
+	 * post	{@code true}	// no postcondition.
+	 * </pre>
+	 *
+	 * @param instance	instance to be tested.
+	 * @return			true if the implementation invariants are observed, false otherwise.
+	 */
+	protected static boolean	implementationInvariants(
+		OvenElectricityModel instance
+		)
+	{
+		assert	instance != null :
+				new NeoSim4JavaException("Precondition violation: "
+						+ "instance != null");
+
+		boolean ret = true;
+		ret &= staticImplementationInvariants();
+		ret &= AssertionChecking.checkImplementationInvariant(
+					instance.currentState != null,
+					OvenElectricityModel.class,
+					instance,
+					"currentState != null");
+		ret &= AssertionChecking.checkImplementationInvariant(
+					instance.totalConsumption >= 0.0,
+					OvenElectricityModel.class,
+					instance,
+					"totalConsumption >= 0.0");
+		ret &= AssertionChecking.checkImplementationInvariant(
+					!instance.currentHeatingPower.isInitialised() ||
+								instance.currentHeatingPower.getValue() >= 0.0,
+					OvenElectricityModel.class,
+					instance,
+					"!currentHeatingPower.isInitialised() || "
+							+ "currentHeatingPower.getValue() >= 0.0");
+		ret &= AssertionChecking.checkImplementationInvariant(
+					!instance.currentIntensity.isInitialised() ||
+									instance.currentIntensity.getValue() >= 0.0,
+					OvenElectricityModel.class,
+					instance,
+					"!currentIntensity.isInitialised() || "
+							+ "currentIntensity.getValue() >= 0.0");
+		return ret;
+	}
+
+	/**
+	 * return true if the static invariants are observed, false otherwise.
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * pre	{@code true}	// no precondition.
+	 * post	{@code true}	// no postcondition.
+	 * </pre>
+	 *
+	 * @return	true if the invariants are observed, false otherwise.
+	 */
+	public static boolean	staticInvariants()
+	{
+		boolean ret = true;
+		ret &= OvenSimulationConfigurationI.staticInvariants();
+		ret &= AssertionChecking.checkStaticInvariant(
+				URI != null && !URI.isEmpty(),
+				OvenElectricityModel.class,
+				"URI != null && !URI.isEmpty()");
+		return ret;
+	}
+
+	/**
+	 * return true if the invariants are observed, false otherwise.
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * pre	{@code instance != null}
+	 * post	{@code true}	// no postcondition.
+	 * </pre>
+	 *
+	 * @param instance	instance to be tested.
+	 * @return			true if the invariants are observed, false otherwise.
+	 */
+	protected static boolean	invariants(
+		OvenElectricityModel instance
+		)
+	{
+		assert	instance != null :
+				new NeoSim4JavaException(
+						"Precondition violation: instance != null");
+
+		boolean ret = true;
+		ret &= staticInvariants();
+		return ret;
+	}
+
+	// -------------------------------------------------------------------------
+	// Constructors
+	// -------------------------------------------------------------------------
+
+	/**
+	 * create a Oven MIL electricity model instance.
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * pre	{@code uri == null || !uri.isEmpty()}
+	 * pre	{@code simulatedTimeUnit != null}
+	 * pre	{@code simulationEngine != null && !simulationEngine.isModelSet()}
+	 * pre	{@code simulationEngine instanceof AtomicEngine}
+	 * post	{@code !isDebugModeOn()}
+	 * post	{@code getURI() != null && !getURI().isEmpty()}
+	 * post	{@code uri == null || getURI().equals(uri)}
+	 * post	{@code getSimulatedTimeUnit().equals(simulatedTimeUnit)}
+	 * post	{@code getSimulationEngine().equals(simulationEngine)}
+	 * </pre>
+	 *
+	 * @param uri				URI of the model.
+	 * @param simulatedTimeUnit	time unit used for the simulation time.
+	 * @param simulationEngine	simulation engine to which the model is attached.
+	 * @throws Exception		<i>to do</i>.
+	 */
+	public				OvenElectricityModel(
+		String uri,
+		TimeUnit simulatedTimeUnit,
+		AtomicSimulatorI simulationEngine
+		) throws Exception
+	{
+		super(uri, simulatedTimeUnit, simulationEngine);
+		this.getSimulationEngine().setLogger(new StandardLogger());
+
+		assert	OvenElectricityModel.implementationInvariants(this) :
+				new NeoSim4JavaException(
+						"OvenElectricityModel.implementationInvariants(this)");
+		assert	OvenElectricityModel.invariants(this) :
+				new NeoSim4JavaException(
+						"OvenElectricityModel.invariants(this)");
+	}
+
+	// -------------------------------------------------------------------------
+	// Methods
+	// -------------------------------------------------------------------------
+
+	/**
+	 * set the state of the Oven.
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * pre	{@code s != null}
+	 * post	{@code true}	// no postcondition.
+	 * </pre>
+	 *
+	 * @param s		the new state.
+	 * @param t		time at which the state {@code s} is set.
+	 */
+	public void			setState(OvenState s, Time t)
+	{
+		OvenState old = this.currentState;
+		this.currentState = s;
+		if (old != s) {
+			this.consumptionHasChanged = true;					
+		}
+
+		assert	OvenElectricityModel.implementationInvariants(this) :
+				new NeoSim4JavaException(
+						"OvenElectricityModel.implementationInvariants(this)");
+		assert	OvenElectricityModel.invariants(this) :
+				new NeoSim4JavaException(
+						"OvenElectricityModel.invariants(this)");
+	}
+	
+	/**
+	 * set the state of the Oven.
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * pre	{@code mode != null}
+	 * post	{@code true}	// no postcondition.
+	 * </pre>
+	 *
+	 * @param mode	the new mode.
+	 * @param t		time at which the mode {@code mode} is set.
+	 */
+	/*public void setMode(OvenMode mode, Time t)
+	{
+	    assert mode != null :
+	        new NeoSim4JavaException("mode must not be null");
+
+	    OvenMode oldMode = this.currentMode;
+	    this.currentMode = mode;
+
+	    if (VERBOSE) {
+	    	this.logMessage("OvenElectricityModel: mode changed from "
+                    + oldMode + " to " + mode + " at " + t + ".");
+	    }
+	    
+	    assert	OvenElectricityModel.implementationInvariants(this) :
+			new NeoSim4JavaException(
+					"OvenElectricityModel.implementationInvariants(this)");
+		assert	OvenElectricityModel.invariants(this) :
+				new NeoSim4JavaException(
+						"OvenElectricityModel.invariants(this)");
+	}*/
+
+	/**
+	 * return the state of the Oven.
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * pre	{@code true}	// no precondition.
+	 * post	{@code ret != null}
+	 * </pre>
+	 *
+	 * @return	the current state.
+	 */
+	public OvenState		getState()
+	{
+		return this.currentState;
+	}
+	
+	/**
+	 * return the mode of the Oven.
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * pre	{@code true}	// no precondition.
+	 * post	{@code ret != null}
+	 * </pre>
+	 *
+	 * @return	the current state.
+	 */
+	/*public OvenMode getCurrentMode() {
+	    return this.currentMode;
+	}*/
+
+	/**
+	 * set the current heating power of the Oven to {@code newPower}.
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * pre	{@code newPower >= 0.0 && newPower <= MAX_HEATING_POWER}
+	 * post	{@code getCurrentHeatingPower() == newPower}
+	 * </pre>
+	 *
+	 * @param newPower	the new power in the unit used by the Oven to be set on the Oven.
+	 * @param t			time at which the new power is set.
+	 */
+	public void			setCurrentHeatingPower(double newPower, Time t)
+	{
+		assert	newPower >= 0.0 &&
+					newPower <= OvenExternalControlI.MAX_POWER_LEVEL.getData() :
+				new NeoSim4JavaException(
+					"Precondition violation: newPower >= 0.0 && "
+					+ "newPower <= OvenElectricityModel.MAX_HEATING_POWER,"
+					+ " but newPower = " + newPower);
+
+		double oldPower = this.currentHeatingPower.getValue();
+		this.currentHeatingPower.setNewValue(newPower, t);
+		if (newPower != oldPower) {
+			this.consumptionHasChanged = true;
+		}
+
+		assert	OvenElectricityModel.implementationInvariants(this) :
+				new NeoSim4JavaException(
+						"OvenElectricityModel.implementationInvariants(this)");
+		assert	OvenElectricityModel.invariants(this) :
+				new NeoSim4JavaException(
+						"OvenElectricityModel.invariants(this)");
+	}
+
+	// -------------------------------------------------------------------------
+	// DEVS simulation protocol
+	// -------------------------------------------------------------------------
+
+	/**
+	 * @see fr.sorbonne_u.devs_simulation.hioa.models.AtomicHIOA#initialiseState(fr.sorbonne_u.devs_simulation.models.time.Time)
+	 */
+	@Override
+	public void			initialiseState(Time initialTime)
+	{
+		super.initialiseState(initialTime);
+
+		this.currentState = OvenState.OFF;
+		//this.currentMode = OvenMode.CUSTOM;
+		this.consumptionHasChanged = false;
+		this.totalConsumption = 0.0;
+
+		if (VERBOSE) {
+			this.logMessage("simulation begins.");
+		}
+
+		assert	OvenElectricityModel.implementationInvariants(this) :
+				new NeoSim4JavaException(
+						"OvenElectricityModel.implementationInvariants(this)");
+		assert	OvenElectricityModel.invariants(this) :
+				new NeoSim4JavaException(
+						"OvenElectricityModel.invariants(this)");
+	}
+
+	/**
+	 * @see fr.sorbonne_u.devs_simulation.hioa.models.interfaces.VariableInitialisationI#useFixpointInitialiseVariables()
+	 */
+	@Override
+	public boolean		useFixpointInitialiseVariables()
+	{
+		return true;
+	}
+
+	/**
+	 * @see fr.sorbonne_u.devs_simulation.hioa.models.interfaces.VariableInitialisationI#fixpointInitialiseVariables()
+	 */
+	@Override
+	public Pair<Integer, Integer> fixpointInitialiseVariables()
+	{
+		Pair<Integer, Integer> ret = null;
+
+		if (!this.currentIntensity.isInitialised() ||
+								!this.currentHeatingPower.isInitialised()) {
+			// initially, the Oven is off, so its consumption is zero.
+			this.currentIntensity.initialise(0.0);
+			this.currentHeatingPower.initialise(0.0);
+
+			if (VERBOSE) {
+				StringBuffer sb = new StringBuffer("new consumption: ");
+				sb.append(this.currentIntensity.getValue());
+				sb.append(" ");
+				sb.append(ElectricMeterImplementationI.POWER_UNIT);
+				sb.append(" at ");
+				sb.append(this.currentIntensity.getTime());
+				sb.append(" seconds.");
+				this.logMessage(sb.toString());
+			}
+
+			ret = new Pair<>(2, 0);
+		} else {
+			ret = new Pair<>(0, 0);
+		}
+
+		assert	OvenElectricityModel.implementationInvariants(this) :
+				new NeoSim4JavaException(
+						"OvenElectricityModel.implementationInvariants(this)");
+		assert	OvenElectricityModel.invariants(this) :
+				new NeoSim4JavaException(
+						"OvenElectricityModel.invariants(this)");
+
+		return ret;
+	}
+
+	/**
+	 * @see fr.sorbonne_u.devs_simulation.models.interfaces.AtomicModelI#output()
+	 */
+	@Override
+	public ArrayList<EventI>	output()
+	{
+		return null;
+	}
+
+	/**
+	 * @see fr.sorbonne_u.devs_simulation.models.interfaces.ModelI#timeAdvance()
+	 */
+	@Override
+	public Duration		timeAdvance()
+	{
+		Duration ret = null;
+
+		if (this.consumptionHasChanged) {
+			// When the consumption has changed, an immediate (delay = 0.0)
+			// internal transition must be made to update the electricity
+			// consumption.
+			this.consumptionHasChanged = false;
+			ret = Duration.zero(this.getSimulatedTimeUnit());
+		} else {
+			// As long as the state does not change, no internal transition
+			// is made (delay = infinity).
+			ret = Duration.INFINITY;
+		}
+
+		assert	OvenElectricityModel.implementationInvariants(this) :
+				new NeoSim4JavaException(
+						"OvenElectricityModel.implementationInvariants(this)");
+		assert	OvenElectricityModel.invariants(this) :
+				new NeoSim4JavaException(
+						"OvenElectricityModel.invariants(this)");
+
+		return ret;
+	}
+
+	/**
+	 * @see fr.sorbonne_u.devs_simulation.models.AtomicModel#userDefinedInternalTransition(fr.sorbonne_u.devs_simulation.models.time.Duration)
+	 */
+	@Override
+	public void			userDefinedInternalTransition(Duration elapsedTime)
+	{
+		super.userDefinedInternalTransition(elapsedTime);
+
+		Time t = this.getCurrentStateTime();
+		if (this.currentState == OvenState.ON) {
+			this.currentIntensity.setNewValue(
+					OvenExternalControlI.NOT_HEATING_POWER.getData()/
+									OvenExternalControlI.TENSION.getData(),
+					t);
+		} else if (this.currentState == OvenState.WAITING) {
+			this.currentIntensity.setNewValue(
+					OvenExternalControlI.NOT_HEATING_POWER.getData()/
+									OvenExternalControlI.TENSION.getData(),
+					t);
+		} else if (this.currentState == OvenState.HEATING) {
+			this.currentIntensity.setNewValue(
+					this.currentHeatingPower.getValue()/
+									OvenExternalControlI.TENSION.getData(),
+					t);
+		} else {
+			assert	this.currentState == OvenState.OFF;
+			this.currentIntensity.setNewValue(0.0, t);
+		}
+
+		if (VERBOSE) {
+			StringBuffer sb = new StringBuffer("new consumption: ");
+			sb.append(this.currentIntensity.getValue());
+			sb.append(" ");
+			sb.append(ElectricMeterImplementationI.POWER_UNIT);
+			sb.append(" at ");
+			sb.append(this.currentIntensity.getTime());
+			sb.append(".");
+			this.logMessage(sb.toString());
+		}
+
+		assert	OvenElectricityModel.implementationInvariants(this) :
+				new NeoSim4JavaException(
+						"OvenElectricityModel.implementationInvariants(this)");
+		assert	OvenElectricityModel.invariants(this) :
+				new NeoSim4JavaException(
+						"OvenElectricityModel.invariants(this)");
+	}
+
+	/**
+	 * @see fr.sorbonne_u.devs_simulation.models.AtomicModel#userDefinedExternalTransition(fr.sorbonne_u.devs_simulation.models.time.Duration)
+	 */
+	@Override
+	public void userDefinedExternalTransition(Duration elapsedTime)
+	{
+		super.userDefinedExternalTransition(elapsedTime);
+
+		// get the vector of current external events
+		ArrayList<EventI> currentEvents = this.getStoredEventAndReset();
+		// when this method is called, there is at least one external event,
+		// and for the Oven model, there will be exactly one by
+		// construction.
+		assert	currentEvents != null && currentEvents.size() == 1;
+
+		Event ce = (Event) currentEvents.get(0);
+		assert	ce instanceof OvenEventI;
+
+		// compute the total consumption for the simulation report.
+		this.totalConsumption +=
+				Electricity.computeConsumption(
+						elapsedTime,
+						OvenExternalControlI.TENSION.getData() *
+											this.currentIntensity.getValue());
+
+		if (VERBOSE) {
+			StringBuffer sb = new StringBuffer("execute the external event: ");
+			sb.append(ce.eventAsString());
+			sb.append(".");
+			this.logMessage(sb.toString());
+		}
+
+		// the next call will update the current state of the Oven and if
+		// this state has changed, it put the boolean consumptionHasChanged
+		// at true, which in turn will trigger an immediate internal transition
+		// to update the current intensity of the Oven electricity
+		// consumption.
+		ce.executeOn(this);
+
+		assert	OvenElectricityModel.implementationInvariants(this) :
+				new NeoSim4JavaException(
+						"OvenElectricityModel.implementationInvariants(this)");
+		assert	OvenElectricityModel.invariants(this) :
+				new NeoSim4JavaException(
+						"OvenElectricityModel.invariants(this)");
+	}
+
+	/**
+	 * @see fr.sorbonne_u.devs_simulation.hioa.models.AtomicHIOA#endSimulation(fr.sorbonne_u.devs_simulation.models.time.Time)
+	 */
+	@Override
+	public void			endSimulation(Time endTime)
+	{
+		Duration d = endTime.subtract(this.getCurrentStateTime());
+		this.totalConsumption +=
+				Electricity.computeConsumption(
+						d,
+						OvenExternalControlI.TENSION.getData() *
+											this.currentIntensity.getValue());
+
+		if (VERBOSE) {
+			this.logMessage("simulation ends.");
+		}
+		super.endSimulation(endTime);
+	}
+
+	// -------------------------------------------------------------------------
+	// Optional DEVS simulation protocol: simulation report
+	// -------------------------------------------------------------------------
+
+	/**
+	 * The class <code>OvenElectricityReport</code> implements the
+	 * simulation report for the <code>OvenElectricityModel</code>.
+	 *
+	 * <p><strong>Description</strong></p>
+	 * 
+	 * <p><strong>White-box Invariant</strong></p>
+	 * 
+	 * <pre>
+	 * invariant	{@code true}	// no more invariant
+	 * </pre>
+	 * 
+	 * <p><strong>Black-box Invariant</strong></p>
+	 * 
+	 * <pre>
+	 * invariant	{@code true}	// no more invariant
+	 * </pre>
+	 * 
+	 * <p>Created on : 2023-09-29</p>
+	 * 
+	 * @author	<a href="mailto:Jacques.Malenfant@lip6.fr">Jacques Malenfant</a>
+	 */
+	public static class		OvenElectricityReport
+	implements	SimulationReportI, GlobalReportI
+	{
+		private static final long serialVersionUID = 1L;
+		protected String	modelURI;
+		protected double	totalConsumption; // in kwh
+
+
+		public			OvenElectricityReport(
+			String modelURI,
+			double totalConsumption
+			)
+		{
+			super();
+			this.modelURI = modelURI;
+			this.totalConsumption = totalConsumption;
+		}
+
+		@Override
+		public String	getModelURI()
+		{
+			return this.modelURI;
+		}
+
+		@Override
+		public String	printout(String indent)
+		{
+			StringBuffer ret = new StringBuffer(indent);
+			ret.append("---\n");
+			ret.append(indent);
+			ret.append('|');
+			ret.append(this.modelURI);
+			ret.append(" report\n");
+			ret.append(indent);
+			ret.append('|');
+			ret.append("total consumption in kwh = ");
+			ret.append(this.totalConsumption);
+			ret.append(".\n");
+			ret.append(indent);
+			ret.append("---\n");
+			return ret.toString();
+		}		
+	}
+
+	/**
+	 * @see fr.sorbonne_u.devs_simulation.models.interfaces.ModelI#getFinalReport()
+	 */
+	@Override
+	public SimulationReportI	getFinalReport()
+	{
+		return new OvenElectricityReport(this.getURI(), this.totalConsumption);
+	}
+}
+// -----------------------------------------------------------------------------

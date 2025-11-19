@@ -1,0 +1,418 @@
+package equipments.oven.mil;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import equipments.oven.mil.events.DoNotHeat;
+import equipments.oven.mil.events.Heat;
+import equipments.oven.mil.events.SetPowerOven;
+import equipments.oven.mil.events.SwitchOffOven;
+import equipments.oven.mil.events.SwitchOnOven;
+import equipments.oven.mil.events.SetPowerOven.PowerValue;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import fr.sorbonne_u.components.hem2025.tests_utils.SimulationTestStep;
+import fr.sorbonne_u.components.hem2025.tests_utils.TestScenario;
+import fr.sorbonne_u.devs_simulation.architectures.Architecture;
+import fr.sorbonne_u.devs_simulation.architectures.ArchitectureI;
+import fr.sorbonne_u.devs_simulation.hioa.architectures.AtomicHIOA_Descriptor;
+import fr.sorbonne_u.devs_simulation.hioa.architectures.CoupledHIOA_Descriptor;
+import fr.sorbonne_u.devs_simulation.hioa.models.vars.VariableSink;
+import fr.sorbonne_u.devs_simulation.hioa.models.vars.VariableSource;
+import fr.sorbonne_u.devs_simulation.models.architectures.AbstractAtomicModelDescriptor;
+import fr.sorbonne_u.devs_simulation.models.architectures.AtomicModelDescriptor;
+import fr.sorbonne_u.devs_simulation.models.architectures.CoupledModelDescriptor;
+import fr.sorbonne_u.devs_simulation.models.events.EventI;
+import fr.sorbonne_u.devs_simulation.models.events.EventSink;
+import fr.sorbonne_u.devs_simulation.models.events.EventSource;
+import fr.sorbonne_u.devs_simulation.models.interfaces.ModelI;
+import fr.sorbonne_u.devs_simulation.models.time.Duration;
+import fr.sorbonne_u.devs_simulation.models.time.Time;
+import fr.sorbonne_u.devs_simulation.simulators.SimulationEngine;
+import fr.sorbonne_u.devs_simulation.simulators.interfaces.SimulatorI;
+
+// -----------------------------------------------------------------------------
+/**
+ * The class <code>RunOvenUnitarySimulation</code> creates a simulator
+ * for the Oven and then runs a typical simulation.
+ *
+ * <p><strong>Description</strong></p>
+ * 
+ * <p>
+ * The simulation architecture for the Oven contains four atomic models
+ * composed under a coupled model:
+ * </p>
+ * <p><img src="../../../../../../../../images/hem-2025-e2/OvenUnitTestArchitecture.png"/></p>
+ * <p>
+ * The {@code OvenUnitTesterModel} emits events corresponding to actions of
+ * a user mainly towards the {@code OvenElectricityModel} keeping track of
+ * the state of the Oven and its power consumption in an exported variable
+ * {@code currentIntensity} not used here. The {@code ExternalTemperatureModel}
+ * simulates the temperature outside, which is taken into account by the
+ * {@code OvenTemperatureModel} that simulates the room temperature. As the
+ * room temperature depends upon the fact that the Oven actually heats or
+ * not and with which power, relevant events that changes the status of the
+ * Oven are propagated to the {@code OvenTemperatureModel}, which also
+ * imports the variable {@code currentHeatingPower} from the
+ * {@code OvenElectricityModel} as it influences the quickness of the
+ * temperature raise when heating.
+ * </p>
+ * <p>
+ * The code of the {@code main} method shows how to use simulation model
+ * descriptors to create the description of a simulation architecture and then
+ * create an instance of this architecture by instantiating and connecting the
+ * models. Note how models are described by atomic model descriptors and coupled
+ * model descriptors and then the connections between coupled models and their
+ * submodels as well as exported events and variables to imported ones are
+ * described by different maps. In this example, only connections of events and
+ * bindings of variables between models within this architecture are necessary,
+ * but when creating coupled models, they can also import and export events and
+ * variables consumed and produced by their submodels.
+ * </p>
+ * <p>
+ * The architecture object is the root of this description and it provides
+ * the method {@code constructSimulator} that instantiate the models and
+ * connect them. This method returns the reference on the simulator attached
+ * to the root coupled model in the architecture instance, which is then used
+ * to perform simulation runs by calling the method
+ * {@code doStandAloneSimulation}.
+ * </p>
+ * <p>
+ * The descriptors and maps can be viewed as kinds of nodes in the abstract
+ * syntax tree of an architectural language that does not have a concrete
+ * syntax yet.
+ * </p>
+ * 
+ * <p><strong>Implementation Invariants</strong></p>
+ * 
+ * <pre>
+ * invariant	{@code true}	// no more invariant
+ * </pre>
+ * 
+ * <p><strong>Invariants</strong></p>
+ * 
+ * <pre>
+ * invariant	{@code true}	// no more invariant
+ * </pre>
+ * 
+ * <p>Created on : 2025-11-13</p>
+ * 
+ * @author	<a href="mailto:Rodrigo.Vila@etu.sorbonne-universite.fr">Rodrigo Vila</a>
+ * @author	<a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
+ */
+public class			RunOvenUnitaryMILSimulation
+{
+	// -------------------------------------------------------------------------
+	// Invariants
+	// -------------------------------------------------------------------------
+
+	/**
+	 * return true if the static invariants are observed, false otherwise.
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * pre	{@code true}	// no precondition.
+	 * post	{@code true}	// no postcondition.
+	 * </pre>
+	 *
+	 * @return	true if the invariants are observed, false otherwise.
+	 */
+	public static boolean	staticInvariants()
+	{
+		boolean ret = true;
+		ret &= OvenSimulationConfigurationI.staticInvariants();
+		return ret;
+	}
+
+	// -------------------------------------------------------------------------
+	// Methods
+	// -------------------------------------------------------------------------
+
+	public static void main(String[] args)
+	{
+		staticInvariants();
+
+		try {
+			// map that will contain the atomic model descriptors to construct
+			// the simulation architecture
+			Map<String,AbstractAtomicModelDescriptor> atomicModelDescriptors =
+															new HashMap<>();
+
+			// the Oven models simulating its electricity consumption, its
+			// temperatures and the external temperature are atomic HIOA models
+			// hence we use an AtomicHIOA_Descriptor(s)
+			atomicModelDescriptors.put(
+					OvenElectricityModel.URI,
+					AtomicHIOA_Descriptor.create(
+							OvenElectricityModel.class,
+							OvenElectricityModel.URI,
+							OvenSimulationConfigurationI.TIME_UNIT,
+							null));
+			atomicModelDescriptors.put(
+					OvenTemperatureModel.URI,
+					AtomicHIOA_Descriptor.create(
+							OvenTemperatureModel.class,
+							OvenTemperatureModel.URI,
+							OvenSimulationConfigurationI.TIME_UNIT,
+							null));
+			atomicModelDescriptors.put(
+					ExternalTemperatureModel.URI,
+					AtomicHIOA_Descriptor.create(
+							ExternalTemperatureModel.class,
+							ExternalTemperatureModel.URI,
+							OvenSimulationConfigurationI.TIME_UNIT,
+							null));
+			// the Oven unit tester model only exchanges event, an
+			// atomic model hence we use an AtomicModelDescriptor
+			atomicModelDescriptors.put(
+					OvenUnitTesterModel.URI,
+					AtomicModelDescriptor.create(
+							OvenUnitTesterModel.class,
+							OvenUnitTesterModel.URI,
+							OvenSimulationConfigurationI.TIME_UNIT,
+							null));
+
+			// map that will contain the coupled model descriptors to construct
+			// the simulation architecture
+			Map<String,CoupledModelDescriptor> coupledModelDescriptors =
+																new HashMap<>();
+
+			// the set of submodels of the coupled model, given by their URIs
+			Set<String> submodels = new HashSet<String>();
+			submodels.add(OvenElectricityModel.URI);
+			submodels.add(OvenTemperatureModel.URI);
+			submodels.add(ExternalTemperatureModel.URI);
+			submodels.add(OvenUnitTesterModel.URI);
+			
+			// event exchanging connections between exporting and importing
+			// models
+			Map<EventSource,EventSink[]> connections =
+										new HashMap<EventSource,EventSink[]>();
+
+			connections.put(
+					new EventSource(OvenUnitTesterModel.URI,
+									SetPowerOven.class),
+					new EventSink[] {
+							new EventSink(OvenElectricityModel.URI,
+										  SetPowerOven.class)
+					});
+			connections.put(
+					new EventSource(OvenUnitTesterModel.URI,
+									SwitchOnOven.class),
+					new EventSink[] {
+							new EventSink(OvenElectricityModel.URI,
+										  SwitchOnOven.class)
+					});
+			connections.put(
+					new EventSource(OvenUnitTesterModel.URI,
+									SwitchOffOven.class),
+					new EventSink[] {
+							new EventSink(OvenElectricityModel.URI,
+										  SwitchOffOven.class),
+							new EventSink(OvenTemperatureModel.URI,
+										  SwitchOffOven.class)
+					});
+			connections.put(
+					new EventSource(OvenUnitTesterModel.URI, Heat.class),
+					new EventSink[] {
+							new EventSink(OvenElectricityModel.URI,
+										  Heat.class),
+							new EventSink(OvenTemperatureModel.URI,
+										  Heat.class)
+					});
+			connections.put(
+					new EventSource(OvenUnitTesterModel.URI, DoNotHeat.class),
+					new EventSink[] {
+							new EventSink(OvenElectricityModel.URI,
+										  DoNotHeat.class),
+							new EventSink(OvenTemperatureModel.URI,
+										  DoNotHeat.class)
+					});
+
+			// variable bindings between exporting and importing models
+			Map<VariableSource,VariableSink[]> bindings =
+								new HashMap<VariableSource,VariableSink[]>();
+
+			bindings.put(new VariableSource("externalTemperature",
+											Double.class,
+											ExternalTemperatureModel.URI),
+						 new VariableSink[] {
+								 new VariableSink("externalTemperature",
+										 		  Double.class,
+										 		  OvenTemperatureModel.URI)
+						 });
+			bindings.put(new VariableSource("currentHeatingPower",
+											Double.class,
+											OvenElectricityModel.URI),
+						 new VariableSink[] {
+								 new VariableSink("currentHeatingPower",
+										 		  Double.class,
+										 		  OvenTemperatureModel.URI)
+						 });
+
+			// coupled model descriptor
+			coupledModelDescriptors.put(
+					OvenCoupledModel.URI,
+					new CoupledHIOA_Descriptor(
+							OvenCoupledModel.class,
+							OvenCoupledModel.URI,
+							submodels,
+							null,
+							null,
+							connections,
+							null,
+							null,
+							null,
+							bindings));
+
+			// simulation architecture
+			ArchitectureI architecture =
+					new Architecture(
+							OvenCoupledModel.URI,
+							atomicModelDescriptors,
+							coupledModelDescriptors,
+							OvenSimulationConfigurationI.TIME_UNIT);
+
+			// create the simulator from the simulation architecture
+			SimulatorI se = architecture.constructSimulator();
+			// this add additional time at each simulation step in
+			// standard simulations (useful when debugging)
+			SimulationEngine.SIMULATION_STEP_SLEEP_TIME = 0L;
+
+			// run a CLASSICAL test scenario
+			CLASSICAL.setUpSimulator(se);
+			Time startTime = CLASSICAL.getStartTime();
+			Duration d = CLASSICAL.getEndTime().subtract(startTime);
+			se.doStandAloneSimulation(startTime.getSimulatedTime(),
+									  d.getSimulatedDuration());
+			System.exit(0);
+		} catch (Exception e) {
+			throw new RuntimeException(e) ;
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// Test scenarios
+	// -------------------------------------------------------------------------
+
+	/** the start instant used in the test scenarios.						*/
+	protected static Instant	START_INSTANT =
+									Instant.parse("2025-10-20T12:00:00.00Z");
+	/** the end instant used in the test scenarios.							*/
+	protected static Instant	END_INSTANT =
+									Instant.parse("2025-10-20T18:00:00.00Z");
+	/** the start time in simulated time, corresponding to
+	 *  {@code START_INSTANT}.												*/
+	protected static Time		START_TIME = new Time(0.0, TimeUnit.HOURS);
+
+	/** standard test scenario, see Gherkin specification.				 	*/
+	protected static TestScenario	CLASSICAL =
+		new TestScenario(
+			"-----------------------------------------------------\n" +
+			"Classical\n\n" +
+			"  Gherkin specification\n\n" +
+			"    Feature: Oven operation\n\n" +
+			"      Scenario: Oven switched on\n" +
+			"        Given a Oven that is off\n" +
+			"        When it is switched on\n" +
+			"        Then it is on but not heating\n" +
+			"      Scenario: Oven heats\n" +
+			"        Given a Oven that is on and not heating\n" +
+			"        When it is asked to heat\n" +
+			"        Then it is on and it heats at the current power level\n" +
+			"      Scenario: Oven stops heating\n" +
+			"        Given a Oven that is heating\n" +
+			"        When it is asked not to heat\n" +
+			"        Then it is on but it stops heating\n" +
+			"      Scenario: Oven heats\n" +
+			"        Given a Oven that is on and not heating\n" +
+			"        When it is asked to heat\n" +
+			"        Then it is on and it heats at the current power level\n" +
+			"      Scenario: Oven set a different power level\n" +
+			"        Given a Oven that is heating\n" +
+			"        When it is set to a new power level\n" +
+			"        Then it is on and it heats at the new power level\n" +
+			"      Scenario: Oven switched off\n" +
+			"        Given a Oven that is on\n" +
+			"        When it is switched of\n" +
+			"        Then it is off\n" +
+			"-----------------------------------------------------\n",
+			"\n-----------------------------------------------------\n" +
+			"End Classical\n" +
+			"-----------------------------------------------------",
+			START_INSTANT,
+			END_INSTANT,
+			START_TIME,
+			(se, ts) -> { 
+				HashMap<String, Object> simParams = new HashMap<>();
+				simParams.put(
+					ModelI.createRunParameterName(
+						OvenUnitTesterModel.URI,
+						OvenUnitTesterModel.TEST_SCENARIO_RP_NAME),
+					ts);
+				se.setSimulationRunParameters(simParams);
+			},
+			new SimulationTestStep[]{
+				new SimulationTestStep(
+					OvenUnitTesterModel.URI,
+					Instant.parse("2025-10-20T12:30:00.00Z"),
+					(m, t) -> {
+						ArrayList<EventI> ret = new ArrayList<>();
+						ret.add(new SwitchOnOven(t));
+						return ret;
+					},
+					(m, t) -> {}),
+				new SimulationTestStep(
+						OvenUnitTesterModel.URI,
+						Instant.parse("2025-10-20T13:00:00.00Z"),
+						(m, t) -> {
+							ArrayList<EventI> ret = new ArrayList<>();
+							ret.add(new Heat(t));
+							return ret;
+						},
+						(m, t) -> {}),
+				new SimulationTestStep(
+						OvenUnitTesterModel.URI,
+						Instant.parse("2025-10-20T13:30:00.00Z"),
+						(m, t) -> {
+							ArrayList<EventI> ret = new ArrayList<>();
+							ret.add(new DoNotHeat(t));
+							return ret;
+						},
+						(m, t) -> {}),
+				new SimulationTestStep(
+						OvenUnitTesterModel.URI,
+						Instant.parse("2025-10-20T14:00:00.00Z"),
+						(m, t) -> {
+							ArrayList<EventI> ret = new ArrayList<>();
+							ret.add(new Heat(t));
+							return ret;
+						},
+						(m, t) -> {}),
+				new SimulationTestStep(
+						OvenUnitTesterModel.URI,
+						Instant.parse("2025-10-20T14:30:00.00Z"),
+						(m, t) -> {
+							ArrayList<EventI> ret = new ArrayList<>();
+							ret.add(new SetPowerOven(t,
+									   				   new PowerValue(880.0)));
+							return ret;
+						},
+						(m, t) -> {}),
+				new SimulationTestStep(
+						OvenUnitTesterModel.URI,
+						Instant.parse("2025-10-20T16:30:00.00Z"),
+						(m, t) -> {
+							ArrayList<EventI> ret = new ArrayList<>();
+							ret.add(new SwitchOffOven(t));
+							return ret;
+						},
+						(m, t) -> {})
+			});
+}
+// -----------------------------------------------------------------------------

@@ -3,6 +3,8 @@ package equipments.oven;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.alasca.physical_data.MeasurementUnit;
 import fr.sorbonne_u.alasca.physical_data.SignalData;
+import fr.sorbonne_u.components.hem2025e1.equipments.heater.HeaterExternalControlI;
+import fr.sorbonne_u.exceptions.AssertionChecking;
 
 /**
  * The interface <code>OvenExternalControlI</code> declares the
@@ -52,13 +54,18 @@ extends		OvenTemperatureI
 
 	/** measurement unit for tension used by the oven.						*/
 	public static final MeasurementUnit TENSION_UNIT = MeasurementUnit.VOLTS;
-
+	
+	/** power level of the oven when on but not heating, in the power
+	 *  measurement unit used by the oven.								*/
+	public static final Measure<Double>	NOT_HEATING_POWER =
+											new Measure<>(5.0, POWER_UNIT);
+	
 	/** maximum power level of the oven in watts.							*/
 	public static final Measure<Double> MAX_POWER_LEVEL =
 											new Measure<>(2500.0, POWER_UNIT);
 
 	/** operating voltage of the oven in volts.								*/
-	public static final Measure<Double> VOLTAGE =
+	public static final Measure<Double> TENSION =
 											new Measure<>(220.0, TENSION_UNIT);
 
 	// -------------------------------------------------------------------------
@@ -66,44 +73,40 @@ extends		OvenTemperatureI
 	// -------------------------------------------------------------------------
 
 	/**
-	 * return true if the invariants are observed, false otherwise.
+	 * return true if the static invariants are observed, false otherwise.
 	 * 
 	 * <p><strong>Contract</strong></p>
 	 * 
 	 * <pre>
-	 * pre	{@code o != null}
+	 * pre	{@code true}	// no precondition.
 	 * post	{@code true}	// no postcondition.
 	 * </pre>
 	 *
-	 * @param o	instance to be tested.
-	 * @return	true if the invariants are observed, false otherwise.
+	 * @return	true if the static invariants are observed, false otherwise.
 	 */
-	public static boolean	invariants(OvenExternalControlI o)
+	public static boolean	staticInvariants()
 	{
-		assert	o != null :
-				new fr.sorbonne_u.exceptions.PreconditionException("o != null");
-
 		boolean ret = true;
-		ret &= fr.sorbonne_u.exceptions.AssertionChecking.checkInvariant(
+		ret &= AssertionChecking.checkStaticInvariant(
 				POWER_UNIT != null,
-				OvenExternalControlI.class, o,
+				HeaterExternalControlI.class,
 				"POWER_UNIT != null");
-		ret &= fr.sorbonne_u.exceptions.AssertionChecking.checkInvariant(
+		ret &= AssertionChecking.checkStaticInvariant(
 				TENSION_UNIT != null,
-				OvenExternalControlI.class, o,
+				HeaterExternalControlI.class,
 				"TENSION_UNIT != null");
-		ret &= fr.sorbonne_u.exceptions.AssertionChecking.checkInvariant(
+		ret &= AssertionChecking.checkStaticInvariant(
 				MAX_POWER_LEVEL != null &&
 					MAX_POWER_LEVEL.getMeasurementUnit().equals(POWER_UNIT) &&
 					MAX_POWER_LEVEL.getData() > 0.0,
-				OvenExternalControlI.class, o,
+				HeaterExternalControlI.class,
 				"MAX_POWER_LEVEL != null && MAX_POWER_LEVEL.getMeasurementUnit()."
 				+ "equals(POWER_UNIT) && MAX_POWER_LEVEL.getData() > 0.0");
-		ret &= fr.sorbonne_u.exceptions.AssertionChecking.checkInvariant(
-				VOLTAGE != null &&
-					VOLTAGE.getMeasurementUnit().equals(TENSION_UNIT) &&
-					VOLTAGE.getData() == 220.0,
-				OvenExternalControlI.class, o,
+		ret &= AssertionChecking.checkStaticInvariant(
+				TENSION != null &&
+					TENSION.getMeasurementUnit().equals(TENSION_UNIT) &&
+					TENSION.getData() == 220.0,
+				HeaterExternalControlI.class,
 				"VOLTAGE != null && VOLTAGE.getMeasurementUnit().equals("
 				+ "TENSION_UNIT) && VOLTAGE.getData() == 220.0");
 		return ret;
