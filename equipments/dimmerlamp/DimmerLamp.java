@@ -27,7 +27,7 @@ implements DimmerLampUserI, DimmerLampExternalI {
 
     private boolean isUnitTest;
 
-    protected enum LampState {
+    public enum LampState {
         OFF,
         ON
     }
@@ -42,12 +42,13 @@ implements DimmerLampUserI, DimmerLampExternalI {
 
     public static final String EQUIPMENT_UID = "1A1003584";
 
+    // TODO change String to File so that it works on everything
     protected static final String PATH_TO_CONNECTOR_DESCRIPTOR = "src/connectorGenerator/dimmerlamp-descriptor.xml";
 
     // Maximum value for the variator
-    protected static final Measure<Double> MAX_POWER_VARIATION = new Measure<>(100., MeasurementUnit.RAW);
+    public static final Measure<Double> MAX_POWER_VARIATION = new Measure<>(100., MeasurementUnit.RAW);
     // Minimum value for the variator
-    protected static final Measure<Double> MIN_POWER_VARIATION = new Measure<>(0., MeasurementUnit.RAW);
+    public static final Measure<Double> MIN_POWER_VARIATION = new Measure<>(0., MeasurementUnit.RAW);
     public static final Measure<Double> BASE_POWER_VARIATION = new Measure<>(50., MeasurementUnit.RAW);
     protected static final Measure<Double> FAKE_POWER = new Measure<>(100., MeasurementUnit.WATTS);
 

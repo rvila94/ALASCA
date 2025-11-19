@@ -1,6 +1,7 @@
 package equipments.dimmerlamp.interfaces;
 
 import fr.sorbonne_u.alasca.physical_data.Measure;
+import fr.sorbonne_u.alasca.physical_data.MeasurementUnit;
 
 /**
  * The class <code>interfaces.dimmerlamp.equipments.DimmerLampExternalI</code>.
@@ -22,6 +23,9 @@ import fr.sorbonne_u.alasca.physical_data.Measure;
  * @author    <a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
  */
 public interface DimmerLampExternalI {
+
+    MeasurementUnit TENSION_UNIT = MeasurementUnit.VOLTS;
+    Measure<Double> TENSION = new Measure<>(220., TENSION_UNIT);
 
     void setVariationPower(Measure<Double> variationPower) throws Exception;
 
