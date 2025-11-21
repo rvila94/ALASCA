@@ -4,12 +4,17 @@ import equipments.dimmerlamp.DimmerLamp;
 import equipments.dimmerlamp.DimmerLamp.LampState;
 import equipments.dimmerlamp.interfaces.DimmerLampExternalI;
 import equipments.dimmerlamp.mil.events.AbstractLampEvent;
-import fr.sorbonne_u.components.hem2025e2.equipments.heater.mil.HeaterElectricityModel;
+import equipments.dimmerlamp.mil.events.SetPowerLampEvent;
+import equipments.dimmerlamp.mil.events.SwitchOffLampEvent;
+import equipments.dimmerlamp.mil.events.SwitchOnLampEvent;
+import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeterImplementationI;
 import fr.sorbonne_u.components.hem2025e2.utils.Electricity;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
 import fr.sorbonne_u.devs_simulation.hioa.annotations.ExportedVariable;
+import fr.sorbonne_u.devs_simulation.hioa.annotations.ModelExportedVariable;
 import fr.sorbonne_u.devs_simulation.hioa.models.AtomicHIOA;
 import fr.sorbonne_u.devs_simulation.hioa.models.vars.Value;
+import fr.sorbonne_u.devs_simulation.models.annotations.ModelExternalEvents;
 import fr.sorbonne_u.devs_simulation.models.events.Event;
 import fr.sorbonne_u.devs_simulation.models.events.EventI;
 import fr.sorbonne_u.devs_simulation.models.time.Duration;
@@ -43,6 +48,13 @@ import java.util.concurrent.TimeUnit;
  * @author    <a href="mailto:Rodrigo.Vila@etu.sorbonne-universite.fr">Rodrigo Vila</a>
  * @author    <a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
  */
+@ModelExternalEvents(imported = {
+        SwitchOnLampEvent.class,
+        SwitchOffLampEvent.class,
+        SetPowerLampEvent.class
+})
+@ModelExportedVariable(name = "currentIntensity", type = Double.class)
+@ModelExportedVariable(name = "currentPower", type = Double.class)
 public class DimmerLampElectricityModel extends AtomicHIOA {
 
     // -------------------------------------------------------------------------
@@ -74,7 +86,7 @@ public class DimmerLampElectricityModel extends AtomicHIOA {
      *  update the variable <code>currentIntensity</code>.					*/
     protected boolean consumptionHasChanged;
 
-    /** total consumption of the heater during the simulation in kwh.		*/
+    /** total consumption of the dimmer lamp during the simulation in kwh.		*/
     protected double totalConsumption;
 
     // -------------------------------------------------------------------------
@@ -128,7 +140,7 @@ public class DimmerLampElectricityModel extends AtomicHIOA {
      * @return true if the implementation invariants are observed, false otherwise.
      */
     protected static boolean implementationInvariants(
-            HeaterElectricityModel instance
+            DimmerLampElectricityModel instance
     )
     {
         // TODO
@@ -167,7 +179,7 @@ public class DimmerLampElectricityModel extends AtomicHIOA {
      * @return true if the invariants are observed, false otherwise.
      */
     protected static boolean invariants(
-            HeaterElectricityModel instance
+            DimmerLampElectricityModel instance
     )
     {
         // TODO
@@ -207,10 +219,10 @@ public class DimmerLampElectricityModel extends AtomicHIOA {
 
         assert DimmerLampElectricityModel.implementationInvariants(this) :
                 new NeoSim4JavaException(
-                        "HeaterElectricityModel.implementationInvariants(this)");
+                        "DimmerLampElectricityModel.implementationInvariants(this)");
         assert DimmerLampElectricityModel.invariants(this) :
                 new NeoSim4JavaException(
-                        "HeaterElectricityModel.invariants(this)");
+                        "DimmerLampElectricityModel.invariants(this)");
     }
 
     // -------------------------------------------------------------------------
@@ -339,7 +351,7 @@ public class DimmerLampElectricityModel extends AtomicHIOA {
         assert DimmerLampElectricityModel.implementationInvariants(this):
                 new NeoSim4JavaException(
                         "DimmerLampElectricityModel.implementationInvariants(this)");
-        assert HeaterElectricityModel.invariants(this) :
+        assert DimmerLampElectricityModel.invariants(this) :
                 new NeoSim4JavaException(
                         "DimmerLampElectricityModel.invariants(this)");
     }
@@ -395,7 +407,7 @@ public class DimmerLampElectricityModel extends AtomicHIOA {
         assert DimmerLampElectricityModel.implementationInvariants(this):
                 new NeoSim4JavaException(
                         "DimmerLampElectricityModel.implementationInvariants(this)");
-        assert HeaterElectricityModel.invariants(this) :
+        assert DimmerLampElectricityModel.invariants(this) :
                 new NeoSim4JavaException(
                         "DimmerLampElectricityModel.invariants(this)");
     }
@@ -421,10 +433,10 @@ public class DimmerLampElectricityModel extends AtomicHIOA {
 
         assert DimmerLampElectricityModel.implementationInvariants(this) :
                 new NeoSim4JavaException(
-                        "HeaterElectricityModel.implementationInvariants(this)");
+                        "DimmerLampElectricityModel.implementationInvariants(this)");
         assert DimmerLampElectricityModel.invariants(this) :
                 new NeoSim4JavaException(
-                        "HeaterElectricityModel.invariants(this)");
+                        "DimmerLampElectricityModel.invariants(this)");
 
     }
 
@@ -443,12 +455,12 @@ public class DimmerLampElectricityModel extends AtomicHIOA {
             ret = Duration.INFINITY;
         }
 
-        assert HeaterElectricityModel.implementationInvariants(this) :
+        assert DimmerLampElectricityModel.implementationInvariants(this) :
                 new NeoSim4JavaException(
-                        "HeaterElectricityModel.implementationInvariants(this)");
-        assert HeaterElectricityModel.invariants(this) :
+                        "DimmerLampElectricityModel.implementationInvariants(this)");
+        assert DimmerLampElectricityModel.invariants(this) :
                 new NeoSim4JavaException(
-                        "HeaterElectricityModel.invariants(this)");
+                        "DimmerLampElectricityModel.invariants(this)");
 
         return ret;
     }
@@ -537,6 +549,14 @@ public class DimmerLampElectricityModel extends AtomicHIOA {
 
             if (VERBOSE) {
                 this.logMessage("Initialisation of HIOA model variables");
+                StringBuilder builder = new StringBuilder();
+                builder.append(this.currentIntensity.getValue());
+                builder.append(" ");
+                builder.append(ElectricMeterImplementationI.POWER_UNIT);
+                builder.append(" at ");
+                builder.append(this.currentIntensity.getTime());
+                builder.append(" seconds.");
+                this.logMessage(builder.toString());
             }
 
             res = new Pair<>(2, 0);
@@ -566,6 +586,17 @@ public class DimmerLampElectricityModel extends AtomicHIOA {
                 this.currentIntensity.setNewValue(0.0, time);
         }
 
+        if (VERBOSE) {
+            StringBuilder builder = new StringBuilder("new consumption: ");
+            builder.append(this.currentIntensity.getValue());
+            builder.append(" ");
+            builder.append(ElectricMeterImplementationI.POWER_UNIT);
+            builder.append(" at ");
+            builder.append(this.currentIntensity.getTime());
+            builder.append(".");
+            this.logMessage(builder.toString());
+        }
+
         assert DimmerLampElectricityModel.implementationInvariants(this) :
                 new NeoSim4JavaException(
                         "DimmerLampElectricityModel.implementationInvariants(this)");
@@ -590,15 +621,18 @@ public class DimmerLampElectricityModel extends AtomicHIOA {
         this.computeTotalConsumption(elapsedTime);
 
         if (VERBOSE) {
-            // TODO
+            StringBuilder builder = new StringBuilder("execute the external event: ");
+            builder.append(event.eventAsString());
+            builder.append(".");
+            this.logMessage(builder.toString());
         }
 
         event.executeOn(this);
 
-        assert	DimmerLampElectricityModel.implementationInvariants(this) :
+        assert DimmerLampElectricityModel.implementationInvariants(this) :
                 new NeoSim4JavaException(
                         "DimmerLampElectricity.implementationInvariants(this)");
-        assert	DimmerLampElectricityModel.invariants(this) :
+        assert DimmerLampElectricityModel.invariants(this) :
                 new NeoSim4JavaException(
                         "DimmerLampElectricity.invariants(this)");
     }

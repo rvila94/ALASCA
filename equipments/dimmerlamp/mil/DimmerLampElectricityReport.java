@@ -41,6 +41,7 @@ public class DimmerLampElectricityReport implements SimulationReportI, GlobalRep
      * @param totalConsumption consumption computed at the end of the simulation
      */
     public DimmerLampElectricityReport(String uri, double totalConsumption) {
+        super();
 
         assert uri != null && !uri.isEmpty() :
                 new PreconditionException("uri == null || uri.isEmpty()");
@@ -80,6 +81,15 @@ public class DimmerLampElectricityReport implements SimulationReportI, GlobalRep
         ret.append(indent);
         ret.append("---\n");
         return ret.toString();
+    }
+
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String	toString()
+    {
+        return this.printout("");
     }
 
     /**
