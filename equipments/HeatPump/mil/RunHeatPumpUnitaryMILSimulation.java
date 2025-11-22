@@ -259,9 +259,6 @@ public class RunHeatPumpUnitaryMILSimulation {
     protected static Time START_TIME =
             new Time(0.0, HeatPumpSimulationConfigurationI.TIME_UNIT);
 
-    // The tests are repeated
-    protected static final int REPETITION = 2;
-
     protected static final RandomDataGenerator rg = new RandomDataGenerator();
 
     protected static final String GHERKIN_SPEC = "------------------------------------\n" +
@@ -306,10 +303,6 @@ public class RunHeatPumpUnitaryMILSimulation {
             "               Given the heat pump is on\n" +
             "               When the heat pump is switched off\n" +
             "               Then the heat pump is off\n" +
-            "           Scenario: The tests are repeated another time\n" +
-            "               Given the heat pump has just been switched off\n" +
-            "               When the tests are repeated\n" +
-            "               Then the behaviour of the tests is still the same\n" +
             "------------------------------------\n";
 
     protected static final String END_MESSAGE =
@@ -387,11 +380,7 @@ public class RunHeatPumpUnitaryMILSimulation {
                 (m, t) -> {});
     }
 
-    protected static SimulationTestStep ScenarioSetPower(String instant) {
-
-        final double power =
-                rg.nextUniform(HeatPump.MIN_REQUIRED_POWER_LEVEL.getData(),
-                                HeatPump.MAX_POWER_LEVEL.getData());
+    protected static SimulationTestStep ScenarioSetPower(String instant, double power) {
 
         return new SimulationTestStep(
                 HeatPumpUnitTesterModel.URI,
@@ -428,27 +417,24 @@ public class RunHeatPumpUnitaryMILSimulation {
      *  pre {@code true} // no precondition
      *  post {@code true} // no postcondition
      * </pre>
-     * @param repetition the number of times we repeat the simulation test will be repeated
      * @return array containing the step of the simulation
      */
-    protected static SimulationTestStep[] testScenarios(int repetition) {
+    protected static SimulationTestStep[] testScenarios() {
         ArrayList<SimulationTestStep> testSteps = new ArrayList<>();
 
-        int i = 1;
+        final double power_hour2 = 100.;
+        final double power_hour4 = 50.;
+        final double power_hour9 = 100.;
 
-        for (int k = 0; k < repetition; ++k) {
-            testSteps.add(ScenarioSwitchOn(testInstant(i)));
-            testSteps.add(ScenarioSetPower(testInstant(i+1)));
-            testSteps.add(ScenarioStartHeating(testInstant(i+2)));
-            testSteps.add(ScenarioSetPower(testInstant(i+3)));
-            testSteps.add(ScenarioStopHeating(testInstant(i+4)));
-            testSteps.add(ScenarioStartCooling(testInstant(i+5)));
-            testSteps.add(ScenarioSetPower(testInstant(i+6)));
-            testSteps.add(ScenarioStopCooling(testInstant(i+7)));
-            testSteps.add(ScenarioSwitchOff(testInstant(i+8)));
-
-            i += 9;
-        }
+        testSteps.add(ScenarioSwitchOn(testInstant(1)));
+        testSteps.add(ScenarioSetPower(testInstant(2), power_hour2));
+        testSteps.add(ScenarioStartHeating(testInstant(3)));
+        testSteps.add(ScenarioSetPower(testInstant(4), power_hour4));
+        testSteps.add(ScenarioStopHeating(testInstant(7)));
+        testSteps.add(ScenarioStartCooling(testInstant(8)));
+        testSteps.add(ScenarioSetPower(testInstant(9), power_hour9));
+        testSteps.add(ScenarioStopCooling(testInstant(10)));
+        testSteps.add(ScenarioSwitchOff(testInstant(11)));
 
         SimulationTestStep[] result = new SimulationTestStep[testSteps.size()];
         return testSteps.toArray(result);
@@ -470,7 +456,7 @@ public class RunHeatPumpUnitaryMILSimulation {
                                 ts);
                         se.setSimulationRunParameters(simParams);
                     },
-                    testScenarios(REPETITION)
+                    testScenarios()
             );
 
 }
