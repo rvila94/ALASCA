@@ -1,16 +1,13 @@
-package equipments.dimmerlamp.mil.events;
+package equipments.HeatPump.mil.events;
 
-import equipments.dimmerlamp.mil.DimmerLampElectricityModel;
 import fr.sorbonne_u.devs_simulation.es.events.ES_Event;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
 import fr.sorbonne_u.devs_simulation.models.events.EventI;
 import fr.sorbonne_u.devs_simulation.models.events.EventInformationI;
-import fr.sorbonne_u.devs_simulation.models.interfaces.AtomicModelI;
 import fr.sorbonne_u.devs_simulation.models.time.Time;
-import fr.sorbonne_u.exceptions.PreconditionException;
 
 /**
- * The class <code>equipments.dimmerlamp.mil.events.AbstractLampEvent</code>.
+ * The class <code>equipments.HeatPump.mil.events.AbstractHeatPumpEvent</code>.
  *
  * <p><strong>Description</strong></p>
  *
@@ -28,13 +25,11 @@ import fr.sorbonne_u.exceptions.PreconditionException;
  * @author    <a href="mailto:Rodrigo.Vila@etu.sorbonne-universite.fr">Rodrigo Vila</a>
  * @author    <a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
  */
-public abstract class AbstractLampEvent extends ES_Event {
+public abstract class AbstractHeatPumpEvent extends ES_Event {
 
     // -------------------------------------------------------------------------
-    // Constants and variables
+    // Constructors
     // -------------------------------------------------------------------------
-
-    private static final long serialVersionUID = 1L;
 
     /**
      * create an event from the given time of occurrence and event description.
@@ -51,63 +46,46 @@ public abstract class AbstractLampEvent extends ES_Event {
      * @param timeOfOccurrence time of occurrence of the created event.
      * @param content          description of the created event.
      */
-    public AbstractLampEvent(Time timeOfOccurrence, EventInformationI content) {
+    public AbstractHeatPumpEvent(Time timeOfOccurrence, EventInformationI content) {
         super(timeOfOccurrence, content);
     }
 
     // -------------------------------------------------------------------------
-    // methods
+    // Priority
     // -------------------------------------------------------------------------
 
-    /**
-     * @see fr.sorbonne_u.devs_simulation.models.events.Event#executeOn(fr.sorbonne_u.devs_simulation.models.interfaces.AtomicModelI)
-     */
-    @Override
-    public void executeOn(AtomicModelI model)
-    {
-        assert model != null :
-                new PreconditionException("model == null");
-        assert model instanceof DimmerLampElectricityModel :
-                new PreconditionException(
-                        "Precondition violation: model instanceof "
-                                + "DimmerLampElectricityModel");
-    }
-
     protected enum PriorityIndex {
-        SwitchOnEvent,
-        SetPowerLampEvent,
-        SwitchOffEvent
-    }
+        SwitchOnEvent(0),
+        StopHeatingEvent(1),
+        StopCoolingEvent(1),
+        StartHeatingEvent(2),
+        StartCoolingEvent(2),
+        SetPowerEvent(3),
+        SwitchOffEvent(4);
 
-    public static boolean priorityInvariant(AbstractLampEvent event) {
-        switch(event.priorityIndex()) {
-            case SwitchOnEvent:
-                return event instanceof SwitchOnLampEvent;
-            case SwitchOffEvent:
-                return event instanceof SwitchOffLampEvent;
-            case SetPowerLampEvent:
-                return event instanceof SetPowerLampEvent;
-            default:
-                return false;
+        private int code;
+
+        PriorityIndex(int code) {
+            this.code = code;
+        }
+
+        public int compare(PriorityIndex other) {
+            return Integer.compare(this.code, other.code);
         }
 
     }
 
-    /**
-     * returns an enum indicating the priority of the event over the others
-     *
-     * <p><strong>Contract</strong></p>
-     *
-     * <pre>
-     *  pre {@code true} // no pre condition
-     *  post {@code true} // no post condition
-     * </pre>
-     * @return the PriorityIndex associated with the class of default
-     */
+    public static boolean priorityInvariant(AbstractHeatPumpEvent event) {
+        switch(event.priorityIndex()) {
+            default:
+                return false;
+        }
+    }
+
     protected abstract PriorityIndex priorityIndex();
 
-    private boolean hasPriorityOver(AbstractLampEvent event){
-        return this.priorityIndex().compareTo(event.priorityIndex()) <= 0;
+    private boolean hasPriorityOver(AbstractHeatPumpEvent event) {
+        return this.priorityIndex().compare(event.priorityIndex()) <= 0;
     }
 
     /**
@@ -120,12 +98,12 @@ public abstract class AbstractLampEvent extends ES_Event {
      */
     @Override
     public boolean hasPriorityOver(EventI event) {
-        assert event instanceof AbstractLampEvent :
+        assert event instanceof AbstractHeatPumpEvent :
                 new NeoSim4JavaException("event is not a lamp event");
 
-        AbstractLampEvent lamp_event = (AbstractLampEvent) event;
+        AbstractHeatPumpEvent heat_pump_event = (AbstractHeatPumpEvent) event;
 
-        return this.hasPriorityOver(lamp_event);
+        return this.hasPriorityOver(heat_pump_event);
     }
 
 }

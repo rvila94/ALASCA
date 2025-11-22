@@ -367,7 +367,7 @@ extends		AtomicHIOA
 	 * 
 	 * <pre>
 	 * pre	{@code s != null}
-	 * post	{@code getState() == s}
+	 * post	{@code getCurrentState() == s}
 	 * </pre>
 	 *
 	 * @param s		the new state.

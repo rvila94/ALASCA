@@ -29,6 +29,8 @@ import fr.sorbonne_u.exceptions.PreconditionException;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
+// TODO TENSION EXTERNAL???
+
 /**
  * The class <code>equipments.dimmerlamp.mil.DimmerLampElectricityModel</code>.
  *
@@ -64,8 +66,6 @@ public class DimmerLampElectricityModel extends AtomicHIOA {
     private static final long serialVersionUID = 1L;
     /** when true, leaves a trace of the execution of the model.			*/
     public static boolean VERBOSE = true;
-    /** when true, leaves a debugging trace of the execution of the model.	*/
-    public static boolean DEBUG = false;
 
     /** URI for an instance model; works as long as only one instance is
      *  created.															*/
@@ -425,7 +425,7 @@ public class DimmerLampElectricityModel extends AtomicHIOA {
 
         this.currentState = LampState.OFF;
         this.consumptionHasChanged = false;
-        this.totalConsumption = DimmerLamp.MIN_POWER_VARIATION.getData();
+        this.totalConsumption = 0.;
 
         if (VERBOSE) {
             this.logMessage("Simulation begins.");

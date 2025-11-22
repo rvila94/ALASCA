@@ -147,9 +147,9 @@ public interface FanImplementationI {
 	 * <p><strong>Contract</strong></p>
 	 * 
 	 * <pre>
-	 * pre	{@code getState() == FanState.OFF}
+	 * pre	{@code getCurrentState() == FanState.OFF}
 	 * post	{@code getMode() == FanMode.LOW}
-	 * post	{@code getState() == FanState.ON}
+	 * post	{@code getCurrentState() == FanState.ON}
 	 * </pre>
 	 *
 	 * @throws Exception	<i>to do</i>.
@@ -163,7 +163,7 @@ public interface FanImplementationI {
 	 * 
 	 * <pre>
 	 * pre	{@code true}	// no precondition.
-	 * post	{@code getState() == FanState.OFF}
+	 * post	{@code getCurrentState() == FanState.OFF}
 	 * </pre>
 	 *
 	 * @throws Exception	<i>to do</i>.
@@ -176,7 +176,7 @@ public interface FanImplementationI {
 	 * <p><strong>Contract</strong></p>
 	 * 
 	 * <pre>
-	 * pre	{@code getState() == FanState.ON}
+	 * pre	{@code getCurrentState() == FanState.ON}
 	 * pre	{@code getMode() != FanMode.HIGH}
 	 * post	{@code getMode() == FanMode.HIGH}
 	 * </pre>
@@ -191,7 +191,7 @@ public interface FanImplementationI {
 	 * <p><strong>Contract</strong></p>
 	 * 
 	 * <pre>
-	 * pre	{@code getState() == FanState.ON}
+	 * pre	{@code getCurrentState() == FanState.ON}
 	 * pre	{@code getMode() != FanMode.MEDIUM}
 	 * post	{@code getMode() == FanMode.MEDIUM}
 	 * </pre>
@@ -206,7 +206,7 @@ public interface FanImplementationI {
 	 * <p><strong>Contract</strong></p>
 	 * 
 	 * <pre>
-	 * pre	{@code getState() == FanState.ON}
+	 * pre	{@code getCurrentState() == FanState.ON}
 	 * pre	{@code getMode() != FanMode.LOW}
 	 * post	{@code getMode() == FanMode.LOW}
 	 * </pre>

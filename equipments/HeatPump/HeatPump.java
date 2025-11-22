@@ -84,12 +84,13 @@ implements HeatPumpUserI,
 
     /** maximum power level of the heat pump, in watts                                */
     public static final Measure<Double> MAX_POWER_LEVEL = new Measure<>(100., POWER_UNIT);
-    /** minimum power level of the heat pump, in watts                                */
+    /** minimum power level of the heat pump, in watts */
+    // TODO delete MIN_POWER_LEVEL
     protected static final Measure<Double> MIN_POWER_LEVEL = new Measure<>(0., POWER_UNIT);
     /** standard power level of the heat pump, in watts                               */
     public static final Measure<Double> STANDARD_POWER_LEVEL = new Measure<>(50., POWER_UNIT);
     /** minimum power required for the device to function */
-    protected static final Measure<Double> MIN_REQUIRED_POWER_LEVEL = new Measure<>(10., POWER_UNIT);
+    public static final Measure<Double> MIN_REQUIRED_POWER_LEVEL = new Measure<>(10., POWER_UNIT);
 
     /** maximum temperature target for the heat pump, in celsius                       */
     public static final Measure<Double> MAX_TARGET_TEMPERATURE = new Measure<>(50., TEMPERATURE_UNIT);

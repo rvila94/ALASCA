@@ -2,6 +2,7 @@ package equipments.HeatPump.interfaces;
 
 import equipments.HeatPump.powerRepartitionPolicy.PowerRepartitionPolicyI;
 import fr.sorbonne_u.alasca.physical_data.Measure;
+import fr.sorbonne_u.alasca.physical_data.MeasurementUnit;
 import fr.sorbonne_u.alasca.physical_data.SignalData;
 
 /**
@@ -24,6 +25,8 @@ import fr.sorbonne_u.alasca.physical_data.SignalData;
  * @author    <a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
  */
 public interface HeatPumpExternalControlI {
+
+    Measure<Double> TENSION = new Measure<>(220., MeasurementUnit.VOLTS);
 
     SignalData<Double> getCurrentPower() throws Exception;
 

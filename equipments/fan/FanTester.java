@@ -231,7 +231,7 @@ public class FanTester extends AbstractComponent
 	// -------------------------------------------------------------------------
 	
 	/**
-	 * test of the {@code getState} method when the fan is off.
+	 * test of the {@code getCurrentState} method when the fan is off.
 	 * 
 	 * <p><strong>Description</strong></p>
 	 * 

@@ -596,7 +596,7 @@ implements	OvenUserI,
 		assert getMode() == OvenMode.CUSTOM :
 			new PostconditionException("getMode() == OvenMode.CUSTOM");
 		assert getState() == OvenState.OFF :
-			new PostconditionException("getState() == OvenState.OFF");
+			new PostconditionException("getCurrentState() == OvenState.OFF");
 	}	
 
 	@Override
@@ -683,9 +683,9 @@ implements	OvenUserI,
 	    assert this.on() :
 	        new PreconditionException("on()");
 	    assert this.getState() != OvenState.HEATING :
-	        new PreconditionException("getState() != HEATING");
+	        new PreconditionException("getCurrentState() != HEATING");
 	    assert this.getState() != OvenState.WAITING :
-	        new PreconditionException("getState() != WAITING");
+	        new PreconditionException("getCurrentState() != WAITING");
 	    assert delayInSeconds >= 0 :
 	        new PreconditionException("delayInSeconds >= 0");
 
@@ -696,19 +696,19 @@ implements	OvenUserI,
 	        this.startHeating();
 	        
 	        assert this.getState() == OvenState.HEATING :
-	            new PostconditionException("getState() == HEATING");
+	            new PostconditionException("getCurrentState() == HEATING");
 	    } else {
 	        this.currentState = OvenState.WAITING;
 
 	        assert this.getState() == OvenState.WAITING :
-	            new PostconditionException("getState() == WAITING");
+	            new PostconditionException("getCurrentState() == WAITING");
 	    }
 	}
 
 	@Override
 	public void stopCooking() throws Exception {
 	    assert this.getState() == OvenState.WAITING || this.getState() == OvenState.HEATING
-	        : new PreconditionException("getState() == WAITING || getState() == HEATING");
+	        : new PreconditionException("getCurrentState() == WAITING || getCurrentState() == HEATING");
 
 	    if (Oven.VERBOSE) {
 	        this.traceMessage("Oven cancels delayed or ongoing start.\n");
@@ -721,7 +721,7 @@ implements	OvenUserI,
 	    }
 
 	    assert this.getState() == OvenState.ON
-	        : new PostconditionException("getState() == ON");
+	        : new PostconditionException("getCurrentState() == ON");
 	}
 
 

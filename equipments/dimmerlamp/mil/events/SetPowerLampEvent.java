@@ -121,7 +121,7 @@ public class SetPowerLampEvent extends AbstractLampEvent {
 
         DimmerLampElectricityModel lamp_model = (DimmerLampElectricityModel) model;
         assert lamp_model.getState() == DimmerLamp.LampState.ON :
-                new NeoSim4JavaException("lamp_model.getState() != DimmerLamp.LampState.On");
+                new NeoSim4JavaException("lamp_model.getCurrentState() != DimmerLamp.LampState.On");
 
         lamp_model.setDimmerLampPower(this.powerValue.getPower(), this.getTimeOfOccurrence());
     }

@@ -88,7 +88,7 @@ public class SwitchOffLampEvent extends AbstractLampEvent {
         DimmerLampElectricityModel lamp_model = (DimmerLampElectricityModel)model;
 
         assert lamp_model.getState() == DimmerLamp.LampState.ON :
-                new NeoSim4JavaException("lamp_mode.getState() != DimmerLamp.LampState.ON");
+                new NeoSim4JavaException("lamp_mode.getCurrentState() != DimmerLamp.LampState.ON");
 
         lamp_model.setState(DimmerLamp.LampState.OFF);
     }

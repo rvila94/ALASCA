@@ -246,7 +246,7 @@ implements FanImplementationI
 	 * 
 	 * <pre>
 	 * pre	{@code true}	// no precondition.
-	 * post	{@code getState() == FanState.OFF}
+	 * post	{@code getCurrentState() == FanState.OFF}
 	 * post	{@code getMode() == FanMode.LOW}
 	 * </pre>
 	 * 
@@ -263,7 +263,7 @@ implements FanImplementationI
 	 * 
 	 * <pre>
 	 * pre	{@code fanInboundPortURI != null && !fanInboundPortURI.isEmpty()}
-	 * post	{@code getState() == FanState.OFF}
+	 * post	{@code getCurrentState() == FanState.OFF}
 	 * post	{@code getMode() == FanMode.LOW}
 	 * </pre>
 	 * 
@@ -283,7 +283,7 @@ implements FanImplementationI
 	 * <pre>
 	 * pre	{@code reflectionInboundPortURI != null && !reflectionInboundPortURI.isEmpty()}
 	 * pre	{@code fanInboundPortURI != null && !fanInboundPortURI.isEmpty()}
-	 * post	{@code getState() == FanState.OFF}
+	 * post	{@code getCurrentState() == FanState.OFF}
 	 * post	{@code getMode() == FanMode.LOW}
 	 * </pre>
 	 *
@@ -307,7 +307,7 @@ implements FanImplementationI
 	 * 
 	 * <pre>
 	 * pre	{@code fanInboundPortURI != null && !fanInboundPortURI.isEmpty()}
-	 * post	{@code getState() == FanState.OFF}
+	 * post	{@code getCurrentState() == FanState.OFF}
 	 * post	{@code getMode() == FanMode.LOW}
 	 * </pre>
 	 * 
@@ -381,7 +381,7 @@ implements FanImplementationI
             this.traceMessage("Fan is turned on.\n");
         }
         assert this.getState() == FanState.OFF : 
-        	new PreconditionException("getState() == FanState.OFF");
+        	new PreconditionException("getCurrentState() == FanState.OFF");
 
         this.currentState = FanState.ON;
         this.currentMode = FanMode.LOW;
@@ -393,7 +393,7 @@ implements FanImplementationI
             this.traceMessage("Fan is turned off.\n");
         }
         assert this.getState() == FanState.ON : 
-        	new PreconditionException("getState() == FanState.ON");
+        	new PreconditionException("getCurrentState() == FanState.ON");
 
         this.currentState = FanState.OFF;
     }
@@ -405,7 +405,7 @@ implements FanImplementationI
         }
 
         assert this.getState() == FanState.ON :
-            new PreconditionException("getState() == FanState.ON");
+            new PreconditionException("getCurrentState() == FanState.ON");
         assert this.getMode() != FanMode.HIGH :
             new PreconditionException("getMode() != FanMode.HIGH");
 
@@ -418,7 +418,7 @@ implements FanImplementationI
             this.traceMessage("Fan is set to medium speed.\n");
         }
         assert this.getState() == FanState.ON : 
-        	new PreconditionException("getState() == FanState.ON");
+        	new PreconditionException("getCurrentState() == FanState.ON");
         assert this.getMode() != FanMode.MEDIUM :
             new PreconditionException("getMode() != FanMode.MEDIUM");
 
@@ -431,7 +431,7 @@ implements FanImplementationI
             this.traceMessage("Fan is set to low speed.\n");
         }
         assert this.getState() == FanState.ON : 
-        	new PreconditionException("getState() == FanState.ON");
+        	new PreconditionException("getCurrentState() == FanState.ON");
         assert this.getMode() != FanMode.LOW :
             new PreconditionException("getMode() != FanMode.LOW");
 

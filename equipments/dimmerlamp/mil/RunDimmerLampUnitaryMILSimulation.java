@@ -1,5 +1,6 @@
 package equipments.dimmerlamp.mil;
 
+import equipments.dimmerlamp.DimmerLamp;
 import equipments.dimmerlamp.mil.events.LampPowerValue;
 import equipments.dimmerlamp.mil.events.SetPowerLampEvent;
 import equipments.dimmerlamp.mil.events.SwitchOffLampEvent;
@@ -21,10 +22,10 @@ import fr.sorbonne_u.devs_simulation.models.time.Time;
 import fr.sorbonne_u.devs_simulation.simulators.SimulationEngine;
 import fr.sorbonne_u.devs_simulation.simulators.interfaces.SimulationReportI;
 import fr.sorbonne_u.devs_simulation.simulators.interfaces.SimulatorI;
+import org.apache.commons.math3.random.RandomDataGenerator;
 
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 /**
  * The class <code>equipments.dimmerlamp.mil.RunDimmerLampMILSimulation</code>.
@@ -157,6 +158,22 @@ public class RunDimmerLampUnitaryMILSimulation {
                     d.getSimulatedDuration());
             SimulationReportI sr = se.getSimulatedModel().getFinalReport();
             System.out.println(sr);
+
+            /** create the simulator from the simulation architecture
+            se = architecture.constructSimulator();
+            // this add additional time at each simulation step in
+            // standard simulations (useful when debugging)
+            SimulationEngine.SIMULATION_STEP_SLEEP_TIME = 0L;
+
+            // run a PRIORITY test scenario
+            PRIORITY_SCENARIO.setUpSimulator(se);
+            startTime = CLASSICAL.getStartTime();
+            d = CLASSICAL.getEndTime().subtract(startTime);
+            se.doStandAloneSimulation(startTime.getSimulatedTime(),
+                    d.getSimulatedDuration());
+            sr = se.getSimulatedModel().getFinalReport();
+            System.out.println(sr);*/
+
             System.exit(0);
 
         } catch (Exception e) {
@@ -170,17 +187,30 @@ public class RunDimmerLampUnitaryMILSimulation {
     // -------------------------------------------------------------------------
 
     /** the start instant used in the test scenarios.						*/
-    protected static Instant	START_INSTANT =
-            Instant.parse("2025-10-20T12:00:00.00Z");
+    protected static Instant	START_INSTANT_CLASSICAL =
+            Instant.parse("2025-10-20T01:00:00.00Z");
     /** the end instant used in the test scenarios.							*/
-    protected static Instant	END_INSTANT =
-            Instant.parse("2025-10-20T18:00:00.00Z");
+    protected static Instant	END_INSTANT_CLASSICAL =
+            Instant.parse("2025-10-20T13:00:00.00Z");
+
+    /** the start instant used in the test scenarios.						*/
+    protected static Instant	START_INSTANT_PRIORITY =
+            Instant.parse("2024-10-20T00:00:00.00Z");
+    /** the end instant used in the test scenarios.							*/
+    protected static Instant	END_INSTANT_PRIORITY =
+            Instant.parse("2024-10-20T04:00:00.00Z");
+
     /** the start time in simulated time, corresponding to
      *  {@code START_INSTANT}.												*/
     protected static Time		START_TIME =
             new Time(0.0, DimmerLampSimulationConfigurationI.TIME_UNIT);
 
-    protected static final String GHERKIN_SPEC = "------------------------------------\n" +
+    // The tests are repeated
+    protected static final int REPETITION = 2;
+
+    protected static final RandomDataGenerator rg = new RandomDataGenerator();
+
+    protected static final String GHERKIN_SPEC_CLASSICAL = "------------------------------------\n" +
             "Classical\n" +
             "   Gherkin specification\n" +
             "       Feature: dimmer lamp operation\n" +
@@ -197,15 +227,30 @@ public class RunDimmerLampUnitaryMILSimulation {
             "               Given the dimmer lamp is on\n" +
             "               When the dimmer lamp is switched off\n" +
             "               Then the dimmer lamp is off\n" +
+            "           Scenario: The tests are repeated another time\n" +
+            "               Given the dimmer lamp has just been switched off\n" +
+            "               When the tests are repeated\n" +
+            "               Then the behaviour of the tests is still the same\n" +
+            "------------------------------------\n";
+
+    protected static final String GHERKIN_SPEC_PRIORITY = "------------------------------------\n" +
+            "Classical\n" +
+            "   Gherkin specification\n" +
+            "       Feature: Priority Test\n" +
+            "         Scenario: All the events occur at the same instant\n" +
+            "           Given the simulator has been initialised\n" +
+            "           When all the events occur at the same time\n" +
+            "           Then the simulator does not crash\n" +
+            "           and kwh == 0\n" +
             "------------------------------------\n";
 
     protected static final String END_MESSAGE =
             "End Classical\n------------------------------------\n";
 
-    protected static SimulationTestStep ScenarioLampSwitchOn() {
+    protected static SimulationTestStep ScenarioLampSwitchOn(String instant) {
         return new SimulationTestStep(
                 DimmerLampUnitTesterModel.URI,
-                Instant.parse("2025-10-20T13:00:00.00Z"),
+                Instant.parse(instant),
                 (m, t) -> {
                     ArrayList<EventI> ret = new ArrayList<>();
                     ret.add(new SwitchOnLampEvent(t));
@@ -214,25 +259,28 @@ public class RunDimmerLampUnitaryMILSimulation {
                 (m, t) -> {});
     }
 
-    protected static final double TEST_POWER = 50.; // 50 W
+    protected static SimulationTestStep ScenarioLampSetPower(String instant) {
 
-    protected static SimulationTestStep ScenarioLampSetPower() {
+        final double power =
+                rg.nextUniform(
+                        DimmerLamp.MIN_POWER_VARIATION.getData(),
+                        DimmerLamp.MAX_POWER_VARIATION.getData());
 
         return new SimulationTestStep(
                 DimmerLampUnitTesterModel.URI,
-                Instant.parse("2025-10-20T13:00:00.00Z"),
+                Instant.parse(instant),
                 (m, t) -> {
                     ArrayList<EventI> ret = new ArrayList<>();
-                    ret.add(new SetPowerLampEvent(t, new LampPowerValue(TEST_POWER)));
+                    ret.add(new SetPowerLampEvent(t, new LampPowerValue(power)));
                     return ret;
                 },
                 (m, t) -> {});
     }
 
-    protected static SimulationTestStep ScenarioLampSwitchOff() {
+    protected static SimulationTestStep ScenarioLampSwitchOff(String instant) {
         return new SimulationTestStep(
                 DimmerLampUnitTesterModel.URI,
-                Instant.parse("2025-10-20T14:00:00.00Z"),
+                Instant.parse(instant),
                 (m, t) -> {
                     ArrayList<EventI> ret = new ArrayList<>();
                     ret.add(new SwitchOffLampEvent(t));
@@ -241,13 +289,56 @@ public class RunDimmerLampUnitaryMILSimulation {
                 (m, t) -> {});
     }
 
+    protected static String testInstantClassical(int i) {
+        StringBuilder builder = new StringBuilder();
+
+        if (i < 10) {
+            builder.append("2025-10-20T0");
+        } else {
+            builder.append("2025-10-20T");
+        }
+
+        builder.append(i);
+        builder.append(":00:00.00Z");
+        return builder.toString();
+    }
+
+    /**
+     *
+     * Returns a list containing the step of the simulation
+     *
+     * <p><strong>Contract</strong></p>
+     *
+     * <pre>
+     *  pre {@code true} // no precondition
+     *  post {@code true} // no postcondition
+     * </pre>
+     * @param repetition the number of times we repeat the simulation test will be repeated
+     * @return list containing the step of the simulation
+     */
+    protected static SimulationTestStep[] testScenariosClassical(int repetition) {
+        ArrayList<SimulationTestStep> testSteps = new ArrayList<>();
+
+        int i = 1;
+
+        for (int k = 0; k < repetition; ++k) {
+            testSteps.add(ScenarioLampSwitchOn(testInstantClassical(i)));
+            testSteps.add(ScenarioLampSetPower(testInstantClassical(i + 1)));
+            testSteps.add(ScenarioLampSwitchOff(testInstantClassical(i + 2)));
+            i += 3;
+        }
+
+        SimulationTestStep[] result = new SimulationTestStep[testSteps.size()];
+        return testSteps.toArray(result);
+    }
+
     /** standard test scenario, see Gherkin specification.				 	*/
     protected final static TestScenario CLASSICAL =
             new TestScenario(
-                    GHERKIN_SPEC,
+                    GHERKIN_SPEC_CLASSICAL,
                     END_MESSAGE,
-                    START_INSTANT,
-                    END_INSTANT,
+                    START_INSTANT_CLASSICAL,
+                    END_INSTANT_CLASSICAL,
                     START_TIME,
                     (se, ts) -> {
                         HashMap<String, Object> simParams = new HashMap<>();
@@ -258,10 +349,39 @@ public class RunDimmerLampUnitaryMILSimulation {
                                 ts);
                         se.setSimulationRunParameters(simParams);
                     },
-                    new SimulationTestStep[]{
-                            ScenarioLampSwitchOn(),
-                            ScenarioLampSetPower(),
-                            ScenarioLampSwitchOff()
-                    }
+                    testScenariosClassical(REPETITION)
+            );
+
+    protected static SimulationTestStep[] testScenariosPriority() {
+        ArrayList<SimulationTestStep> testSteps = new ArrayList<>();
+
+        testSteps.add(ScenarioLampSwitchOn("2024-10-20T01:00:00.00Z"));
+        testSteps.add(ScenarioLampSetPower("2024-10-20T01:00:00.00Z"));
+        testSteps.add(ScenarioLampSwitchOff("2024-10-20T01:00:00.00Z"));
+
+        SimulationTestStep[] result = new SimulationTestStep[testSteps.size()];
+        return testSteps.toArray(result);
+    }
+
+    /** priority test all the Event are used at the same
+     *  We expect to kwh == 0
+     */
+    protected final static TestScenario PRIORITY_SCENARIO =
+            new TestScenario(
+                GHERKIN_SPEC_PRIORITY,
+                END_MESSAGE,
+                START_INSTANT_PRIORITY,
+                    END_INSTANT_PRIORITY,
+                    START_TIME,
+                    (se, ts) -> {
+                        HashMap<String, Object> simParams = new HashMap<>();
+                        simParams.put(
+                                ModelI.createRunParameterName(
+                                        DimmerLampUnitTesterModel.URI,
+                                        DimmerLampUnitTesterModel.TEST_SCENARIO_RP_NAME),
+                                ts);
+                        se.setSimulationRunParameters(simParams);
+                    },
+                    testScenariosPriority()
             );
 }

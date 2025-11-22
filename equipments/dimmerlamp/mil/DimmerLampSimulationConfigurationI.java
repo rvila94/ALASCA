@@ -27,7 +27,7 @@ public interface DimmerLampSimulationConfigurationI {
     // -------------------------------------------------------------------------
 
     /** time unit used in the dimmer lamp simulation.								*/
-    public static final TimeUnit TIME_UNIT = TimeUnit.HOURS;
+    TimeUnit TIME_UNIT = TimeUnit.HOURS;
 
     // -------------------------------------------------------------------------
     // Invariants

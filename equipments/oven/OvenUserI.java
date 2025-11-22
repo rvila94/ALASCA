@@ -151,11 +151,11 @@ extends		OvenExternalControlI
 	 * 
 	 * <pre>
 	 * pre  {@code on()}
-	 * pre  {@code getState() != OvenState.HEATING}
-	 * pre  {@code getState() != OvenState.WAITING}
+	 * pre  {@code getCurrentState() != OvenState.HEATING}
+	 * pre  {@code getCurrentState() != OvenState.WAITING}
 	 * pre  {@code delayInSeconds >= 0}
-	 * post {@code delayInSeconds == 0 ⇒ getState() == OvenState.HEATING}
-	 * post {@code delayInSeconds > 0 ⇒ getState() == OvenState.WAITING}
+	 * post {@code delayInSeconds == 0 ⇒ getCurrentState() == OvenState.HEATING}
+	 * post {@code delayInSeconds > 0 ⇒ getCurrentState() == OvenState.WAITING}
 	 * </pre>
 	 *
 	 * @param delayInSeconds  delay before cooking starts (0 for immediate start).
@@ -181,8 +181,8 @@ extends		OvenExternalControlI
 	 * <p><strong>Contract</strong></p>
 	 * 
 	 * <pre>
-	 * pre  {@code getState() == OvenState.WAITING || getState() == OvenState.HEATING}
-	 * post {@code getState() == OvenState.ON}
+	 * pre  {@code getCurrentState() == OvenState.WAITING || getCurrentState() == OvenState.HEATING}
+	 * post {@code getCurrentState() == OvenState.ON}
 	 * </pre>
 	 *
 	 * @throws Exception if an error occurs while cancelling the delayed or active heating cycle.

@@ -56,18 +56,19 @@ extends AtomicES_Model {
     protected static double		STEP_MEAN_DURATION = 30.0/60.0; // 30 minutes
     /** time interval between hair dryer usages in hours.					*/
     protected static double		DELAY_MEAN_DURATION = 8.0; // 8 hours
-    protected static final String STEP_RUN_PARAMETER = "STEP_MEAN_DURATION";
-    protected static final String DELAY_RUN_PARAMETER = "DELAY_MEAN_DURATION";
+    public static final String STEP_RUN_PARAMETER = "STEP_MEAN_DURATION";
+    public static final String DELAY_RUN_PARAMETER = "DELAY_MEAN_DURATION";
 
     protected static final String URI = DimmerLampUserModel.class.getSimpleName();
 
-    /** If true more information will be displayed in the logger */
-    public static boolean VERBOSE = false;
     // -------------------------------------------------------------------------
     // Variables
     // -------------------------------------------------------------------------
 
     protected final RandomDataGenerator rg;
+
+    /** If true more information will be displayed in the logger */
+    public static boolean VERBOSE = false;
 
     // -------------------------------------------------------------------------
     // Invariants
