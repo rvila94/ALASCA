@@ -43,7 +43,7 @@ implements	OvenEventI
 	// -------------------------------------------------------------------------
 
 	/**
-	 * The class <code>PowerValue</code> represent a power value to be passed
+	 * The class <code>PowerValueOven</code> represent a power value to be passed
 	 * as an {@code EventInformationI} when creating a {@code SetPowerOven}
 	 * event.
 	 *
@@ -66,7 +66,7 @@ implements	OvenEventI
 	 * @author	<a href="mailto:Rodrigo.Vila@etu.sorbonne-universite.fr">Rodrigo Vila</a>
 	 * @author	<a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
 	 */
-	public static class	PowerValue
+	public static class PowerValueOven
 	implements	EventInformationI
 	{
 		private static final long serialVersionUID = 1L;
@@ -74,10 +74,10 @@ implements	OvenEventI
 		protected final double	power;
 
 		/**
-		 * create an instance of {@code PowerValue}.
+		 * create an instance of {@code PowerValueOven}.
 		 * 
 		 * <p><strong>Contract</strong></p>
-		 * 
+		 *
 		 * <pre>
 		 * pre	{@code power >= 0.0 && power <= OvenExternalControlI.MAX_POWER_LEVEL.getData()}
 		 * post	{@code getPower() == power}
@@ -85,7 +85,7 @@ implements	OvenEventI
 		 *
 		 * @param power	the power in watts to put in this container.
 		 */
-		public			PowerValue(double power)
+		public PowerValueOven(double power)
 		{
 			super();
 
@@ -133,7 +133,7 @@ implements	OvenEventI
 	private static final long	serialVersionUID = 1L;
 	/** the power value to be set on the Oven when the event will be
 	 *  executed.															*/
-	protected final PowerValue	powerValue;
+	protected final PowerValueOven powerValueOven;
 
 	// -------------------------------------------------------------------------
 	// Constructors
@@ -141,13 +141,13 @@ implements	OvenEventI
 
 	/**
 	 * create a {@code SetPowerOven} event which content is a
-	 * {@code PowerValue}.
+	 * {@code PowerValueOven}.
 	 * 
 	 * <p><strong>Contract</strong></p>
 	 * 
 	 * <pre>
 	 * pre	{@code timeOfOccurrence != null}
-	 * pre	{@code content != null && content instanceof PowerValue}
+	 * pre	{@code content != null && content instanceof PowerValueOven}
 	 * post	{@code getTimeOfOccurrence().equals(timeOfOccurrence)}
 	 * post	{@code content == null || getEventInformation().equals(content)}
 	 * </pre>
@@ -162,12 +162,12 @@ implements	OvenEventI
 	{
 		super(timeOfOccurrence, content);
 
-		assert	content != null && content instanceof PowerValue :
+		assert	content != null && content instanceof PowerValueOven :
 				new NeoSim4JavaException(
 						"Precondition violation: event content is null or"
-						+ " not a PowerValue " + content);
+						+ " not a PowerValueOven " + content);
 
-		this.powerValue = (PowerValue) content;
+		this.powerValueOven = (PowerValueOven) content;
 	}
 
 	// -------------------------------------------------------------------------
@@ -205,7 +205,7 @@ implements	OvenEventI
 				new NeoSim4JavaException(
 						"model not in the right state, should be "
 						+ "OvenState.HEATING but is " + Oven.getState());
-		Oven.setCurrentHeatingPower(this.powerValue.getPower(),
+		Oven.setCurrentHeatingPower(this.powerValueOven.getPower(),
 									  this.getTimeOfOccurrence());
 	}
 }

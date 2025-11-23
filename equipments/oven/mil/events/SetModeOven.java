@@ -137,7 +137,7 @@ implements            OvenEventI
 	 * 
 	 * <pre>
 	 * pre	{@code timeOfOccurrence != null}
-	 * pre	{@code content != null && content instanceof PowerValue}
+	 * pre	{@code content != null && content instanceof PowerValueOven}
 	 * post	{@code getTimeOfOccurrence().equals(timeOfOccurrence)}
 	 * post	{@code content == null || getEventInformation().equals(content)}
 	 * </pre>

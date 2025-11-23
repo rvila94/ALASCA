@@ -1881,7 +1881,7 @@ public class			RunGlobalSimulation
 			                Instant.parse("2025-10-20T17:40:00.00Z"),
 			                (m, t) -> {
 			                    ArrayList<EventI> ret = new ArrayList<>();
-			                    ret.add(new Heat(t));
+			                    ret.add(new HeatOven(t));
 			                    return ret;
 			                },
 			                (m, t) -> {}),
@@ -1892,7 +1892,7 @@ public class			RunGlobalSimulation
 			                Instant.parse("2025-10-20T17:50:00.00Z"),
 			                (m, t) -> {
 			                    ArrayList<EventI> ret = new ArrayList<>();
-			                    ret.add(new DoNotHeat(t));
+			                    ret.add(new DoNotHeatOven(t));
 			                    return ret;
 			                },
 			                (m, t) -> {}),
@@ -1915,7 +1915,7 @@ public class			RunGlobalSimulation
 			                Instant.parse("2025-10-20T18:10:00.00Z"),
 			                (m, t) -> {
 			                    ArrayList<EventI> ret = new ArrayList<>();
-			                    ret.add(new Heat(t));
+			                    ret.add(new HeatOven(t));
 			                    return ret;
 			                },
 			                (m, t) -> {}),
@@ -1926,7 +1926,7 @@ public class			RunGlobalSimulation
 			                Instant.parse("2025-10-20T18:20:00.00Z"),
 			                (m, t) -> {
 			                    ArrayList<EventI> ret = new ArrayList<>();
-			                    ret.add(new DoNotHeat(t));
+			                    ret.add(new DoNotHeatOven(t));
 			                    return ret;
 			                },
 			                (m, t) -> {}),
@@ -1949,7 +1949,7 @@ public class			RunGlobalSimulation
 			                Instant.parse("2025-10-20T18:40:00.00Z"),
 			                (m, t) -> {
 			                    ArrayList<EventI> ret = new ArrayList<>();
-			                    ret.add(new Heat(t));
+			                    ret.add(new HeatOven(t));
 			                    return ret;
 			                },
 			                (m, t) -> {}),
@@ -1961,7 +1961,7 @@ public class			RunGlobalSimulation
 			                (m, t) -> {
 			                    ArrayList<EventI> ret = new ArrayList<>();
 			                    ret.add(new SetPowerOven(
-			                        t, new PowerValue(880.0)));
+			                        t, new SetPowerOven.PowerValueOven(880.0)));
 			                    return ret;
 			                },
 			                (m, t) -> {}),

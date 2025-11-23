@@ -67,7 +67,7 @@ public class SetPowerLampEvent extends AbstractLampEvent {
         result &= AssertionChecking.checkImplementationInvariant(event.powerValue != null,
                 SetPowerLampEvent.class,
                 event,
-                "event.powerValue == null");
+                "event.powerValueOven == null");
 
         return result;
     }

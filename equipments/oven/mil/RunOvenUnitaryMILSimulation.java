@@ -14,7 +14,6 @@ import equipments.oven.mil.events.SetModeOven.ModeValue;
 import equipments.oven.mil.events.SetPowerOven;
 import equipments.oven.mil.events.SwitchOffOven;
 import equipments.oven.mil.events.SwitchOnOven;
-import equipments.oven.mil.events.SetPowerOven.PowerValue;
 import equipments.oven.mil.events.SetTargetTemperatureOven;
 import equipments.oven.mil.events.SetTargetTemperatureOven.TargetTemperatureValue;
 
@@ -497,7 +496,7 @@ public class			RunOvenUnitaryMILSimulation
 		                (m, t) -> {
 		                    ArrayList<EventI> ret = new ArrayList<>();
 		                    ret.add(new SetPowerOven(
-		                        t, new PowerValue(880.0)));
+		                        t, new SetPowerOven.PowerValueOven(880.0)));
 		                    return ret;
 		                },
 		                (m, t) -> {}),
