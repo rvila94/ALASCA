@@ -52,6 +52,11 @@ import equipments.dimmerlamp.mil.events.LampPowerValue;
 import equipments.dimmerlamp.mil.events.SetPowerLampEvent;
 import equipments.dimmerlamp.mil.events.SwitchOffLampEvent;
 import equipments.dimmerlamp.mil.events.SwitchOnLampEvent;
+import equipments.fan.Fan;
+import equipments.fan.mil.FanElectricityModel;
+import equipments.fan.mil.FanSimpleUserModel;
+import equipments.fan.mil.FanUnitTesterModel;
+import equipments.fan.mil.events.*;
 import fr.sorbonne_u.components.hem2025.tests_utils.SimulationTestStep;
 import fr.sorbonne_u.components.hem2025.tests_utils.TestScenario;
 import fr.sorbonne_u.components.hem2025e1.equipments.batteries.Batteries;
@@ -102,13 +107,11 @@ import fr.sorbonne_u.devs_simulation.architectures.Architecture;
 import fr.sorbonne_u.devs_simulation.architectures.ArchitectureI;
 import fr.sorbonne_u.devs_simulation.hioa.architectures.AtomicHIOA_Descriptor;
 import fr.sorbonne_u.devs_simulation.hioa.architectures.CoupledHIOA_Descriptor;
-import fr.sorbonne_u.devs_simulation.hioa.architectures.RTAtomicHIOA_Descriptor;
 import fr.sorbonne_u.devs_simulation.hioa.models.vars.VariableSink;
 import fr.sorbonne_u.devs_simulation.hioa.models.vars.VariableSource;
 import fr.sorbonne_u.devs_simulation.models.architectures.AbstractAtomicModelDescriptor;
 import fr.sorbonne_u.devs_simulation.models.architectures.AtomicModelDescriptor;
 import fr.sorbonne_u.devs_simulation.models.architectures.CoupledModelDescriptor;
-import fr.sorbonne_u.devs_simulation.models.architectures.RTAtomicModelDescriptor;
 import fr.sorbonne_u.devs_simulation.models.events.EventI;
 import fr.sorbonne_u.devs_simulation.models.events.EventSink;
 import fr.sorbonne_u.devs_simulation.models.events.EventSource;
@@ -278,6 +281,37 @@ public class			RunGlobalSimulation
 							HeaterUnitTesterModel.URI,
 							GlobalSimulationConfigurationI.TIME_UNIT,
 							null));
+
+			// Fan models
+
+			atomicModelDescriptors.put(
+					FanElectricityModel.URI,
+					AtomicHIOA_Descriptor.create(
+							FanElectricityModel.class,
+							FanElectricityModel.URI,
+							GlobalSimulationConfigurationI.TIME_UNIT,
+							null
+					));
+
+			atomicModelDescriptors.put(
+					FanUnitTesterModel.URI,
+					AtomicModelDescriptor.create(
+							FanUnitTesterModel.class,
+							FanUnitTesterModel.URI,
+							GlobalSimulationConfigurationI.TIME_UNIT,
+							null
+					)
+			);
+
+			atomicModelDescriptors.put(
+					FanSimpleUserModel.URI,
+					AtomicModelDescriptor.create(
+							FanSimpleUserModel.class,
+							FanSimpleUserModel.URI,
+							GlobalSimulationConfigurationI.TIME_UNIT,
+							null
+					)
+			);
 
 			// Heat Pump models
 
@@ -481,6 +515,9 @@ public class			RunGlobalSimulation
 			submodels.add(DimmerLampUserModel.URI);
 			submodels.add(DimmerLampElectricityModel.URI);
 			submodels.add(DimmerLampUnitTesterModel.URI);
+			submodels.add(FanElectricityModel.URI);
+			submodels.add(FanSimpleUserModel.URI);
+			submodels.add(FanUnitTesterModel.URI);
 
 			// -----------------------------------------------------------------
 			// Event exchanging connections
@@ -557,6 +594,45 @@ public class			RunGlobalSimulation
 					new EventSink(HeaterElectricityModel.URI, DoNotHeat.class),
 					new EventSink(HeaterTemperatureModel.URI, DoNotHeat.class)
 				});
+
+			// Fan events
+
+			connections.put(
+					new EventSource(FanUnitTesterModel.URI,
+							SwitchOnFan.class),
+					new EventSink[] {
+							new EventSink(FanElectricityModel.URI,
+									SwitchOnFan.class)
+					});
+			connections.put(
+					new EventSource(FanUnitTesterModel.URI,
+							SwitchOffFan.class),
+					new EventSink[] {
+							new EventSink(FanElectricityModel.URI,
+									SwitchOffFan.class)
+					});
+			connections.put(
+					new EventSource(FanUnitTesterModel.URI,
+							SetHighFan.class),
+					new EventSink[] {
+							new EventSink(FanElectricityModel.URI,
+									SetHighFan.class)
+					});
+			connections.put(
+
+					new EventSource(FanUnitTesterModel.URI,
+							SetMediumFan.class),
+					new EventSink[] {
+							new EventSink(FanElectricityModel.URI,
+									SetMediumFan.class)
+					});
+			connections.put(
+					new EventSource(FanUnitTesterModel.URI,
+							SetLowFan.class),
+					new EventSink[] {
+							new EventSink(FanElectricityModel.URI,
+									SetLowFan.class)
+					});
 
 			// Dimmer Lamp events
 
@@ -867,6 +943,16 @@ public class			RunGlobalSimulation
 					}
 			);
 
+			bindings.put(
+					new VariableSource("currentIntensity", Double.class,
+							FanElectricityModel.URI),
+					new VariableSink[]{
+							new VariableSink("currentFanIntensity", Double.class,
+									"currentFanIntensity", Double.class,
+									ElectricMeterElectricityModel.URI)
+					}
+			);
+
 			// -----------------------------------------------------------------
 			// Overall simulation architecture
 			// -----------------------------------------------------------------
@@ -943,6 +1029,24 @@ public class			RunGlobalSimulation
 							DimmerLampUserModel.DELAY_RUN_PARAMETER
 					),
 					1.
+			);
+
+			// run parameters for fan models
+
+			simParams.put(
+					ModelI.createRunParameterName(
+							FanSimpleUserModel.URI,
+							FanSimpleUserModel.MEAN_DELAY_RPNAME
+					),
+					1.
+			);
+
+			simParams.put(
+					ModelI.createRunParameterName(
+							FanSimpleUserModel.URI,
+							FanSimpleUserModel.MEAN_STEP_RPNAME
+					),
+					0.05
 			);
 
 			// run parameters for solar panel models
@@ -1062,6 +1166,9 @@ public class			RunGlobalSimulation
 			DimmerLampUserModel.VERBOSE = false;
 			DimmerLampElectricityModel.VERBOSE = false;
 			DimmerLampUnitTesterModel.DEBUG = false;
+
+			FanSimpleUserModel.VERBOSE = false;
+			FanElectricityModel.VERBOSE = false;
 
 			BatteriesPowerModel.VERBOSE = true;
 			BatteriesPowerModel.DEBUG = false;
@@ -1206,6 +1313,27 @@ public class			RunGlobalSimulation
 						"          Given the dimmer lamp has just been switched off\n" +
 						"          When the tests are repeated\n" +
 						"          Then the behaviour of the tests is still the same\n" +
+						"    Feature: fan operation\n\n" +
+						"      Scenario: fan switched on\n" +
+						"        Given a fan that is off\n" +
+						"        When it is switched on\n" +
+						"        Then it is on and low\n" +
+						"      Scenario: fan set high\n" +
+						"        Given a fan that is on\n" +
+						"        When it is set high\n" +
+						"        Then it is on and high\n" +
+						"      Scenario: fan set medium\n" +
+						"        Given a fan that is on\n" +
+						"        When it is set medium\n" +
+						"        Then it is on and medium\n" +
+						"      Scenario: fan set low\n" +
+						"        Given a fan that is on\n" +
+						"        When it is set low\n" +
+						"        Then it is on and low\n" +
+						"      Scenario: fan switched off\n" +
+						"        Given a fan that is on\n" +
+						"        When it is switched of\n" +
+						"        Then it is off\n" +
 				"    Feature: generator production\n\n" +
 				"      Scenario: generator produces for a limited time without emptying the tank\n" +
 				"        Given a standard generator with a tank not full neither empty\n" +
@@ -1302,6 +1430,13 @@ public class			RunGlobalSimulation
 							ModelI.createRunParameterName(
 									DimmerLampUnitTesterModel.URI,
 									DimmerLampUnitTesterModel.TEST_SCENARIO_RP_NAME
+							),
+							testScenario
+					);
+					simulationParameters.put(
+							ModelI.createRunParameterName(
+									FanUnitTesterModel.URI,
+									FanUnitTesterModel.TEST_SCENARIO_RP_NAME
 							),
 							testScenario
 					);
@@ -1488,15 +1623,60 @@ public class			RunGlobalSimulation
 									return ret;
 								},
 								(m, t) -> {}),
-							new SimulationTestStep(
-								GeneratorGlobalTesterModel.URI,
+						new SimulationTestStep(
+								FanUnitTesterModel.URI,
 								Instant.parse("2025-10-20T23:30:00.00Z"),
+								(m, t) -> {
+									ArrayList<EventI> ret = new ArrayList<>();
+									ret.add(new SwitchOnFan(t));
+									return ret;
+								},
+								(m, t) -> {}),
+						new SimulationTestStep(
+								FanUnitTesterModel.URI,
+								Instant.parse("2025-10-21T00:30:00.00Z"),
+								(m, t) -> {
+									ArrayList<EventI> ret = new ArrayList<>();
+									ret.add(new SetHighFan(t));
+									return ret;
+								},
+								(m, t) -> {}),
+						new SimulationTestStep(
+								FanUnitTesterModel.URI,
+								Instant.parse("2025-10-21T01:00:00.00Z"),
+								(m, t) -> {
+									ArrayList<EventI> ret = new ArrayList<>();
+									ret.add(new SetMediumFan(t));
+									return ret;
+								},
+								(m, t) -> {}),
+						new SimulationTestStep(
+								FanUnitTesterModel.URI,
+								Instant.parse("2025-10-21T01:30:00.00Z"),
+								(m, t) -> {
+									ArrayList<EventI> ret = new ArrayList<>();
+									ret.add(new SetLowFan(t));
+									return ret;
+								},
+								(m, t) -> {}),
+						new SimulationTestStep(
+								FanUnitTesterModel.URI,
+								Instant.parse("2025-10-21T02:00:00.00Z"),
+								(m, t) -> {
+									ArrayList<EventI> ret = new ArrayList<>();
+									ret.add(new SwitchOffFan(t));
+									return ret;
+								},
+								(m, t) -> {}),
+						new SimulationTestStep(
+								GeneratorGlobalTesterModel.URI,
+								Instant.parse("2025-10-21T02:30:00.00Z"),
 								(m, t) -> {
 									ArrayList<EventI> ret = new ArrayList<>();
 									ret.add(new Stop(t));
 									return ret;
 								},
 								(m, t) -> {})
-							});
+				});
 	}
 // -----------------------------------------------------------------------------

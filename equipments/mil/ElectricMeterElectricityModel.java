@@ -131,6 +131,8 @@ import java.text.NumberFormat;
 			type = Double.class),
 			@ModelImportedVariable(name = "currentDimmerLampIntensity",
 			type = Double.class),
+			@ModelImportedVariable(name = "currentFanIntensity",
+					type = Double.class),
 	 @ModelImportedVariable(name = "solarPanelOutputPower",
 	 						type = Double.class),
 	 @ModelImportedVariable(name = "batteriesInputPower",
@@ -220,6 +222,9 @@ extends		AtomicHIOA
 	// TODO : Modify Invariants
 	@ImportedVariable(type = Double.class)
 	protected Value<Double> currentHeatPumpIntensity;
+
+	@ImportedVariable(type = Double.class)
+	protected Value<Double> currentFanIntensity;
 
 	@ImportedVariable(type = Double.class)
 	protected Value<Double> currentDimmerLampIntensity;
@@ -480,7 +485,8 @@ extends		AtomicHIOA
 					+ this.currentHairDryerIntensity.getValue()
 						+ this.currentHeaterIntensity.getValue()
 						+ this.currentHeatPumpIntensity.getValue()
-						+ this.currentDimmerLampIntensity.getValue();
+						+ this.currentDimmerLampIntensity.getValue()
+						+ this.currentFanIntensity.getValue();
 	}
 
 	/**
@@ -565,7 +571,8 @@ extends		AtomicHIOA
 				&& this.currentHairDryerIntensity.isInitialised()
 				&& this.currentHeaterIntensity.isInitialised()
 				&& this.currentHeatPumpIntensity.isInitialised()
-				&& this.currentDimmerLampIntensity.isInitialised()) {
+				&& this.currentDimmerLampIntensity.isInitialised()
+				&& this.currentFanIntensity.isInitialised()) {
 			double i = this.computeTotalIntensity();
 			this.currentIntensity.initialise(i);
 			this.cumulativeConsumption.initialise(0.0);
