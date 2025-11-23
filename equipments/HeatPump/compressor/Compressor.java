@@ -42,9 +42,7 @@ implements CompressorI {
     protected static final MeasurementUnit TEMPERATURE_UNIT = MeasurementUnit.CELSIUS;
 
     /** maximum power level of the compressor, in watts                                */
-    public static final Measure<Double> MAX_POWER_LEVEL = new Measure<>(100., POWER_UNIT);
-    /** minimum power level of the compressor, in watts                                */
-    public static final Measure<Double> MIN_POWER_LEVEL = new Measure<>(0., POWER_UNIT);
+    public static final Measure<Double> MAX_POWER_LEVEL = new Measure<>(400., POWER_UNIT);
     /** standard power level of the compressor, in watts                               */
     public static final Measure<Double> STANDARD_POWER_LEVEL = new Measure<>(50., POWER_UNIT);
     /** minimum power required for the compressor to function */
@@ -135,11 +133,7 @@ implements CompressorI {
     public SignalData<Double> getCurrentPower() throws Exception {
 
         SignalData<Double> res;
-        if (this.on()) {
-            res = this.currentPower;
-        } else {
-            res = new SignalData<>(MIN_POWER_LEVEL);
-        }
+        res = this.currentPower;
 
         assert res.getMeasure().getData() >= 0.0 && res.getMeasure().getData() <= getMaximumPower().getData() :
                 new PostconditionException("ret.getMeasure().getData() < 0.0 || ret.getMeasure().getData() > getMaximumPower().getData()");
@@ -164,8 +158,6 @@ implements CompressorI {
 
     @Override
     public void setPower(Measure<Double> power) throws Exception {
-        //assert this.on() :
-                //new PreconditionException("the device is off");
         assert power != null :
                 new PreconditionException("power == null");
         assert power.getData() == 0.0 || power.getData() >= this.getMinimumRequiredPower().getData() :

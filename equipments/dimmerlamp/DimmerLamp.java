@@ -19,6 +19,8 @@ import fr.sorbonne_u.exceptions.AssertionChecking;
 import fr.sorbonne_u.exceptions.PostconditionException;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
+import java.io.File;
+
 @RequiredInterfaces(required = {RegistrationCI.class})
 @OfferedInterfaces(offered = {DimmerLampUserCI.class, DimmerLampExternalJava4CI.class})
 public class DimmerLamp
@@ -42,8 +44,7 @@ implements DimmerLampUserI, DimmerLampExternalI {
 
     public static final String EQUIPMENT_UID = "1A1003584";
 
-    // TODO change String to File so that it works on everything
-    protected static final String PATH_TO_CONNECTOR_DESCRIPTOR = "src/connectorGenerator/dimmerlamp-descriptor.xml";
+    protected static final File PATH_TO_CONNECTOR_DESCRIPTOR = new File("src/connectorGenerator/dimmerlamp-descriptor.xml");
 
     // Maximum value for the variator
     public static final Measure<Double> MAX_POWER_VARIATION = new Measure<>(100., MeasurementUnit.RAW);
@@ -246,7 +247,7 @@ implements DimmerLampUserI, DimmerLampExternalI {
             boolean registered = this.registrationPort.register(
                     DimmerLamp.EQUIPMENT_UID,
                     this.externalInbound.getPortURI(),
-                    DimmerLamp.PATH_TO_CONNECTOR_DESCRIPTOR);
+                    DimmerLamp.PATH_TO_CONNECTOR_DESCRIPTOR.getAbsolutePath());
 
             if (DimmerLamp.VERBOSE) {
                 this.logMessage("The Dimmer lamp successfully completed the registration: " + registered + ".\n");

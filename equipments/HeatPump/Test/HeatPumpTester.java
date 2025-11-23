@@ -189,6 +189,8 @@ extends AbstractComponent {
      *     Given the heat pump is initialised and never been used yet
      *     When the heat pump has not been used yet
      *     Then the heat pump is off
+     *
+     *
      * </pre>
      *
      * <p><strong>Contract</strong></p>
@@ -235,8 +237,23 @@ extends AbstractComponent {
      *   Scenario: Switching on the heat pump when off
      *     Given the heat pump is initialised
      *     And the heat pump is off
-     *     When the user switches on the lamp
+     *     When the user switches on the heat pump
      *     Then the heat pump is on
+     *
+     *   Scenario: Switching on the heat pump when on
+     *     Given the heat pump is on
+     *     When the user switches on the heat pump
+     *     Then a precondition exception is thrown
+     *
+     *   Scenario: Stop heating when the heat pump is on
+     *      Given the heat pump is on
+     *      When the user wants the heat pump to stop heating
+     *      Then a precondition exception is thrown
+     *
+     *   Scenario: Stop cooling when the heat pump is on
+     *      Given the heat pump is on
+     *      When the user wants the heat pump to stop cooling
+     *      Then a precondition exception is thrown
      * </pre>
      *
      * <p><strong>Contract</strong></p>
@@ -263,9 +280,50 @@ extends AbstractComponent {
                 this.logMessage("   but was off");
                 this.statistics.incorrectResult();
             }
+
         } catch (Exception e) {
             this.logMessage("The exception " + e + "has been raised");
             this.statistics.incorrectResult();
+        }
+
+        this.logMessage("   Scenario: Switching on the heat pump when on");
+        this.logMessage("   Given the heat pump is on");
+
+        try {
+            this.logMessage("   When the user switches on the heat pump");
+            this.userOutboundPort.switchOn();
+            this.logMessage("   But no exception were thrown");
+            this.statistics.incorrectResult();
+        } catch (Exception e) {
+            this.logMessage("  Then a precondition exception is thrown");
+        }
+
+        this.statistics.updateStatistics();
+
+        this.logMessage("   Scenario: Stop heating when the heat pump is on");
+        this.logMessage("   Given the heat pump is on");
+
+        try {
+            this.logMessage("   When the user wants the heat pump to stop heating");
+            this.internalOutboundPort.stopHeating();
+            this.logMessage("   But no exception were thrown");
+            this.statistics.incorrectResult();
+        } catch (Exception e) {
+            this.logMessage("  Then a precondition exception is thrown");
+        }
+
+        this.statistics.updateStatistics();
+
+        this.logMessage("   Scenario: Stop heating when the heat pump is on");
+        this.logMessage("   Given the heat pump is on");
+
+        try {
+            this.logMessage("   When the user wants the heat pump to stop cooling");
+            this.internalOutboundPort.stopCooling();
+            this.logMessage("   But no exception were thrown");
+            this.statistics.incorrectResult();
+        } catch (Exception e) {
+            this.logMessage("  Then a precondition exception is thrown");
         }
 
         this.statistics.updateStatistics();
@@ -285,6 +343,23 @@ extends AbstractComponent {
      *      And the heat pump is on
      *      When the user puts the state to heating
      *      Then the state of the heat pump is the heating state
+     *
+     *   Scenario: Switching on the heat pump when heating
+     *     Given the heat pump is heating
+     *     When the user switches on the heat pump
+     *     Then a precondition exception is thrown
+     *
+     *   Scenario: Stop cooling when the heat pump is heating
+     *      Given the heat pump is heating
+     *      When the user wants the heat pump to stop cooling
+     *      Then a precondition exception is thrown
+     *
+     *
+     *   Scenario: Starts cooling when the heat pump is cooling
+     *      Given the heat pump is cooling
+     *      When the user wants the heat pump to start cooling
+     *      Then a precondition exception is thrown
+     *
      *   Scenario: Stops heating state
      *      Given the heat pump is initialised
      *      And the heat pump is on
@@ -323,6 +398,48 @@ extends AbstractComponent {
 
         this.statistics.updateStatistics();
 
+        this.logMessage("    Scenario: Switching on the heat pump when heating");
+        this.logMessage("    Given the heat pump is heating");
+
+        try {
+            this.logMessage("   When the user switches on the heat pump");
+            this.userOutboundPort.switchOn();
+            this.logMessage("   But was not");
+            this.statistics.incorrectResult();
+        } catch (Exception e) {
+            this.logMessage("   Then a precondition exception is thrown");
+        }
+
+        this.statistics.updateStatistics();
+
+        this.logMessage("    Scenario: Stop cooling when the heat pump is heating");
+        this.logMessage("    Given the heat pump is on");
+
+        try {
+            this.logMessage("   When the user wants the heat pump to stop cooling");
+            this.internalOutboundPort.stopCooling();
+            this.logMessage("   But was not");
+            this.statistics.incorrectResult();
+        } catch (Exception e) {
+            this.logMessage("   Then a precondition exception is thrown");
+        }
+
+        this.statistics.updateStatistics();
+
+        this.logMessage("    Scenario: Starts heating when the heat pump is heating");
+        this.logMessage("    Given the heat pump is heating");
+
+        try {
+            this.logMessage("   When the user wants the heat pump to start heating");
+            this.internalOutboundPort.startHeating();
+            this.logMessage("   But was not");
+            this.statistics.incorrectResult();
+        } catch (Exception e) {
+            this.logMessage("   Then a precondition exception is thrown");
+        }
+
+        this.statistics.updateStatistics();
+
         this.logMessage("Scenario: Stops heating state");
         this.logMessage("   Given the heat pump is initialised");
         this.logMessage("   And the heat pump is on");
@@ -343,7 +460,6 @@ extends AbstractComponent {
         }
 
         this.statistics.updateStatistics();
-
     }
 
     /**
@@ -360,7 +476,24 @@ extends AbstractComponent {
      *      And the heat pump is on
      *      When the user puts the state to cooling
      *      Then the state of the heat pump is the cooling state
-     *   Scenario:
+     *
+     *   Scenario: Switching on the heat pump when cooling
+     *     Given the heat pump is cooling
+     *     When the user switches on the heat pump
+     *     Then a precondition exception is thrown
+     *
+     *   Scenario: Stop heating when the heat pump is cooling
+     *      Given the heat pump is cooling
+     *      When the user wants the heat pump to stop heating
+     *      Then a precondition exception is thrown
+     *
+     *
+     *   Scenario: Starts cooling when the heat pump is cooling
+     *      Given the heat pump is cooling
+     *      When the user wants the heat pump to start cooling
+     *      Then a precondition exception is thrown
+     *
+     *   Scenario: Stop cooling
      *      Given the heat pump is initialised
      *      And the heat pump is on
      *      And the state of the heat pump is the cooling state
@@ -398,6 +531,48 @@ extends AbstractComponent {
 
         this.statistics.updateStatistics();
 
+        this.logMessage("    Scenario: Switching on the heat pump when cooling");
+        this.logMessage("    Given the heat pump is cooling");
+
+        try {
+            this.logMessage("   When the user switches on the heat pump");
+            this.userOutboundPort.switchOn();
+            this.logMessage("   But was not");
+            this.statistics.incorrectResult();
+        } catch (Exception e) {
+            this.logMessage("   Then a precondition exception is thrown");
+        }
+
+        this.statistics.updateStatistics();
+
+        this.logMessage("    Scenario: Stop heating when the heat pump is cooling");
+        this.logMessage("    Given the heat pump is on");
+
+        try {
+            this.logMessage("   When the user wants the heat pump to stop heating");
+            this.internalOutboundPort.stopHeating();
+            this.logMessage("   But was not");
+            this.statistics.incorrectResult();
+        } catch (Exception e) {
+            this.logMessage("   Then a precondition exception is thrown");
+        }
+
+        this.statistics.updateStatistics();
+
+        this.logMessage("    Scenario: Starts cooling when the heat pump is cooling");
+        this.logMessage("    Given the heat pump is cooling");
+
+        try {
+            this.logMessage("   When the user wants the heat pump to start cooling");
+            this.internalOutboundPort.startCooling();
+            this.logMessage("   But was not");
+            this.statistics.incorrectResult();
+        } catch (Exception e) {
+            this.logMessage("   Then a precondition exception is thrown");
+        }
+
+        this.statistics.updateStatistics();
+
         this.logMessage("Scenario: Stops cooling state");
         this.logMessage("   Given the heat pump is initialised");
         this.logMessage("   And the heat pump is on");
@@ -419,10 +594,11 @@ extends AbstractComponent {
 
         this.statistics.updateStatistics();
 
+
     }
 
     /**
-     * test of the {@code SwitchOn} method when the heat pump is off.
+     * test of the {@code SwitchOff} method when the heat pump is off.
      *
      * <p><strong>Description</strong></p>
      *
@@ -430,11 +606,52 @@ extends AbstractComponent {
      * <pre>
      * Feature: Switching on the heat pump
      *
-     *   Scenario: Switching on the heat pump when on
+     *   Scenario: Switching off the heat pump when on
      *     Given the heat pump is initialised
      *     And the heat pump is on
-     *     When the user switches off the lamp
+     *     When the user switches off the heat pump
      *     Then the heat pump is off
+     *
+     *   Scenario: Start Heating when the heat pump is off
+     *      Given the heat pump is off
+     *      When the user wants the heat pump to start heating
+     *      Then a precondition is thrown
+     *
+     *   Scenario: Start Cooling when the heat pump is off
+     *      Given the heat pump is off
+     *      When the user wants the heat pump to start cooling
+     *      Then a precondition is thrown
+     *
+     *   Scenario: Stop Heating when the heat pump is off
+     *      Given the heat pump is off
+     *      When the user wants the heat pump to stop heating
+     *      Then a precondition is thrown
+     *
+     *   Scenario: Stop Cooling when the heat pump is off
+     *      Given the heat pump is off
+     *      When the user wants the heat pump to stop cooling
+     *      Then a precondition is thrown
+     *
+     *   Scenario: Change Target Temperature when the heat pump is off
+     *      Given the heat pump is off
+     *      When the user wants to change the target temperature
+     *      Then a precondition is thrown
+     *
+     *   Scenario: Get Target Temperature when the heat pump is off
+     *      Given the heat pump is off
+     *      When the user gets the target temperature
+     *      Then a precondition is thrown
+     *
+     *   Scenario: Set Power when the heat pump is off
+     *      Given the heat pump is off
+     *      When the power is set to a new value
+     *      Then a precondition is thrown
+     *
+     *   Scenario: Get Power when the heat pump is off
+     *      Given the heat pump is on
+     *      When getting the power through the external interface
+     *      Then a precondition is thrown
+     *
      * </pre>
      *
      * <p><strong>Contract</strong></p>
@@ -470,7 +687,117 @@ extends AbstractComponent {
 
         this.statistics.updateStatistics();
 
+        this.logMessage("   Scenario: Start Heating when the heat pump is off");
+        this.logMessage("   Given the heat pump is off");
 
+        try {
+            this.logMessage("   When the user wants the heat pump to start heating");
+            this.internalOutboundPort.startHeating();
+            this.logMessage("   But was not");
+            this.statistics.incorrectResult();
+        } catch (Exception e) {
+            this.logMessage("   Then a precondition is thrown");
+        }
+
+        this.statistics.updateStatistics();
+
+        this.logMessage("   Scenario: Start cooling when the heat pump is off");
+        this.logMessage("   Given the heat pump is off");
+
+        try {
+            this.logMessage("   When the user wants the heat pump to start cooling");
+            this.internalOutboundPort.startCooling();
+            this.logMessage("   But was not");
+            this.statistics.incorrectResult();
+        } catch (Exception e) {
+            this.logMessage("   Then a precondition is thrown");
+        }
+
+        this.statistics.updateStatistics();
+
+        this.logMessage("   Scenario: Stop Heating when the heat pump is off");
+        this.logMessage("   Given the heat pump is off");
+
+        try {
+            this.logMessage("   When the user wants the heat pump to stop heating");
+            this.internalOutboundPort.stopHeating();
+            this.logMessage("   But was not");
+            this.statistics.incorrectResult();
+        } catch (Exception e) {
+            this.logMessage("   Then a precondition is thrown");
+        }
+
+        this.statistics.updateStatistics();
+
+        this.logMessage("   Scenario: Start cooling when the heat pump is off");
+        this.logMessage("   Given the heat pump is off");
+
+        try {
+            this.logMessage("   When the user wants the heat pump to stop cooling");
+            this.internalOutboundPort.startHeating();
+            this.logMessage("   But was not");
+            this.statistics.incorrectResult();
+        } catch (Exception e) {
+            this.logMessage("   Then a precondition is thrown");
+        }
+
+        this.statistics.updateStatistics();
+
+        this.logMessage("   Scenario: Change Target Temperature when the heat pump is off");
+        this.logMessage("   Given the heat pump is off");
+
+        try {
+            this.logMessage("   When the user wants to change the target temperature");
+            this.userOutboundPort.setTargetTemperature(HeatPump.MAX_TARGET_TEMPERATURE);
+            this.logMessage("   But was not");
+            this.statistics.incorrectResult();
+        } catch (Exception e) {
+            this.logMessage("   Then a precondition is thrown");
+        }
+
+        this.statistics.updateStatistics();
+
+        this.logMessage("   Scenario: Get the Target Temperature when the heat pump is off");
+        this.logMessage("   Given the heat pump is off");
+
+        try {
+            this.logMessage("   When the user gets the target temperature");
+            this.userOutboundPort.getTargetTemperature();
+            this.logMessage("   But was not");
+            this.statistics.incorrectResult();
+        } catch (Exception e) {
+            this.logMessage("   Then a precondition is thrown");
+        }
+
+        this.statistics.updateStatistics();
+
+        this.logMessage("   Scenario: Set Power when the heat pump is off");
+        this.logMessage("   Given the heat pump is off");
+
+        try {
+            this.logMessage("   When the power is set to a new value");
+            this.externalOutboundPort.setCurrentPower(HeatPump.STANDARD_POWER_LEVEL);
+            this.logMessage("   But was not");
+            this.statistics.incorrectResult();
+        } catch (Exception e) {
+            this.logMessage("   Then a precondition is thrown");
+        }
+
+        this.statistics.updateStatistics();
+
+        this.logMessage("   Scenario: Get Power when the heat pump is off");
+        this.logMessage("   Given the heat pump is off");
+
+        try {
+            this.logMessage("   When getting the power through the external interface");
+            this.externalOutboundPort.getCurrentPower();
+            this.logMessage("   But was not");
+            this.statistics.incorrectResult();
+        } catch (Exception e) {
+            this.logMessage("   Then a precondition is thrown");
+        }
+
+        this.statistics.updateStatistics();
     }
 
     /**
@@ -513,6 +840,23 @@ extends AbstractComponent {
      *      And the heat pump is on
      *      When I set the temperature at any given temperature between -50 and 50 Celsius inclusive
      *      Then the target temperature obtained through the external interface of the heat pump is the given temperature
+     *
+     *  Scenario: setting the target temperature to a null value
+     *      Given the heat pump is initialised
+     *      And the heat pump is on
+     *      When I set the temperature to a null value
+     *      Then an exception is thrown
+     *
+     *  Scenario: setting the target temperature to a value beyond -50 and 50
+     *      Given the heat pump is initialised
+     *      And the heat pump is on
+     *      When I set the temperature to -51
+     *      Then a precondition exception is thrown
+     *  Scenario: setting the target temperature to a value beyond -50 and 50
+     *      Given the heat pump is initialised
+     *      And the heat pump is on
+     *      When I set the temperature to 51
+     *      Then a precondition exception is thrown
      * </pre>
      *
      * <p><strong>Contract</strong></p>
@@ -732,6 +1076,73 @@ extends AbstractComponent {
         }
 
         this.statistics.updateStatistics();
+
+        this.logMessage("Scenario: setting the target temperature to a value beyond -50 and 50");
+        this.logMessage("    Given the heat pump is initialised");
+        this.logMessage("    And the heat pump is on");
+
+        try {
+            this.userOutboundPort.switchOn();
+            result = this.userOutboundPort.on();
+            if (!result) {
+                this.logMessage("     but was: off");
+                this.statistics.failedCondition();
+            }
+            this.logMessage("   When I set the temperature to a null value");
+            this.userOutboundPort.setTargetTemperature(null);
+
+            this.statistics.incorrectResult();
+            this.logMessage("But was not");
+        } catch (Exception e) {
+            this.logMessage("Then a precondition exception is thrown");
+        }
+
+        this.statistics.updateStatistics();
+
+        this.logMessage("Scenario: setting the target temperature to a value beyond -50 and 50");
+        this.logMessage("    Given the heat pump is initialised");
+        this.logMessage("    And the heat pump is on");
+
+        try {
+            result = this.userOutboundPort.on();
+            if (!result) {
+                this.logMessage("     but was: off");
+                this.statistics.failedCondition();
+            }
+            this.logMessage("   When I set the temperature to -51");
+            this.userOutboundPort.setTargetTemperature(new Measure<>(-51.));
+
+            this.statistics.incorrectResult();
+            this.logMessage("But was not");
+
+        } catch (Exception e) {
+            this.logMessage("Then a precondition exception is thrown");
+        }
+
+        this.statistics.updateStatistics();
+
+        this.logMessage("Scenario: setting the target temperature to a value beyond -50 and 50");
+        this.logMessage("    Given the heat pump is initialised");
+        this.logMessage("    And the heat pump is on");
+
+        try {
+            result = this.userOutboundPort.on();
+            if (!result) {
+                this.logMessage("     but was: off");
+                this.statistics.failedCondition();
+            }
+            this.logMessage("   When I set the temperature to 51");
+            this.userOutboundPort.setTargetTemperature(new Measure<>(-51.));
+
+            this.statistics.incorrectResult();
+            this.logMessage("But was not");
+
+        } catch (Exception e) {
+            this.logMessage("Then a precondition exception is thrown");
+        }
+
+        this.statistics.updateStatistics();
+
     }
 
     /**
@@ -920,6 +1331,22 @@ extends AbstractComponent {
      *      And the heat pump is on
      *      When I set the current power level to the minimum required power level
      *      Then the current power level is the minimum required power level
+     *    Scenario: setting the power level to an null value
+     *      Given the heat pump is initialised
+     *      And the heat pump is on
+     *      When I set the current power level to null
+     *      Then a precondition exception is thrown
+     *    Scenario: setting the power level to a negative wattage
+     *      Given the heat pump is initialised
+     *      And the heat pump is on
+     *      When I set the current power level to a negative wattage
+     *      Then a precondition exception is thrown
+     *    Scenario: setting the power level to a value superior to the maximum power of a heat pump
+     *      Given the heat pump is initialised
+     *      And the heat pump is on
+     *      When I set the current power level to wattage superior to the maximum power
+     *      Then a precondition exception is thrown
+     *
      * </pre>
      *
      * <p><strong>Contract</strong></p>
@@ -943,6 +1370,7 @@ extends AbstractComponent {
         Random rd = new Random();
         boolean result = false;
         try {
+            this.userOutboundPort.switchOff();
             this.userOutboundPort.switchOn();
             result = this.userOutboundPort.on();
             if (!result) {
@@ -1146,13 +1574,80 @@ extends AbstractComponent {
                     )) {
                 this.logMessage("   Then the current power level is the minimum required power level");
             } else {
-                this.logMessage("But was not");
+                this.logMessage("But was not: " + powerLevel.getData() + " " + min_required_power);
                 this.statistics.incorrectResult();
             }
             this.userOutboundPort.switchOff();
         } catch (Exception e) {
             this.statistics.incorrectResult();
             this.logMessage("     but the exception " + e + " has been raised");
+        }
+
+        this.statistics.updateStatistics();
+
+
+        this.logMessage("Scenario: setting the power level to an null value");
+        this.logMessage("    Given the heat pump is initialised");
+        this.logMessage("    And the heat pump is on");
+
+        try {
+            this.userOutboundPort.switchOn();
+            result = this.userOutboundPort.on();
+            if (!result) {
+                this.logMessage("     but was: off");
+                this.statistics.failedCondition();
+            }
+            this.logMessage("   When I set the current power level to null");
+            this.externalOutboundPort.setCurrentPower(null);
+
+            this.statistics.incorrectResult();
+            this.logMessage("But was not");
+        } catch (Exception e) {
+            this.logMessage("Then a precondition exception is thrown");
+        }
+
+        this.statistics.updateStatistics();
+
+        this.logMessage("Scenario: setting the power level to a negative wattage");
+        this.logMessage("    Given the heat pump is initialised");
+        this.logMessage("    And the heat pump is on");
+
+        try {
+            result = this.userOutboundPort.on();
+            if (!result) {
+                this.logMessage("     but was: off");
+                this.statistics.failedCondition();
+            }
+            this.logMessage("   When I set the current power level to a negative wattage");
+            this.externalOutboundPort.setCurrentPower(new Measure<>(-1., MeasurementUnit.WATTS));
+
+            this.statistics.incorrectResult();
+            this.logMessage("But was not");
+        } catch (Exception e) {
+            this.logMessage("Then a precondition is thrown");
+        }
+
+        this.statistics.updateStatistics();
+
+        this.logMessage("Scenario: setting the power level to a value superior to the maximum power of a heat pump");
+        this.logMessage("    Given the heat pump is initialised");
+        this.logMessage("    And the heat pump is on");
+
+        try {
+            result = this.userOutboundPort.on();
+            if (!result) {
+                this.logMessage("     but was: off");
+                this.statistics.failedCondition();
+            }
+            this.logMessage("   When I set the current power level to wattage superior to the maximum power");
+            double max_power = this.externalOutboundPort.getMaximumPower().getData() + 1.;
+
+            this.externalOutboundPort.setCurrentPower(new Measure<>(max_power, MeasurementUnit.WATTS));
+
+            this.statistics.incorrectResult();
+            this.logMessage("But was not");
+        } catch (Exception e) {
+            this.logMessage("Then a precondition exception is thrown");
         }
 
         this.statistics.updateStatistics();

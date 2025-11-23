@@ -44,6 +44,7 @@ public class ConnectorConfigurationParser {
         ClassPool pool = ClassPool.getDefault();
 
         CtClass connectorCtClass = pool.getOrNull(connectorCanonicalName);
+        // If the class already exists we do nothing
         if (connectorCtClass == null) {
             CtClass superClass = pool.get(AbstractConnector.class.getCanonicalName());
             connectorCtClass = pool.makeClass(connectorCanonicalName);
