@@ -6,14 +6,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import equipments.oven.Oven.OvenMode;
 import equipments.oven.mil.events.DoNotHeat;
 import equipments.oven.mil.events.Heat;
 import equipments.oven.mil.events.SetModeOven;
+import equipments.oven.mil.events.SetModeOven.ModeValue;
 import equipments.oven.mil.events.SetPowerOven;
 import equipments.oven.mil.events.SwitchOffOven;
 import equipments.oven.mil.events.SwitchOnOven;
 import equipments.oven.mil.events.SetPowerOven.PowerValue;
-import equipments.oven.mil.events.SetTargetTemperature;
+import equipments.oven.mil.events.SetTargetTemperatureOven;
+import equipments.oven.mil.events.SetTargetTemperatureOven.TargetTemperatureValue;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -53,10 +56,9 @@ import fr.sorbonne_u.devs_simulation.simulators.interfaces.SimulatorI;
  * The {@code OvenUnitTesterModel} emits events corresponding to actions of
  * a user mainly towards the {@code OvenElectricityModel} keeping track of
  * the state of the Oven and its power consumption in an exported variable
- * {@code currentIntensity} not used here. The {@code ExternalTemperatureModel}
- * simulates the temperature outside, which is taken into account by the
- * {@code OvenTemperatureModel} that simulates the room temperature. As the
- * room temperature depends upon the fact that the Oven actually heats or
+ * {@code currentIntensity} not used here. The @code OvenTemperatureModel} 
+ * simulates the oven internal temperature.
+ * Internal temperature depends upon the fact that the Oven actually heats or
  * not and with which power, relevant events that changes the status of the
  * Oven are propagated to the {@code OvenTemperatureModel}, which also
  * imports the variable {@code currentHeatingPower} from the
@@ -162,13 +164,6 @@ public class			RunOvenUnitaryMILSimulation
 							OvenTemperatureModel.URI,
 							OvenSimulationConfigurationI.TIME_UNIT,
 							null));
-			atomicModelDescriptors.put(
-					ExternalTemperatureModel.URI,
-					AtomicHIOA_Descriptor.create(
-							ExternalTemperatureModel.class,
-							ExternalTemperatureModel.URI,
-							OvenSimulationConfigurationI.TIME_UNIT,
-							null));
 			// the Oven unit tester model only exchanges event, an
 			// atomic model hence we use an AtomicModelDescriptor
 			atomicModelDescriptors.put(
@@ -188,7 +183,6 @@ public class			RunOvenUnitaryMILSimulation
 			Set<String> submodels = new HashSet<String>();
 			submodels.add(OvenElectricityModel.URI);
 			submodels.add(OvenTemperatureModel.URI);
-			submodels.add(ExternalTemperatureModel.URI);
 			submodels.add(OvenUnitTesterModel.URI);
 			
 			// event exchanging connections between exporting and importing
@@ -243,24 +237,16 @@ public class			RunOvenUnitaryMILSimulation
 			        });
 
 			connections.put(
-			        new EventSource(OvenUnitTesterModel.URI, SetTargetTemperature.class),
+			        new EventSource(OvenUnitTesterModel.URI, SetTargetTemperatureOven.class),
 			        new EventSink[]{
 			                new EventSink(OvenTemperatureModel.URI, 
-			                				SetTargetTemperature.class)
+			                				SetTargetTemperatureOven.class)
 			        });
 
 			// variable bindings between exporting and importing models
 			Map<VariableSource,VariableSink[]> bindings =
 								new HashMap<VariableSource,VariableSink[]>();
 
-			bindings.put(new VariableSource("externalTemperature",
-											Double.class,
-											ExternalTemperatureModel.URI),
-						 new VariableSink[] {
-								 new VariableSink("externalTemperature",
-										 		  Double.class,
-										 		  OvenTemperatureModel.URI)
-						 });
 			bindings.put(new VariableSource("currentHeatingPower",
 											Double.class,
 											OvenElectricityModel.URI),
@@ -335,108 +321,199 @@ public class			RunOvenUnitaryMILSimulation
 	protected static Time		START_TIME = new Time(0.0, TimeUnit.HOURS);
 
 	/** standard test scenario, see Gherkin specification.				 	*/
-	protected static TestScenario	CLASSICAL =
-		new TestScenario(
-			"-----------------------------------------------------\n" +
-			"Classical\n\n" +
-			"  Gherkin specification\n\n" +
-			"    Feature: Oven operation\n\n" +
-			"      Scenario: Oven switched on\n" +
-			"        Given a Oven that is off\n" +
-			"        When it is switched on\n" +
-			"        Then it is on but not heating\n" +
-			"      Scenario: Oven heats\n" +
-			"        Given a Oven that is on and not heating\n" +
-			"        When it is asked to heat\n" +
-			"        Then it is on and it heats at the current power level\n" +
-			"      Scenario: Oven stops heating\n" +
-			"        Given a Oven that is heating\n" +
-			"        When it is asked not to heat\n" +
-			"        Then it is on but it stops heating\n" +
-			"      Scenario: Oven heats\n" +
-			"        Given a Oven that is on and not heating\n" +
-			"        When it is asked to heat\n" +
-			"        Then it is on and it heats at the current power level\n" +
-			"      Scenario: Oven set a different power level\n" +
-			"        Given a Oven that is heating\n" +
-			"        When it is set to a new power level\n" +
-			"        Then it is on and it heats at the new power level\n" +
-			"      Scenario: Oven switched off\n" +
-			"        Given a Oven that is on\n" +
-			"        When it is switched of\n" +
-			"        Then it is off\n" +
-			"-----------------------------------------------------\n",
-			"\n-----------------------------------------------------\n" +
-			"End Classical\n" +
-			"-----------------------------------------------------",
-			START_INSTANT,
-			END_INSTANT,
-			START_TIME,
-			(se, ts) -> { 
-				HashMap<String, Object> simParams = new HashMap<>();
-				simParams.put(
-					ModelI.createRunParameterName(
-						OvenUnitTesterModel.URI,
-						OvenUnitTesterModel.TEST_SCENARIO_RP_NAME),
-					ts);
-				se.setSimulationRunParameters(simParams);
-			},
-			new SimulationTestStep[]{
-				new SimulationTestStep(
-					OvenUnitTesterModel.URI,
-					Instant.parse("2025-10-20T12:30:00.00Z"),
-					(m, t) -> {
-						ArrayList<EventI> ret = new ArrayList<>();
-						ret.add(new SwitchOnOven(t));
-						return ret;
-					},
-					(m, t) -> {}),
-				new SimulationTestStep(
-						OvenUnitTesterModel.URI,
-						Instant.parse("2025-10-20T13:00:00.00Z"),
-						(m, t) -> {
-							ArrayList<EventI> ret = new ArrayList<>();
-							ret.add(new Heat(t));
-							return ret;
-						},
-						(m, t) -> {}),
-				new SimulationTestStep(
-						OvenUnitTesterModel.URI,
-						Instant.parse("2025-10-20T13:30:00.00Z"),
-						(m, t) -> {
-							ArrayList<EventI> ret = new ArrayList<>();
-							ret.add(new DoNotHeat(t));
-							return ret;
-						},
-						(m, t) -> {}),
-				new SimulationTestStep(
-						OvenUnitTesterModel.URI,
-						Instant.parse("2025-10-20T14:00:00.00Z"),
-						(m, t) -> {
-							ArrayList<EventI> ret = new ArrayList<>();
-							ret.add(new Heat(t));
-							return ret;
-						},
-						(m, t) -> {}),
-				new SimulationTestStep(
-						OvenUnitTesterModel.URI,
-						Instant.parse("2025-10-20T14:30:00.00Z"),
-						(m, t) -> {
-							ArrayList<EventI> ret = new ArrayList<>();
-							ret.add(new SetPowerOven(t,
-									   				   new PowerValue(880.0)));
-							return ret;
-						},
-						(m, t) -> {}),
-				new SimulationTestStep(
-						OvenUnitTesterModel.URI,
-						Instant.parse("2025-10-20T16:30:00.00Z"),
-						(m, t) -> {
-							ArrayList<EventI> ret = new ArrayList<>();
-							ret.add(new SwitchOffOven(t));
-							return ret;
-						},
-						(m, t) -> {})
-			});
+	protected static TestScenario CLASSICAL =
+		    new TestScenario(
+		        "-----------------------------------------------------\n" +
+		        "Classical\n\n" +
+		        "  Gherkin specification\n\n" +
+		        "    Feature: Oven operation\n\n" +
+		        "      Scenario: Oven switched on\n" +
+		        "        Given a Oven that is off\n" +
+		        "        When it is switched on\n" +
+		        "        Then it is on but not heating\n" +
+		        "      Scenario: Target temperature set to 50\n" +
+		        "        Given a Oven that is on and not heating\n" +
+		        "        When a target temperature of 50 is set\n" +
+		        "        Then its mode is CUSTOM and target temperature is 50\n" +
+		        "      Scenario: Oven heats\n" +
+		        "        Given a Oven that is on and not heating\n" +
+		        "        When it is asked to heat\n" +
+		        "        Then it is on and it heats at 500W power level\n" +
+		        "      Scenario: Oven stops heating\n" +
+		        "        Given a Oven that is heating\n" +
+		        "        When it is asked not to heat\n" +
+		        "        Then it is on but it stops heating\n" +
+		        "      Scenario: Mode set to GRILL\n" +
+		        "        Given a Oven that is on\n" +
+		        "        When its mode is set to DEFROST\n" +
+		        "        Then its target temperature is 80\n" +
+		        "      Scenario: Oven heats again\n" +
+		        "        Given a Oven that is on and not heating\n" +
+		        "        When it is asked to heat\n" +
+		        "        Then it is on and it heats at 800W power level\n" +
+		        "      Scenario: Oven stops heating\n" +
+		        "        Given a Oven that is heating\n" +
+		        "        When it is asked not to heat\n" +
+		        "        Then it is on but it stops heating\n" +
+		        "      Scenario: Mode set to GRILL\n" +
+		        "        Given a Oven that is on\n" +
+		        "        When its mode is set to GRILL\n" +
+		        "        Then its target temperature is 220\n" +
+		        "      Scenario: Oven heats again\n" +
+		        "        Given a Oven that is on and not heating\n" +
+		        "        When it is asked to heat\n" +
+		        "        Then it is on and it heats at 2200W power level\n" +
+		        "      Scenario: Oven set a different power level\n" +
+		        "        Given a Oven that is heating\n" +
+		        "        When it is set to a new power level\n" +
+		        "        Then it is on and it heats at the new power level\n" +
+		        "      Scenario: Oven switched off\n" +
+		        "        Given a Oven that is on\n" +
+		        "        When it is switched off\n" +
+		        "        Then it is off\n" +
+		        "-----------------------------------------------------\n",
+		        "\n-----------------------------------------------------\n" +
+		        "End Classical\n" +
+		        "-----------------------------------------------------",
+		        START_INSTANT,
+		        END_INSTANT,
+		        START_TIME,
+		        (se, ts) -> {
+		            HashMap<String, Object> simParams = new HashMap<>();
+		            simParams.put(
+		                ModelI.createRunParameterName(
+		                    OvenUnitTesterModel.URI,
+		                    OvenUnitTesterModel.TEST_SCENARIO_RP_NAME),
+		                ts);
+		            se.setSimulationRunParameters(simParams);
+		        },
+		        new SimulationTestStep[] {
+		            // Switch on
+		            new SimulationTestStep(
+		                OvenUnitTesterModel.URI,
+		                Instant.parse("2025-10-20T12:30:00.00Z"),
+		                (m, t) -> {
+		                    ArrayList<EventI> ret = new ArrayList<>();
+		                    ret.add(new SwitchOnOven(t));
+		                    return ret;
+		                },
+		                (m, t) -> {}),
+
+		            // Set target temperature 50
+		            new SimulationTestStep(
+		                OvenUnitTesterModel.URI,
+		                Instant.parse("2025-10-20T12:35:00.00Z"),
+		                (m, t) -> {
+		                    ArrayList<EventI> ret = new ArrayList<>();
+		                    ret.add(new SetTargetTemperatureOven(
+		                        t, new TargetTemperatureValue(50.0)));
+		                    return ret;
+		                },
+		                (m, t) -> {}),
+
+		            // Heat
+		            new SimulationTestStep(
+		                OvenUnitTesterModel.URI,
+		                Instant.parse("2025-10-20T13:00:00.00Z"),
+		                (m, t) -> {
+		                    ArrayList<EventI> ret = new ArrayList<>();
+		                    ret.add(new Heat(t));
+		                    return ret;
+		                },
+		                (m, t) -> {}),
+
+		            // Stop heating
+		            new SimulationTestStep(
+		                OvenUnitTesterModel.URI,
+		                Instant.parse("2025-10-20T13:30:00.00Z"),
+		                (m, t) -> {
+		                    ArrayList<EventI> ret = new ArrayList<>();
+		                    ret.add(new DoNotHeat(t));
+		                    return ret;
+		                },
+		                (m, t) -> {}),
+
+		            // Set DEFROST mode
+		            new SimulationTestStep(
+		                OvenUnitTesterModel.URI,
+		                Instant.parse("2025-10-20T13:40:00.00Z"),
+		                (m, t) -> {
+		                    ArrayList<EventI> ret = new ArrayList<>();
+		                    ret.add(new SetModeOven(t,
+		                        new ModeValue(OvenMode.DEFROST)));
+		                    return ret;
+		                },
+		                (m, t) -> {}),
+
+		            // Heat after DEFROST
+		            new SimulationTestStep(
+		                OvenUnitTesterModel.URI,
+		                Instant.parse("2025-10-20T14:00:00.00Z"),
+		                (m, t) -> {
+		                    ArrayList<EventI> ret = new ArrayList<>();
+		                    ret.add(new Heat(t));
+		                    return ret;
+		                },
+		                (m, t) -> {}),
+
+		            // Stop heating again
+		            new SimulationTestStep(
+		                OvenUnitTesterModel.URI,
+		                Instant.parse("2025-10-20T14:30:00.00Z"),
+		                (m, t) -> {
+		                    ArrayList<EventI> ret = new ArrayList<>();
+		                    ret.add(new DoNotHeat(t));
+		                    return ret;
+		                },
+		                (m, t) -> {}),
+
+		            // Set GRILL mode
+		            new SimulationTestStep(
+		                OvenUnitTesterModel.URI,
+		                Instant.parse("2025-10-20T14:40:00.00Z"),
+		                (m, t) -> {
+		                    ArrayList<EventI> ret = new ArrayList<>();
+		                    ret.add(new SetModeOven(
+		                        t, new ModeValue(OvenMode.GRILL)));
+		                    return ret;
+		                },
+		                (m, t) -> {}),
+
+		            // Heat after GRILL
+		            new SimulationTestStep(
+		                OvenUnitTesterModel.URI,
+		                Instant.parse("2025-10-20T15:00:00.00Z"),
+		                (m, t) -> {
+		                    ArrayList<EventI> ret = new ArrayList<>();
+		                    ret.add(new Heat(t));
+		                    return ret;
+		                },
+		                (m, t) -> {}),
+
+		            // Change power level
+		            new SimulationTestStep(
+		                OvenUnitTesterModel.URI,
+		                Instant.parse("2025-10-20T15:30:00.00Z"),
+		                (m, t) -> {
+		                    ArrayList<EventI> ret = new ArrayList<>();
+		                    ret.add(new SetPowerOven(
+		                        t, new PowerValue(880.0)));
+		                    return ret;
+		                },
+		                (m, t) -> {}),
+
+		            // Switch off
+		            new SimulationTestStep(
+		                OvenUnitTesterModel.URI,
+		                Instant.parse("2025-10-20T16:30:00.00Z"),
+		                (m, t) -> {
+		                    ArrayList<EventI> ret = new ArrayList<>();
+		                    ret.add(new SwitchOffOven(t));
+		                    return ret;
+		                },
+		                (m, t) -> {})
+		        }
+		    );
+
 }
 // -----------------------------------------------------------------------------

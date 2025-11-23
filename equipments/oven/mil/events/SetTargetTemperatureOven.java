@@ -32,7 +32,7 @@ import fr.sorbonne_u.devs_simulation.models.time.Time;
  * @author	<a href="mailto:Rodrigo.Vila@etu.sorbonne-universite.fr">Rodrigo Vila</a>
  * @author	<a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
  */
-public class         SetTargetTemperature
+public class         SetTargetTemperatureOven
 extends               ES_Event
 implements            OvenEventI
 {
@@ -145,7 +145,7 @@ implements            OvenEventI
 	 * @param content			the tatrget temperature  value to be set on the 
 	 * 							Oven when the event will be executed.
 	 */
-	public SetTargetTemperature(
+	public SetTargetTemperatureOven(
 			Time timeOfOccurrence,
 			EventInformationI content)
 	{

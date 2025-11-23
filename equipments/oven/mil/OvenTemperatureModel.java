@@ -7,7 +7,7 @@ import equipments.oven.mil.events.DoNotHeat;
 import equipments.oven.mil.events.Heat;
 import equipments.oven.mil.events.OvenEventI;
 import equipments.oven.mil.events.SetModeOven;
-import equipments.oven.mil.events.SetTargetTemperature;
+import equipments.oven.mil.events.SetTargetTemperatureOven;
 import equipments.oven.mil.events.SwitchOffOven;
 import equipments.oven.Oven;
 import equipments.oven.Oven.OvenMode;
@@ -52,11 +52,6 @@ import fr.sorbonne_u.devs_simulation.utils.AssertionChecking;
  *     <code>HEATING</code> state, which pushes the chamber temperature
  *     toward the current <code>targetTemperature</code>;</li>
  *
- * <li>the ambient temperature (imported variable
- *     <code>externalTemperature</code>), toward which the oven cools down
- *     when heating power is low or zero.</li>
- * </ol>
- *
  * <p>
  * The resulting differential equation is integrated using the Euler method
  * with a predefined integration step.
@@ -74,12 +69,12 @@ import fr.sorbonne_u.devs_simulation.utils.AssertionChecking;
  *   <code>SwitchOffOven</code>,
  *   <code>Heat</code>,
  *   <code>DoNotHeat</code>,
- *   <code>SetModeOven</code></li>
+ *   <code>SetModeOven</code>
+ *   <code>SetTargetTemperatureOven</code></li>
  *
  * <li>Exported events: none</li>
  *
  * <li>Imported variables:
- *   <code>externalTemperature</code>,
  *   <code>currentHeatingPower</code></li>
  *
  * <li>Exported variables:
@@ -96,9 +91,8 @@ import fr.sorbonne_u.devs_simulation.utils.AssertionChecking;
 		 						 Heat.class,
 		 						 DoNotHeat.class,
 								 SetModeOven.class,
-								 SetTargetTemperature.class})
+								 SetTargetTemperatureOven.class})
 @ModelExportedVariable(name = "targetTemperature", type = Double.class)
-@ModelImportedVariable(name = "externalTemperature", type = Double.class)
 @ModelImportedVariable(name = "currentHeatingPower", type = Double.class)
 // -----------------------------------------------------------------------------
 public class			OvenTemperatureModel
@@ -123,13 +117,14 @@ extends		AtomicHIOA
 	public static boolean		DEBUG = false;
 
 	// TODO: define as simulation run parameters
+	private static double AMBIENT_TEMPERATURE = 20.0;
 	/** temperature when the simulation begins.			*/
-	public static double		INITIAL_TEMPERATURE = 20.0;
+	public static double		INITIAL_TEMPERATURE = 22.0;
 	/** Represents how quickly the oven loses heat to its environment */
-	protected static double 	COOLING_TRANSFER_CONSTANT = 300.0;
+	protected static double 	COOLING_TRANSFER_CONSTANT = 1000.0;
 	/** heating transfer constant in the differential equation when the
 	 *  heating power is maximal.											*/
-	protected static double		MIN_HEATING_TRANSFER_CONSTANT = 60.0;
+	protected static double		MIN_HEATING_TRANSFER_CONSTANT = 1.0;
 	/** update tolerance for the temperature <i>i.e.</i>, shortest elapsed
 	 *  time since the last update under which the temperature is not
 	 *  changed by the update to avoid too large computation errors.		*/
@@ -163,9 +158,6 @@ extends		AtomicHIOA
 	// HIOA model variables
 	// -------------------------------------------------------------------------
 
-	/** current external temperature in Celsius.							*/
-	@ImportedVariable(type = Double.class)
-	protected Value<Double>					externalTemperature;
 	/** the current heating power between 0 and
 	 *  {@code OvenElectricityModel.MAX_HEATING_POWER}.					*/
 	@ImportedVariable(type = Double.class)
@@ -213,10 +205,6 @@ extends		AtomicHIOA
 				MIN_HEATING_TRANSFER_CONSTANT > 0.0,
 				OvenTemperatureModel.class,
 				"MIN_HEATING_TRANSFER_CONSTANT > 0.0");
-		ret &= AssertionChecking.checkStaticImplementationInvariant(
-				STEP > 0.0,
-				ExternalTemperatureModel.class,
-				"STEP > 0.0");
 		return ret;
 	}
 
@@ -504,7 +492,8 @@ extends		AtomicHIOA
 		// the power gets lower, what is physically awaited.
 		double c = 1.0/(MIN_HEATING_TRANSFER_CONSTANT *
 							OvenExternalControlI.MAX_POWER_LEVEL.getData());
-		return 1.0/(c*this.currentHeatingPower.getValue());
+		double res =  1.0/(c*this.currentHeatingPower.getValue());
+		return res;
 	}
 
 	/**
@@ -531,11 +520,9 @@ extends		AtomicHIOA
 											this.currentHeatTransfertConstant();
 			}
 		}
-
-		Time t = this.getCurrentStateTime();
 		currentTempDerivative +=
-				(this.externalTemperature.evaluateAt(t) - current)/
-												COOLING_TRANSFER_CONSTANT;
+				(AMBIENT_TEMPERATURE - current) / COOLING_TRANSFER_CONSTANT;
+		
 		return currentTempDerivative;
 	}
 
@@ -621,23 +608,16 @@ extends		AtomicHIOA
 		int justInitialised = 0;
 		int notInitialisedYet = 0;
 		
-		// Only one variable must be initialised, the current temperature, and
-		// it depends upon only one variable, the external temperature.
-		if (!this.currentTemperature.isInitialised() &&
-									this.externalTemperature.isInitialised()) {
-			// If the current temperature is not initialised yet but the
-			// external temperature is, then initialise the current temperature
-			// and say one more variable is initialised at this execution.
-			double derivative = this.computeDerivatives(INITIAL_TEMPERATURE);
-			this.currentTemperature.initialise(INITIAL_TEMPERATURE, derivative);
-			justInitialised++;
-		} else if (!this.currentTemperature.isInitialised()) {
-			// If the external temperature is not initialised and the current
-			// temperature either, then say one more variable has not been
-			// initialised yet at this execution, forcing another execution
-			// to reach the fix point.
-			notInitialisedYet++;
-		}
+		if (!this.currentTemperature.isInitialised()) {
+	        double derivative = this.computeDerivatives(INITIAL_TEMPERATURE);
+	        this.currentTemperature.initialise(INITIAL_TEMPERATURE, derivative);
+	        justInitialised++;
+	    }
+		
+		if (!this.targetTemperature.isInitialised()) {
+	        this.targetTemperature.initialise(0.0);
+	        justInitialised++;
+	    }
 
 		assert	OvenTemperatureModel.implementationInvariants(this) :
 				new NeoSim4JavaException(

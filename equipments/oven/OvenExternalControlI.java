@@ -62,7 +62,7 @@ extends		OvenTemperatureI
 	
 	/** maximum power level of the oven in watts.							*/
 	public static final Measure<Double> MAX_POWER_LEVEL =
-											new Measure<>(2500.0, POWER_UNIT);
+											new Measure<>(3000.0, POWER_UNIT);
 
 	/** operating voltage of the oven in volts.								*/
 	public static final Measure<Double> TENSION =

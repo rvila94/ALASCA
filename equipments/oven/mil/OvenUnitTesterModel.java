@@ -8,6 +8,8 @@ import equipments.oven.mil.events.Heat;
 import equipments.oven.mil.events.SetPowerOven;
 import equipments.oven.mil.events.SwitchOffOven;
 import equipments.oven.mil.events.SwitchOnOven;
+import equipments.oven.mil.events.SetModeOven;
+import equipments.oven.mil.events.SetTargetTemperatureOven;
 import fr.sorbonne_u.components.hem2025.tests_utils.AbstractTestScenarioBasedAtomicModel;
 import fr.sorbonne_u.components.hem2025.tests_utils.TestScenario;
 import equipments.oven.mil.OvenUnitTesterModel;
@@ -32,7 +34,9 @@ import fr.sorbonne_u.devs_simulation.utils.StandardLogger;
  *   {@code SwitchOffOven},
  *   {@code SetPowerOven},
  *   {@code Heat},
- *   {@code DoNotHeat}</li>
+ *   {@code DoNotHeat}
+ *   {@code SetModeOven}
+ *   {@code SetTargetTemperatureOven}</li>
  * </ul>
  * 
  * <p><strong>Implementation Invariants</strong></p>
@@ -56,7 +60,9 @@ import fr.sorbonne_u.devs_simulation.utils.StandardLogger;
 								 SwitchOffOven.class,
 								 Heat.class,
 								 DoNotHeat.class,
-								 SetPowerOven.class})
+								 SetPowerOven.class,
+								 SetModeOven.class,
+								 SetTargetTemperatureOven.class})
 // -----------------------------------------------------------------------------
 public class			OvenUnitTesterModel
 extends		AbstractTestScenarioBasedAtomicModel
