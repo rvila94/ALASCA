@@ -299,6 +299,9 @@ implements DimmerLampUserI, DimmerLampExternalI {
     @Override
     public Measure<Double> getCurrentPowerLevel() throws Exception {
 
+        assert this.isOn() :
+                new PreconditionException("!isOn()");
+
         Measure<Double> result = new Measure<>(this.power_variation.getData(), MeasurementUnit.WATTS);
 
         if (DimmerLamp.VERBOSE) {

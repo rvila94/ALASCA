@@ -196,6 +196,11 @@ extends AbstractComponent {
      *     And the dimmer lamp is off
      *     When the user switches on the lamp
      *     Then the dimmer lamp is on
+     *
+     *   Scenario: Switching on the dimmer lamp when on
+     *     Given the dimmer lamp is on
+     *     When the user switches on the lamp
+     *     Then a precondition exception is thrown
      * </pre>
      *
      * <p><strong>Contract</strong></p>
@@ -228,6 +233,20 @@ extends AbstractComponent {
         }
 
         this.statistics.updateStatistics();
+
+        this.logMessage("Scenario: Switching on the dimmer lamp when on");
+        this.logMessage("   Given the dimmer lamp is on");
+
+        try {
+            this.logMessage("   When the user switches on the lamp");
+            this.userOutboundPort.switchOn();
+            this.logMessage("But was not");
+            this.statistics.incorrectResult();
+        } catch (Exception e) {
+            this.logMessage("   Then a precondition exception is thrown");
+        }
+
+        this.statistics.updateStatistics();
     }
 
     /**
@@ -244,6 +263,16 @@ extends AbstractComponent {
      *     And the dimmer lamp is on
      *     When the user switches off the dimmer lamp
      *     Then the dimmer lamp is off
+     *
+     *   Scenario: Setting the power when the lamp is off
+     *     Given the dimmer lamp is off
+     *     When the power of the lamp is set to a given wattage
+     *     Then a precondition exception is thrown
+     *
+     *   Scenario: Getting the power of the lamp when the lamp is off
+     *      Given the dimmer lamp is off
+     *      When getting the power of the lamp through the external interface
+     *      Then a precondition exception is thrown
      * </pre>
      *
      * <p><strong>Contract</strong></p>
@@ -277,6 +306,34 @@ extends AbstractComponent {
         }
 
         this.statistics.updateStatistics();
+
+        this.logMessage("   Scenario: Setting the power when the lamp is off");
+        this.logMessage("   Given the dimmer lamp is off");
+
+        try {
+            this.logMessage("   When the power of the lamp is set to a given wattage");
+            this.externalOutboundPort.setVariationPower(DimmerLamp.BASE_POWER_VARIATION);
+            this.logMessage("But was not");
+            this.statistics.incorrectResult();
+        } catch (Exception e) {
+            this.logMessage("   Then a precondition exception is thrown");
+        }
+
+        this.statistics.updateStatistics();
+
+        this.logMessage("   Scenario: Getting the power of the lamp when the lamp is off");
+        this.logMessage("   Given the dimmer lamp is off");
+
+        try {
+            this.logMessage("   When getting the power of the lamp through the external interface");
+            this.externalOutboundPort.getCurrentPowerLevel();
+            this.logMessage("But was not");
+            this.statistics.incorrectResult();
+        } catch (Exception e) {
+            this.logMessage("   Then a precondition exception is thrown");
+        }
+
+        this.statistics.updateStatistics();
     }
 
     /**
@@ -298,6 +355,24 @@ extends AbstractComponent {
      *     And the dimmer lamp is on
      *     When the user sets the power to a level between the minimum power level and the maximum power level
      *     Then the current power level is equal to the power level set by the user
+     *
+     *   Scenario: Setting the power to null
+     *      Given the dimmer lamp is initialised
+     *      And the dimmer lamp is on
+     *      When the power is set to null
+     *      Then a precondition exception is thrown
+     *
+     *   Scenario: Setting the power to a negative wattage
+     *      Given the dimmer lamp is initialised
+     *      And the dimmer lamp is on
+     *      When the power is set to a negative wattage
+     *      Then a precondition exception is thrown
+     *
+     *   Scenario: Setting the power to an invalid wattage
+     *      Given the dimmer lamp is intialised
+     *      And the dimmer lamp is on
+     *      When the power is set to the maximum wattage + 1
+     *      Then a precondition exception is thrown
      * </pre>
      *
      * <p><strong>Contract</strong></p>
@@ -355,6 +430,46 @@ extends AbstractComponent {
             this.statistics.incorrectResult();
         }
 
+        this.statistics.updateStatistics();
+
+        this.logMessage("   Scenario: Setting the power to null");
+        this.logMessage("   Given the dimmer lamp is initialised");
+        this.logMessage("   And the dimmer lamp is on");
+        try {
+            this.logMessage("   When the power is set to null");
+            this.externalOutboundPort.setVariationPower(null);
+            this.logMessage("But was not");
+            this.statistics.incorrectResult();
+        } catch (Exception e) {
+            this.logMessage("   Then a precondition exception is thrown");
+        }
+
+        this.logMessage("   Scenario: Setting the power to a negative wattage");
+            this.logMessage("   Given the dimmer lamp is initialised");
+        this.logMessage("   And the dimmer lamp is on");
+        try {
+            this.logMessage("   When the power is set to a negative wattage");
+            this.externalOutboundPort.setVariationPower(new Measure<>(-1., MeasurementUnit.WATTS));
+            this.logMessage("But was not");
+            this.statistics.incorrectResult();
+        } catch (Exception e) {
+            this.logMessage("   Then a precondition exception is thrown");
+        }
+
+        this.statistics.updateStatistics();
+
+        this.logMessage("   Scenario: Setting the power to an invalid wattage");
+        this.logMessage("   Given the dimmer lamp is initialised");
+        this.logMessage("   And the dimmer lamp is on");
+        try {
+            this.logMessage("   When the power is set to the maximum wattage + 1");
+            double max_power = DimmerLamp.MAX_POWER_VARIATION.getData() + 1.;
+            this.externalOutboundPort.setVariationPower(new Measure<>(max_power, MeasurementUnit.WATTS));
+            this.logMessage("But was not");
+            this.statistics.incorrectResult();
+        } catch (Exception e) {
+            this.logMessage("   Then a precondition exception is thrown");
+        }
 
         this.statistics.updateStatistics();
     }

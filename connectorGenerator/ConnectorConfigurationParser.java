@@ -1,6 +1,7 @@
 package connectorGenerator;
 
 import fr.sorbonne_u.components.connectors.AbstractConnector;
+import fr.sorbonne_u.exceptions.PreconditionException;
 import javassist.*;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -17,7 +18,7 @@ import java.io.IOException;
  * <p><strong>Description</strong></p>
  *
  * <p>
- *
+ *  This class is used to read connectors encoded as xml files
  * </p>
  *
  * <p><strong>Invariants</strong></p>
@@ -34,8 +35,37 @@ public class ConnectorConfigurationParser {
 
     protected static final String xml_extension = ".xml";
 
+    /**
+     *
+     * Tries to create the connectorCanonicalName connector class from the xml file entitled filename
+     * If the class already exists then we do nothing
+     *
+     * <p><strong>Contract</strong></p>
+     *
+     * <pre>
+     *  pre {@code connectorCanonicalName != null && !connectorCanonicalName.isEmpty()}
+     *  pre {@code connectorImplementedInterface != null }
+     *  pre {@code filename != null && !filename.isEmpty()}
+     *  post {@code true} // no postcondition
+     * </pre>
+     * @param connectorCanonicalName name of the class we want to create
+     * @param connectorImplementedInterface Interfaces implemented by the connector
+     * @param filename name of the xml file
+     * @throws NotFoundException The file does not exist
+     * @throws CannotCompileException An error has occurred
+     * @throws ParserConfigurationException
+     * @throws SAXException
+     * @throws IOException
+     */
     public static void ClassFromXml(String connectorCanonicalName, Class<?> connectorImplementedInterface, String filename)
             throws NotFoundException, CannotCompileException, ParserConfigurationException, SAXException, IOException {
+
+        assert filename != null && ! filename.isEmpty():
+                new PreconditionException("filename == null || filename.isEmpty()");
+        assert connectorCanonicalName != null && !connectorCanonicalName.isEmpty():
+                new PreconditionException("connectorCanonicalName == null || connectorCanonicalName.isEmpty()");
+        assert connectorImplementedInterface != null :
+                new PreconditionException("connectorImplementedInterface == null");
 
         if (!filename.endsWith(xml_extension)) {
             throw new IllegalArgumentException("filename has no xml_extension");
@@ -43,8 +73,9 @@ public class ConnectorConfigurationParser {
 
         ClassPool pool = ClassPool.getDefault();
 
-        CtClass connectorCtClass = pool.getOrNull(connectorCanonicalName);
         // If the class already exists we do nothing
+        CtClass connectorCtClass = pool.getOrNull(connectorCanonicalName);
+
         if (connectorCtClass == null) {
             CtClass superClass = pool.get(AbstractConnector.class.getCanonicalName());
             connectorCtClass = pool.makeClass(connectorCanonicalName);
@@ -57,6 +88,7 @@ public class ConnectorConfigurationParser {
             CtInterface.detach();
             superClass.detach();
 
+            // We parse and create the class
             SAXParserFactory factory = SAXParserFactory.newInstance();
             SAXParser parser = factory.newSAXParser();
             ConfigurationHandler handler = new ConfigurationHandler(connectorCtClass, connectorImplementedInterface);
@@ -87,16 +119,19 @@ extends DefaultHandler {
 
     private CtClass connectorCtClass;
 
+    /** Accumulator for the content of the class */
     StringBuilder builder;
 
+    /** The previous marker is sometimes useful to determine what code to generate */
     String previousTag;
+    /** The equipmentRef is an argument in the body marker*/
     String equipmentRef;
     String offeringCast;
+    /** Used to know if we are parsing internal auxiliary methods */
     boolean inInternal;
     public ConfigurationHandler(CtClass new_class, Class<?> connectorImplementedInterface)
             throws NotFoundException, CannotCompileException {
         super();
-
 
         this.builder = new StringBuilder();
         this.previousTag = "";
@@ -106,9 +141,21 @@ extends DefaultHandler {
 
         this.connectorCtClass = new_class;
 
-
     }
 
+    /**
+     *
+     * Add the correct modifiers to the fields of the class
+     *
+     * <p><strong>Contract</strong></p>
+     *
+     * <pre>
+     *  pre {@code true} // no precondition
+     *  post {@code true} // no postcondition
+     * </pre>
+     * @param field
+     * @param modifiers
+     */
     private void addModifiers(CtField field, String modifiers) {
 
         if (modifiers.contains("public")) {
@@ -128,9 +175,24 @@ extends DefaultHandler {
         }
 
     }
+
+    /**
+     *
+     * Creates the variables
+     *
+     * <p><strong>Contract</strong></p>
+     *
+     * <pre>
+     *  pre {@code true} // no precondition
+     *  post {@code true} // no postcondition
+     * </pre>
+     * @param attributes
+     */
     private void addVar(Attributes attributes) {
         String modifiers = attributes.getValue("modifiers");
         String type = attributes.getValue("type");
+
+        // We get the type of the field
         CtClass typeClass = null;
         try {
             typeClass = ClassPool.getDefault().get(type);
@@ -143,8 +205,11 @@ extends DefaultHandler {
 
         try {
             CtField field = new CtField(typeClass, name, this.connectorCtClass);
+            // adding the modifiers to the field
             addModifiers(field, modifiers);
 
+            // if the field have a initial value in the xml file
+            // we use it to initialise the field in class
             if (initializer != null) {
                 this.connectorCtClass.addField(field, initializer);
             } else {
@@ -161,6 +226,7 @@ extends DefaultHandler {
         switch (qName) {
             case "control-adapter":
                 String offeredInterface = attributes.getValue("offered");
+                // We save the offered interface so as to be able to cast the abstract connector in the class
                 this.offeringCast = this.castingString(offeredInterface);
                 break;
             case "required":
@@ -282,6 +348,7 @@ extends DefaultHandler {
                 this.builder.append(NEWLINE);
                 this.builder.append(NEWLINE);
 
+                // creating a new method
                 CtMethod newMethod;
                 try {
                     newMethod = CtMethod.make(this.builder.toString(), this.connectorCtClass);

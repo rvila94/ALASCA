@@ -215,7 +215,22 @@ public class HeatPumpHeatingModel extends AtomicHIOA implements StateModelI {
         // TODO check invariants
     }
 
+    /**
+     *
+     * Compute the heating performance coefficient for a heat pump
+     * Using the coefficient of performance : https://en.wikipedia.org/wiki/Coefficient_of_performance
+     * We assume that the efficiency of the pump is optimal (Carnot efficiency)
+     *
+     * <p><strong>Contract</strong></p>
+     *
+     * <pre>
+     *  pre {@code true} // no precondition
+     *  post {@code true} // no postcondition
+     * </pre>
+     * @return double the performance coefficient
+     */
     protected double heatingPerformanceCoeff() {
+
         Time t = this.currentTemperature.getTime();
 
         // When heating, the heat tank is the inside of the house
@@ -225,19 +240,33 @@ public class HeatPumpHeatingModel extends AtomicHIOA implements StateModelI {
         double cold_tank = this.externalTemperature.evaluateAt(t);
 
         // formula is true only if the heat pump efficiency is optimal
-        return heat_tank / (1. + heat_tank - cold_tank);
+        return heat_tank / (heat_tank - cold_tank);
     }
 
+    /**
+     *
+     * Compute the cooling performance coefficient for a heat pump
+     * Using the coefficient of performance : https://en.wikipedia.org/wiki/Coefficient_of_performance
+     * We assume that the efficiency of the pump is optimal (Carnot efficiency)
+     *
+     * <p><strong>Contract</strong></p>
+     *
+     * <pre>
+     *  pre {@code true} // no precondition
+     *  post {@code true} // no postcondition
+     * </pre>
+     * @return double the performance coefficient
+     */
     protected double coolingPerformanceCoeff() {
         Time t = this.currentTemperature.getTime();
 
         // When cooling, the heat tank is the outside of the house
-        double heat_tank = this.currentTemperature.evaluateAt(t);
+        double heat_tank = this.externalTemperature.evaluateAt(t);
 
         // When heating, the cold tank is the inside of the house
         double cold_tank = this.currentTemperature.evaluateAt(t);
 
-        return cold_tank / (1. + heat_tank - cold_tank);
+        return cold_tank / (heat_tank - cold_tank);
     }
 
     protected double currentHeatTransfertConstant()
@@ -260,14 +289,18 @@ public class HeatPumpHeatingModel extends AtomicHIOA implements StateModelI {
                 && current_power > HeatPump.MIN_REQUIRED_POWER_LEVEL.getData()) {
             double perf_coeff = heatingPerformanceCoeff();
 
+            // We used a similar equation to the one of heater temperature model
+            // Heating contribution : current warmth source, external_temp cold source
+            // perf_coeff * power => how much heat emanates from the heat pump
             result = ((current - external_temp) + perf_coeff * current_power) /
                     this.currentHeatTransfertConstant();
         } else if (this.currentState == HeatPumpUserI.State.Cooling
                 && current_power > HeatPump.MIN_REQUIRED_POWER_LEVEL.getData()) {
             double perf_coeff = coolingPerformanceCoeff();
 
-            // TODO
-            result = ((current - external_temp) - perf_coeff * current_power) /
+            // We use the opposite sign with the perf coeff as to decrease the temperature
+            // external_temp source of warmth, current source of cold
+            result = ((external_temp - current) - perf_coeff * current_power) /
                     this.currentHeatTransfertConstant();
         }
 

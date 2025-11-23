@@ -252,7 +252,7 @@ public class RunHeatPumpUnitaryMILSimulation {
             Instant.parse("2025-10-20T01:00:00.00Z");
     /** the end instant used in the test scenarios.							*/
     protected static Instant	END_INSTANT =
-            Instant.parse("2025-10-20T20:00:00.00Z");
+            Instant.parse("2025-10-20T14:00:00.00Z");
     /** the start time in simulated time, corresponding to
      *  {@code START_INSTANT}.												*/
 
@@ -431,10 +431,10 @@ public class RunHeatPumpUnitaryMILSimulation {
         testSteps.add(ScenarioStartHeating(testInstant(3)));
         testSteps.add(ScenarioSetPower(testInstant(4), power_hour4));
         testSteps.add(ScenarioStopHeating(testInstant(7)));
-        testSteps.add(ScenarioStartCooling(testInstant(8)));
-        testSteps.add(ScenarioSetPower(testInstant(9), power_hour9));
-        testSteps.add(ScenarioStopCooling(testInstant(10)));
-        testSteps.add(ScenarioSwitchOff(testInstant(11)));
+        testSteps.add(ScenarioStartCooling(testInstant(10)));
+        testSteps.add(ScenarioSetPower(testInstant(11), power_hour9));
+        testSteps.add(ScenarioStopCooling(testInstant(12)));
+        testSteps.add(ScenarioSwitchOff(testInstant(13)));
 
         SimulationTestStep[] result = new SimulationTestStep[testSteps.size()];
         return testSteps.toArray(result);
