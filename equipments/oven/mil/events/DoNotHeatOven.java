@@ -33,7 +33,7 @@ import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
  * @author	<a href="mailto:Rodrigo.Vila@etu.sorbonne-universite.fr">Rodrigo Vila</a>
  * @author	<a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
  */
-public class			DoNotHeat
+public class			DoNotHeatOven
 extends		Event
 implements	OvenEventI
 {
@@ -60,7 +60,7 @@ implements	OvenEventI
 	 *
 	 * @param timeOfOccurrence	time of occurrence of the event.
 	 */
-	public				DoNotHeat(
+	public				DoNotHeatOven(
 		Time timeOfOccurrence
 		)
 	{

@@ -7,8 +7,8 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import equipments.oven.Oven.OvenMode;
-import equipments.oven.mil.events.DoNotHeat;
-import equipments.oven.mil.events.Heat;
+import equipments.oven.mil.events.DoNotHeatOven;
+import equipments.oven.mil.events.HeatOven;
 import equipments.oven.mil.events.SetModeOven;
 import equipments.oven.mil.events.SetModeOven.ModeValue;
 import equipments.oven.mil.events.SetPowerOven;
@@ -214,20 +214,20 @@ public class			RunOvenUnitaryMILSimulation
 										  SwitchOffOven.class)
 					});
 			connections.put(
-					new EventSource(OvenUnitTesterModel.URI, Heat.class),
+					new EventSource(OvenUnitTesterModel.URI, HeatOven.class),
 					new EventSink[] {
 							new EventSink(OvenElectricityModel.URI,
-										  Heat.class),
+										  HeatOven.class),
 							new EventSink(OvenTemperatureModel.URI,
-										  Heat.class)
+										  HeatOven.class)
 					});
 			connections.put(
-					new EventSource(OvenUnitTesterModel.URI, DoNotHeat.class),
+					new EventSource(OvenUnitTesterModel.URI, DoNotHeatOven.class),
 					new EventSink[] {
 							new EventSink(OvenElectricityModel.URI,
-										  DoNotHeat.class),
+										  DoNotHeatOven.class),
 							new EventSink(OvenTemperatureModel.URI,
-										  DoNotHeat.class)
+										  DoNotHeatOven.class)
 					});
 			connections.put(
 			        new EventSource(OvenUnitTesterModel.URI, SetModeOven.class),
@@ -417,7 +417,7 @@ public class			RunOvenUnitaryMILSimulation
 		                Instant.parse("2025-10-20T13:00:00.00Z"),
 		                (m, t) -> {
 		                    ArrayList<EventI> ret = new ArrayList<>();
-		                    ret.add(new Heat(t));
+		                    ret.add(new HeatOven(t));
 		                    return ret;
 		                },
 		                (m, t) -> {}),
@@ -428,7 +428,7 @@ public class			RunOvenUnitaryMILSimulation
 		                Instant.parse("2025-10-20T13:30:00.00Z"),
 		                (m, t) -> {
 		                    ArrayList<EventI> ret = new ArrayList<>();
-		                    ret.add(new DoNotHeat(t));
+		                    ret.add(new DoNotHeatOven(t));
 		                    return ret;
 		                },
 		                (m, t) -> {}),
@@ -451,7 +451,7 @@ public class			RunOvenUnitaryMILSimulation
 		                Instant.parse("2025-10-20T14:00:00.00Z"),
 		                (m, t) -> {
 		                    ArrayList<EventI> ret = new ArrayList<>();
-		                    ret.add(new Heat(t));
+		                    ret.add(new HeatOven(t));
 		                    return ret;
 		                },
 		                (m, t) -> {}),
@@ -462,7 +462,7 @@ public class			RunOvenUnitaryMILSimulation
 		                Instant.parse("2025-10-20T14:30:00.00Z"),
 		                (m, t) -> {
 		                    ArrayList<EventI> ret = new ArrayList<>();
-		                    ret.add(new DoNotHeat(t));
+		                    ret.add(new DoNotHeatOven(t));
 		                    return ret;
 		                },
 		                (m, t) -> {}),
@@ -485,7 +485,7 @@ public class			RunOvenUnitaryMILSimulation
 		                Instant.parse("2025-10-20T15:00:00.00Z"),
 		                (m, t) -> {
 		                    ArrayList<EventI> ret = new ArrayList<>();
-		                    ret.add(new Heat(t));
+		                    ret.add(new HeatOven(t));
 		                    return ret;
 		                },
 		                (m, t) -> {}),

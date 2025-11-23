@@ -66,6 +66,8 @@ import equipments.oven.mil.events.SetPowerOven;
 import equipments.oven.mil.events.SetTargetTemperatureOven;
 import equipments.oven.mil.events.SwitchOffOven;
 import equipments.oven.mil.events.SwitchOnOven;
+import equipments.oven.mil.events.HeatOven;
+import equipments.oven.mil.events.DoNotHeatOven;
 import equipments.oven.mil.events.SetModeOven.ModeValue;
 import equipments.oven.mil.events.SetTargetTemperatureOven.TargetTemperatureValue;
 import fr.sorbonne_u.components.hem2025.tests_utils.SimulationTestStep;
@@ -701,17 +703,17 @@ public class			RunGlobalSimulation
 					new EventSource(OvenUnitTesterModel.URI, Heat.class),
 					new EventSink[] {
 							new EventSink(OvenElectricityModel.URI,
-										  Heat.class),
+										  HeatOven.class),
 							new EventSink(OvenTemperatureModel.URI,
-										  Heat.class)
+										  HeatOven.class)
 					});
 			connections.put(
 					new EventSource(OvenUnitTesterModel.URI, DoNotHeat.class),
 					new EventSink[] {
 							new EventSink(OvenElectricityModel.URI,
-										  DoNotHeat.class),
+										  DoNotHeatOven.class),
 							new EventSink(OvenTemperatureModel.URI,
-										  DoNotHeat.class)
+										  DoNotHeatOven.class)
 					});
 			connections.put(
 			        new EventSource(OvenUnitTesterModel.URI, SetModeOven.class),

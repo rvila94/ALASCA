@@ -3,8 +3,8 @@ package equipments.oven.mil;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-import equipments.oven.mil.events.DoNotHeat;
-import equipments.oven.mil.events.Heat;
+import equipments.oven.mil.events.DoNotHeatOven;
+import equipments.oven.mil.events.HeatOven;
 import equipments.oven.mil.events.OvenEventI;
 import equipments.oven.mil.events.SetModeOven;
 import equipments.oven.mil.events.SetTargetTemperatureOven;
@@ -88,8 +88,8 @@ import fr.sorbonne_u.devs_simulation.utils.AssertionChecking;
  * @author	<a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
  */
 @ModelExternalEvents(imported = {SwitchOffOven.class,
-		 						 Heat.class,
-		 						 DoNotHeat.class,
+		 						 HeatOven.class,
+		 						 DoNotHeatOven.class,
 								 SetModeOven.class,
 								 SetTargetTemperatureOven.class})
 @ModelExportedVariable(name = "targetTemperature", type = Double.class)

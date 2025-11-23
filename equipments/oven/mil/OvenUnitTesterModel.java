@@ -3,8 +3,8 @@ package equipments.oven.mil;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import equipments.oven.mil.events.DoNotHeat;
-import equipments.oven.mil.events.Heat;
+import equipments.oven.mil.events.DoNotHeatOven;
+import equipments.oven.mil.events.HeatOven;
 import equipments.oven.mil.events.SetPowerOven;
 import equipments.oven.mil.events.SwitchOffOven;
 import equipments.oven.mil.events.SwitchOnOven;
@@ -58,8 +58,8 @@ import fr.sorbonne_u.devs_simulation.utils.StandardLogger;
  */
 @ModelExternalEvents(exported = {SwitchOnOven.class,
 								 SwitchOffOven.class,
-								 Heat.class,
-								 DoNotHeat.class,
+								 HeatOven.class,
+								 DoNotHeatOven.class,
 								 SetPowerOven.class,
 								 SetModeOven.class,
 								 SetTargetTemperatureOven.class})

@@ -33,7 +33,7 @@ import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
  * @author	<a href="mailto:Rodrigo.Vila@etu.sorbonne-universite.fr">Rodrigo Vila</a>
  * @author	<a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
  */
-public class			Heat
+public class			HeatOven
 extends		Event
 implements	OvenEventI
 {
@@ -60,7 +60,7 @@ implements	OvenEventI
 	 *
 	 * @param timeOfOccurrence	time of occurrence of the event.
 	 */
-	public				Heat(
+	public				HeatOven(
 		Time timeOfOccurrence
 		)
 	{
@@ -80,7 +80,7 @@ implements	OvenEventI
 		// if many Oven events occur at the same time, the Heat one will be
 		// executed after SwitchOnOven and DoNotHeat ones but before
 		// SwitchOffOven.
-		if (e instanceof SwitchOnOven || e instanceof DoNotHeat) {
+		if (e instanceof SwitchOnOven || e instanceof DoNotHeatOven) {
 			return false;
 		} else {
 			return true;

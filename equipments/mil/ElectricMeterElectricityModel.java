@@ -217,6 +217,8 @@ extends		AtomicHIOA
 	/** current intensity of the heater in amperes.							*/
 	@ImportedVariable(type = Double.class)
 	protected Value<Double>			currentHeaterIntensity;
+	@ImportedVariable(type = Double.class)
+	protected Value<Double>			currentOvenIntensity;
 	/** current intensity of the hair dryer in amperes.						*/
 	@ImportedVariable(type = Double.class)
 	protected Value<Double>			currentHairDryerIntensity;
@@ -301,6 +303,15 @@ extends		AtomicHIOA
 				"currentHeaterIntensity == null || "
 				+ "!currentHeaterIntensity.isInitialised() || "
 				+ "currentHeaterIntensity.getValue() >= 0.0");
+		ret &= AssertionChecking.checkImplementationInvariant(
+				instance.currentOvenIntensity == null ||
+					!instance.currentOvenIntensity.isInitialised() ||
+						instance.currentOvenIntensity.getValue() >= 0.0,
+				ElectricMeterElectricityModel.class,
+				instance,
+				"currentOvenIntensity == null || "
+				+ "!currentOvenIntensity.isInitialised() || "
+				+ "currentOvenIntensity.getValue() >= 0.0");
 		ret &= AssertionChecking.checkImplementationInvariant(
 				instance.currentHairDryerIntensity == null ||
 					!instance.currentHairDryerIntensity.isInitialised() ||
@@ -486,6 +497,7 @@ extends		AtomicHIOA
 		return this.batteriesInputPower.getValue()
 					+ this.currentHairDryerIntensity.getValue()
 						+ this.currentHeaterIntensity.getValue()
+						+ this.currentOvenIntensity.getValue()
 						+ this.currentHeatPumpIntensity.getValue()
 						+ this.currentDimmerLampIntensity.getValue()
 						+ this.currentFanIntensity.getValue();
@@ -572,6 +584,7 @@ extends		AtomicHIOA
 				&& this.batteriesInputPower.isInitialised()
 				&& this.currentHairDryerIntensity.isInitialised()
 				&& this.currentHeaterIntensity.isInitialised()
+				&& this.currentOvenIntensity.isInitialised()
 				&& this.currentHeatPumpIntensity.isInitialised()
 				&& this.currentDimmerLampIntensity.isInitialised()
 				&& this.currentFanIntensity.isInitialised()) {
