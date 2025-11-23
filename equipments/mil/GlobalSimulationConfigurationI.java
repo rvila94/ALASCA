@@ -85,7 +85,7 @@ public interface		GlobalSimulationConfigurationI
 									Instant.parse("2025-10-20T12:00:00.00Z");
 	/** the end instant used in the test scenarios.							*/
 	public static Instant	END_INSTANT =
-									Instant.parse("2025-10-21T03:00:00.00Z");
+									Instant.parse("2025-10-21T08:30:00.00Z");
 	/** the start time in simulated time, corresponding to
 	 *  {@code START_INSTANT}.												*/
 	public static Time		START_TIME = new Time(0.0, TimeUnit.HOURS);

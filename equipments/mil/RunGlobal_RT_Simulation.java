@@ -56,6 +56,17 @@ import equipments.fan.mil.FanElectricityModel;
 import equipments.fan.mil.FanSimpleUserModel;
 import equipments.fan.mil.FanUnitTesterModel;
 import equipments.fan.mil.events.*;
+import equipments.oven.Oven.OvenMode;
+import equipments.oven.mil.OvenElectricityModel;
+import equipments.oven.mil.OvenTemperatureModel;
+import equipments.oven.mil.OvenUnitTesterModel;
+import equipments.oven.mil.events.SetModeOven;
+import equipments.oven.mil.events.SetPowerOven;
+import equipments.oven.mil.events.SetTargetTemperatureOven;
+import equipments.oven.mil.events.SwitchOffOven;
+import equipments.oven.mil.events.SwitchOnOven;
+import equipments.oven.mil.events.SetModeOven.ModeValue;
+import equipments.oven.mil.events.SetTargetTemperatureOven.TargetTemperatureValue;
 import fr.sorbonne_u.components.hem2025.tests_utils.SimulationTestStep;
 import fr.sorbonne_u.components.hem2025.tests_utils.TestScenario;
 import fr.sorbonne_u.components.hem2025e1.equipments.batteries.Batteries;
@@ -332,6 +343,33 @@ public class RunGlobal_RT_Simulation
 							ACCELERATION_FACTOR
 					)
 			);
+			
+			// Oven models
+
+			atomicModelDescriptors.put(
+					OvenElectricityModel.URI,
+					RTAtomicHIOA_Descriptor.create(
+							OvenElectricityModel.class,
+							OvenElectricityModel.URI,
+							GlobalSimulationConfigurationI.TIME_UNIT,
+							null,
+							ACCELERATION_FACTOR));
+			atomicModelDescriptors.put(
+					OvenTemperatureModel.URI,
+					RTAtomicHIOA_Descriptor.create(
+							OvenTemperatureModel.class,
+							OvenTemperatureModel.URI,
+							GlobalSimulationConfigurationI.TIME_UNIT,
+							null,
+							ACCELERATION_FACTOR));
+			atomicModelDescriptors.put(
+					OvenUnitTesterModel.URI,
+					RTAtomicModelDescriptor.create(
+							OvenUnitTesterModel.class,
+							OvenUnitTesterModel.URI,
+							GlobalSimulationConfigurationI.TIME_UNIT,
+							null,
+							ACCELERATION_FACTOR));
 
 			// Heat Pump models
 
@@ -553,6 +591,9 @@ public class RunGlobal_RT_Simulation
 			submodels.add(FanElectricityModel.URI);
 			submodels.add(FanSimpleUserModel.URI);
 			submodels.add(FanUnitTesterModel.URI);
+			submodels.add(OvenElectricityModel.URI);
+			submodels.add(OvenTemperatureModel.URI);
+			submodels.add(OvenUnitTesterModel.URI);
 
 			// -----------------------------------------------------------------
 			// Event exchanging connections
@@ -668,6 +709,61 @@ public class RunGlobal_RT_Simulation
 							new EventSink(FanElectricityModel.URI,
 									SetLowFan.class)
 					});
+			
+			// Oven events
+			
+			connections.put(
+					new EventSource(OvenUnitTesterModel.URI,
+									SetPowerOven.class),
+					new EventSink[] {
+							new EventSink(OvenElectricityModel.URI,
+										  SetPowerOven.class)
+					});
+			connections.put(
+					new EventSource(OvenUnitTesterModel.URI,
+									SwitchOnOven.class),
+					new EventSink[] {
+							new EventSink(OvenElectricityModel.URI,
+										  SwitchOnOven.class)
+					});
+			connections.put(
+					new EventSource(OvenUnitTesterModel.URI,
+									SwitchOffOven.class),
+					new EventSink[] {
+							new EventSink(OvenElectricityModel.URI,
+										  SwitchOffOven.class),
+							new EventSink(OvenTemperatureModel.URI,
+										  SwitchOffOven.class)
+					});
+			connections.put(
+					new EventSource(OvenUnitTesterModel.URI, Heat.class),
+					new EventSink[] {
+							new EventSink(OvenElectricityModel.URI,
+										  Heat.class),
+							new EventSink(OvenTemperatureModel.URI,
+										  Heat.class)
+					});
+			connections.put(
+					new EventSource(OvenUnitTesterModel.URI, DoNotHeat.class),
+					new EventSink[] {
+							new EventSink(OvenElectricityModel.URI,
+										  DoNotHeat.class),
+							new EventSink(OvenTemperatureModel.URI,
+										  DoNotHeat.class)
+					});
+			connections.put(
+			        new EventSource(OvenUnitTesterModel.URI, SetModeOven.class),
+			        new EventSink[]{
+			                new EventSink(OvenTemperatureModel.URI, 
+			                				SetModeOven.class)
+			        });
+
+			connections.put(
+			        new EventSource(OvenUnitTesterModel.URI, SetTargetTemperatureOven.class),
+			        new EventSink[]{
+			                new EventSink(OvenTemperatureModel.URI, 
+			                				SetTargetTemperatureOven.class)
+			        });
 
 			// Dimmer Lamp events
 
@@ -867,6 +963,26 @@ public class RunGlobal_RT_Simulation
 							new VariableSink("currentHeatingPower", Double.class,
 									HeaterTemperatureModel.URI)
 					});
+			
+			// bindings among oven models
+			
+			bindings.put(new VariableSource("currentHeatingPower",
+					Double.class,
+					OvenElectricityModel.URI),
+					 new VariableSink[] {
+							 new VariableSink("currentHeatingPower",
+									 		  Double.class,
+									 		  OvenTemperatureModel.URI)
+					 });
+			bindings.put(
+					new VariableSource("targetTemperature",
+					    			Double.class,
+					    			OvenTemperatureModel.URI),
+					new VariableSink[]{
+							new VariableSink("targetTemperature",
+											Double.class,
+											OvenElectricityModel.URI)
+					});
 
 			// Bindings among heat pump models
 
@@ -957,6 +1073,14 @@ public class RunGlobal_RT_Simulation
 					new VariableSink[] {
 							new VariableSink("currentIntensity", Double.class,
 									"currentHeaterIntensity", Double.class,
+									ElectricMeterElectricityModel.URI)
+					});
+			bindings.put(
+					new VariableSource("currentIntensity", Double.class,
+							OvenElectricityModel.URI),
+					new VariableSink[] {
+							new VariableSink("currentIntensity", Double.class,
+									"currentOvenIntensity", Double.class,
 									ElectricMeterElectricityModel.URI)
 					});
 			bindings.put(
@@ -1197,6 +1321,13 @@ public class RunGlobal_RT_Simulation
 			ExternalTemperatureModel.DEBUG  = false;
 			HeaterUnitTesterModel.VERBOSE = false;
 			HeaterUnitTesterModel.DEBUG  = false;
+			
+			OvenElectricityModel.VERBOSE = false;
+			OvenElectricityModel.DEBUG = false;
+			OvenTemperatureModel.VERBOSE = false;
+			OvenTemperatureModel.DEBUG  = false;
+			OvenUnitTesterModel.VERBOSE = false;
+			OvenUnitTesterModel.DEBUG  = false;
 
 			HeatPumpElectricityModel.VERBOSE = false;
 			HeatPumpHeatingModel.VERBOSE = false;
@@ -1304,6 +1435,51 @@ public class RunGlobal_RT_Simulation
 							"        Given a hair dryer that is on\n" +
 							"        When it is switched of\n" +
 							"        Then it is off\n" +
+							"   Feature: Oven operation\n\n" +
+							"      Scenario: Oven switched on\n" +
+					        "        Given a Oven that is off\n" +
+					        "        When it is switched on\n" +
+					        "        Then it is on but not heating\n" +
+					        "      Scenario: Target temperature set to 50\n" +
+					        "        Given a Oven that is on and not heating\n" +
+					        "        When a target temperature of 50 is set\n" +
+					        "        Then its mode is CUSTOM and target temperature is 50\n" +
+					        "      Scenario: Oven heats\n" +
+					        "        Given a Oven that is on and not heating\n" +
+					        "        When it is asked to heat\n" +
+					        "        Then it is on and it heats at 500W power level\n" +
+					        "      Scenario: Oven stops heating\n" +
+					        "        Given a Oven that is heating\n" +
+					        "        When it is asked not to heat\n" +
+					        "        Then it is on but it stops heating\n" +
+					        "      Scenario: Mode set to GRILL\n" +
+					        "        Given a Oven that is on\n" +
+					        "        When its mode is set to DEFROST\n" +
+					        "        Then its target temperature is 80\n" +
+					        "      Scenario: Oven heats again\n" +
+					        "        Given a Oven that is on and not heating\n" +
+					        "        When it is asked to heat\n" +
+					        "        Then it is on and it heats at 800W power level\n" +
+					        "      Scenario: Oven stops heating\n" +
+					        "        Given a Oven that is heating\n" +
+					        "        When it is asked not to heat\n" +
+					        "        Then it is on but it stops heating\n" +
+					        "      Scenario: Mode set to GRILL\n" +
+					        "        Given a Oven that is on\n" +
+					        "        When its mode is set to GRILL\n" +
+					        "        Then its target temperature is 220\n" +
+					        "      Scenario: Oven heats again\n" +
+					        "        Given a Oven that is on and not heating\n" +
+					        "        When it is asked to heat\n" +
+					        "        Then it is on and it heats at 2200W power level\n" +
+					        "      Scenario: Oven set a different power level\n" +
+					        "        Given a Oven that is heating\n" +
+					        "        When it is set to a new power level\n" +
+					        "        Then it is on and it heats at the new power level\n" +
+					        "      Scenario: Oven switched off\n" +
+					        "        Given a Oven that is on\n" +
+					        "        When it is switched off\n" +
+					        "        Then it is off\n" +
 							"   Feature: Heat pump operation\n" +
 							"      Scenario: Heat pump switched on\n" +
 							"        Given the heat pump is off\n" +
@@ -1472,6 +1648,13 @@ public class RunGlobal_RT_Simulation
 										GeneratorGlobalTesterModel.URI,
 										GeneratorGlobalTesterModel.TEST_SCENARIO_RP_NAME),
 								testScenario);
+						simulationParameters.put(
+								ModelI.createRunParameterName(
+										OvenUnitTesterModel.URI,
+										OvenUnitTesterModel.TEST_SCENARIO_RP_NAME
+								),
+								testScenario
+						);
 						simulationParameters.put(
 								ModelI.createRunParameterName(
 										HeatPumpUnitTesterModel.URI,
@@ -1725,7 +1908,131 @@ public class RunGlobal_RT_Simulation
 										ret.add(new Stop(t));
 										return ret;
 									},
-									(m, t) -> {})
+									(m, t) -> {}),
+							// Switch on
+				            new SimulationTestStep(
+				                OvenUnitTesterModel.URI,
+				                Instant.parse("2025-10-21T03:30:00.00Z"),
+				                (m, t) -> {
+				                    ArrayList<EventI> ret = new ArrayList<>();
+				                    ret.add(new SwitchOnOven(t));
+				                    return ret;
+				                },
+				                (m, t) -> {}),
+
+				            // Set target temperature 50
+				            new SimulationTestStep(
+				                OvenUnitTesterModel.URI,
+				                Instant.parse("2025-10-21T03:30:00.00Z"),
+				                (m, t) -> {
+				                    ArrayList<EventI> ret = new ArrayList<>();
+				                    ret.add(new SetTargetTemperatureOven(
+				                        t, new TargetTemperatureValue(50.0)));
+				                    return ret;
+				                },
+				                (m, t) -> {}),
+
+				            // Heat
+				            new SimulationTestStep(
+				                OvenUnitTesterModel.URI,
+				                Instant.parse("2025-10-21T04:00:00.00Z"),
+				                (m, t) -> {
+				                    ArrayList<EventI> ret = new ArrayList<>();
+				                    ret.add(new Heat(t));
+				                    return ret;
+				                },
+				                (m, t) -> {}),
+
+				            // Stop heating
+				            new SimulationTestStep(
+				                OvenUnitTesterModel.URI,
+				                Instant.parse("2025-10-21T04:30:00.00Z"),
+				                (m, t) -> {
+				                    ArrayList<EventI> ret = new ArrayList<>();
+				                    ret.add(new DoNotHeat(t));
+				                    return ret;
+				                },
+				                (m, t) -> {}),
+
+				            // Set DEFROST mode
+				            new SimulationTestStep(
+				                OvenUnitTesterModel.URI,
+				                Instant.parse("2025-10-21T04:40:00.00Z"),
+				                (m, t) -> {
+				                    ArrayList<EventI> ret = new ArrayList<>();
+				                    ret.add(new SetModeOven(t,
+				                        new ModeValue(OvenMode.DEFROST)));
+				                    return ret;
+				                },
+				                (m, t) -> {}),
+
+				            // Heat after DEFROST
+				            new SimulationTestStep(
+				                OvenUnitTesterModel.URI,
+				                Instant.parse("2025-10-21T05:00:00.00Z"),
+				                (m, t) -> {
+				                    ArrayList<EventI> ret = new ArrayList<>();
+				                    ret.add(new Heat(t));
+				                    return ret;
+				                },
+				                (m, t) -> {}),
+
+				            // Stop heating again
+				            new SimulationTestStep(
+				                OvenUnitTesterModel.URI,
+				                Instant.parse("2025-10-21T05:30:00.00Z"),
+				                (m, t) -> {
+				                    ArrayList<EventI> ret = new ArrayList<>();
+				                    ret.add(new DoNotHeat(t));
+				                    return ret;
+				                },
+				                (m, t) -> {}),
+
+				            // Set GRILL mode
+				            new SimulationTestStep(
+				                OvenUnitTesterModel.URI,
+				                Instant.parse("2025-10-21T05:40:00.00Z"),
+				                (m, t) -> {
+				                    ArrayList<EventI> ret = new ArrayList<>();
+				                    ret.add(new SetModeOven(
+				                        t, new ModeValue(OvenMode.GRILL)));
+				                    return ret;
+				                },
+				                (m, t) -> {}),
+
+				            // Heat after GRILL
+				            new SimulationTestStep(
+				                OvenUnitTesterModel.URI,
+				                Instant.parse("2025-10-21T06:00:00.00Z"),
+				                (m, t) -> {
+				                    ArrayList<EventI> ret = new ArrayList<>();
+				                    ret.add(new Heat(t));
+				                    return ret;
+				                },
+				                (m, t) -> {}),
+
+				            // Change power level
+				            new SimulationTestStep(
+				                OvenUnitTesterModel.URI,
+				                Instant.parse("2025-10-21T06:30:00.00Z"),
+				                (m, t) -> {
+				                    ArrayList<EventI> ret = new ArrayList<>();
+				                    ret.add(new SetPowerOven(
+				                        t, new PowerValue(880.0)));
+				                    return ret;
+				                },
+				                (m, t) -> {}),
+
+				            // Switch off
+				            new SimulationTestStep(
+				                OvenUnitTesterModel.URI,
+				                Instant.parse("2025-10-21T07:30:00.00Z"),
+				                (m, t) -> {
+				                    ArrayList<EventI> ret = new ArrayList<>();
+				                    ret.add(new SwitchOffOven(t));
+				                    return ret;
+				                },
+				                (m, t) -> {}),
 					});
 }
 // -----------------------------------------------------------------------------

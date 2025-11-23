@@ -127,6 +127,8 @@ import java.text.NumberFormat;
 							type = Double.class),
 	 @ModelImportedVariable(name = "currentHairDryerIntensity",
 	 						type = Double.class),
+	 @ModelImportedVariable(name = "currentOvenIntensity",
+	 						type = Double.class),
 			@ModelImportedVariable(name = "currentHeatPumpIntensity",
 			type = Double.class),
 			@ModelImportedVariable(name = "currentDimmerLampIntensity",
