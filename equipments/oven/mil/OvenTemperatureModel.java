@@ -6,14 +6,19 @@ import java.util.concurrent.TimeUnit;
 import equipments.oven.mil.events.DoNotHeat;
 import equipments.oven.mil.events.Heat;
 import equipments.oven.mil.events.OvenEventI;
+import equipments.oven.mil.events.SetModeOven;
+import equipments.oven.mil.events.SetTargetTemperature;
 import equipments.oven.mil.events.SwitchOffOven;
+import equipments.oven.Oven;
+import equipments.oven.Oven.OvenMode;
 import equipments.oven.Oven.OvenState;
 import equipments.oven.OvenExternalControlI;
-import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.components.hem2025e2.GlobalReportI;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
+import fr.sorbonne_u.devs_simulation.hioa.annotations.ExportedVariable;
 import fr.sorbonne_u.devs_simulation.hioa.annotations.ImportedVariable;
 import fr.sorbonne_u.devs_simulation.hioa.annotations.InternalVariable;
+import fr.sorbonne_u.devs_simulation.hioa.annotations.ModelExportedVariable;
 import fr.sorbonne_u.devs_simulation.hioa.annotations.ModelImportedVariable;
 import fr.sorbonne_u.devs_simulation.hioa.models.AtomicHIOA;
 import fr.sorbonne_u.devs_simulation.hioa.models.vars.DerivableValue;
@@ -32,76 +37,55 @@ import fr.sorbonne_u.devs_simulation.utils.AssertionChecking;
 // -----------------------------------------------------------------------------
 /**
  * The class <code>OvenTemperatureModel</code> defines a simulation model
- * for the temperature inside a room equipped with a Oven.
+ * for the temperature inside the chamber of an oven.
  *
  * <p><strong>Description</strong></p>
- * 
+ *
  * <p>
  * The model is implemented as an atomic HIOA model. A differential equation
- * defines the temperature variation over time. It uses a very simple
- * mathematical model where the derivative is proportional to the difference
- * between the current temperature and the temperature that influences the
- * current one. In fact, there are two temperatures that influences the current
- * temperature of the room:
+ * defines the temperature variation over time inside the oven chamber.
+ * The temperature evolves under the influence of two factors:
  * </p>
+ *
  * <ol>
- * <li>the temperature outside the house (room) where the coefficient
- *   applied to the difference between the outside temperature and the
- *   current temperature models the thermal insulation of the walls
- *   ({@code INSULATION_TRANSFER_CONSTANT});</li>
- * <li>the temperature of the Oven when it heats where the coefficient
- *   applied to the difference between the Oven temperature
- *   ({@code STANDARD_HEATING_TEMP}) and the current temperature models the
- *   heat diffusion over the house (room)
- *   ({@code HEATING_TRANSFER_CONSTANT}); the heat diffusion is not constant
- *   but rather proportional to the current power level of the Oven.</li>
+ * <li>the heating power delivered by the oven when it is in the
+ *     <code>HEATING</code> state, which pushes the chamber temperature
+ *     toward the current <code>targetTemperature</code>;</li>
+ *
+ * <li>the ambient temperature (imported variable
+ *     <code>externalTemperature</code>), toward which the oven cools down
+ *     when heating power is low or zero.</li>
  * </ol>
+ *
  * <p>
  * The resulting differential equation is integrated using the Euler method
- * with a predefined integration step. The initial state of the model is
- * a state not heating and the initial temperature given by
- * {@code INITIAL_TEMPERATURE}.
+ * with a predefined integration step.
  * </p>
+ *
  * <p>
- * Whether the current temperature evolves under the influence of the outside
- * temperature only or also the heating temperature depends upon the state,
- * which in turn is modified through the reception of imported events
- * {@code Heat} and {@code DoNotHeat}. The external temperature is imported
- * from another model simulating the environment. The current temperature is
- * exported to be used by other models.
+ * The temperature dynamics depend on the current state (ON, HEATING, etc.)
+ * and the current heating power from the electricity model. The
+ * <code>Heat</code> and <code>DoNotHeat</code> events update the state to
+ * determine whether the oven should actively heat or not.
  * </p>
- * 
+ *
  * <ul>
  * <li>Imported events:
- *   {@code SwitchOffOven},
- *   {@code Heat},
- *   {@code DoNotHeat}</li>
+ *   <code>SwitchOffOven</code>,
+ *   <code>Heat</code>,
+ *   <code>DoNotHeat</code>,
+ *   <code>SetModeOven</code></li>
+ *
  * <li>Exported events: none</li>
- * <li>Imported variables: none</li>
+ *
+ * <li>Imported variables:
+ *   <code>externalTemperature</code>,
+ *   <code>currentHeatingPower</code></li>
+ *
  * <li>Exported variables:
- *   name = {@code externalTemperature}, type = {@code Double}</li>
+ *   <code>currentTemperature</code>,
+ *   <code>targetTemperature</code></li>
  * </ul>
- * 
- * <p><strong>Implementation Invariants</strong></p>
- * 
- * <pre>
- * invariant	{@code TEMPERATURE_UPDATE_TOLERANCE >= 0.0}
- * invariant	{@code POWER_HEAT_TRANSFER_TOLERANCE >= 0.0}
- * invariant	{@code INSULATION_TRANSFER_CONSTANT > 0.0}
- * invariant	{@code MIN_HEATING_TRANSFER_CONSTANT > 0.0}
- * invariant	{@code STEP > 0.0}
- * invariant	{@code currentState != null}
- * invariant	{@code integrationStep.getSimulatedDuration() > 0.0}
- * invariant	{@code !isStateInitialised() || start != null}
- * invariant	{@code currentHeatingPower == null || !currentHeatingPower.isInitialised() || currentHeatingPower.getValue() >= 0.0}
- * invariant	{@code currentTemperature != null}
- * </pre>
- * 
- * <p><strong>Invariants</strong></p>
- * 
- * <pre>
- * invariant	{@code URI != null && !URI.isEmpty()}
- * </pre>
  * 
  * <p>Created on : 2025-11-13</p>
  * 
@@ -110,7 +94,10 @@ import fr.sorbonne_u.devs_simulation.utils.AssertionChecking;
  */
 @ModelExternalEvents(imported = {SwitchOffOven.class,
 		 						 Heat.class,
-		 						 DoNotHeat.class})
+		 						 DoNotHeat.class,
+								 SetModeOven.class,
+								 SetTargetTemperature.class})
+@ModelExportedVariable(name = "targetTemperature", type = Double.class)
 @ModelImportedVariable(name = "externalTemperature", type = Double.class)
 @ModelImportedVariable(name = "currentHeatingPower", type = Double.class)
 // -----------------------------------------------------------------------------
@@ -136,15 +123,13 @@ extends		AtomicHIOA
 	public static boolean		DEBUG = false;
 
 	// TODO: define as simulation run parameters
-	/** temperature of the room (house) when the simulation begins.			*/
-	public static double		INITIAL_TEMPERATURE = 19.005;
-	/** wall insulation heat transfer constant in the differential equation.*/
-	protected static double 	INSULATION_TRANSFER_CONSTANT = 300.0;
+	/** temperature when the simulation begins.			*/
+	public static double		INITIAL_TEMPERATURE = 20.0;
+	/** Represents how quickly the oven loses heat to its environment */
+	protected static double 	COOLING_TRANSFER_CONSTANT = 300.0;
 	/** heating transfer constant in the differential equation when the
 	 *  heating power is maximal.											*/
 	protected static double		MIN_HEATING_TRANSFER_CONSTANT = 60.0;
-	/** temperature of the heating plate in the Oven.						*/
-	protected static double		STANDARD_HEATING_TEMP = 300.0;
 	/** update tolerance for the temperature <i>i.e.</i>, shortest elapsed
 	 *  time since the last update under which the temperature is not
 	 *  changed by the update to avoid too large computation errors.		*/
@@ -159,8 +144,7 @@ extends		AtomicHIOA
 	 *  or notheating, which assimilates to on or waiting but not heating <i>i.e.</i>,
 	 *  {@code OvenState.ON}.												*/
 	protected OvenState		currentState = OvenState.ON;
-	//protected OvenMode 		currentMode  = OvenMode.CUSTOM;
-	protected Measure<Double> targetTemperature;
+	protected OvenMode 		currentMode  = OvenMode.CUSTOM;
 
 	// Simulation run variables
 
@@ -186,10 +170,12 @@ extends		AtomicHIOA
 	 *  {@code OvenElectricityModel.MAX_HEATING_POWER}.					*/
 	@ImportedVariable(type = Double.class)
 	protected Value<Double>					currentHeatingPower;
-	/** current temperature in the room.									*/
+	/** current temperature in the oven.									*/
 	@InternalVariable(type = Double.class)
 	protected final DerivableValue<Double>	currentTemperature =
-												new DerivableValue<Double>(this);
+											new DerivableValue<Double>(this);
+	@ExportedVariable(type = Double.class)
+	protected final Value<Double> targetTemperature = new Value<Double>(this);
 
 	// -------------------------------------------------------------------------
 	// Invariants
@@ -220,9 +206,9 @@ extends		AtomicHIOA
 				OvenTemperatureModel.class,
 				"POWER_HEAT_TRANSFER_TOLERANCE >= 0.0");
 		ret &= AssertionChecking.checkStaticImplementationInvariant(
-				INSULATION_TRANSFER_CONSTANT > 0.0,
+				COOLING_TRANSFER_CONSTANT > 0.0,
 				OvenTemperatureModel.class,
-				"INSULATION_TRANSFER_CONSTANT > 0.0");
+				"COOLING_TRANSFER_CONSTANT > 0.0");
 		ret &= AssertionChecking.checkStaticImplementationInvariant(
 				MIN_HEATING_TRANSFER_CONSTANT > 0.0,
 				OvenTemperatureModel.class,
@@ -264,6 +250,11 @@ extends		AtomicHIOA
 				instance,
 				"currentState != null");
 		ret &= AssertionChecking.checkImplementationInvariant(
+				instance.currentMode != null,
+				OvenTemperatureModel.class,
+				instance,
+				"currentMode != null");
+		ret &= AssertionChecking.checkImplementationInvariant(
 				instance.integrationStep.getSimulatedDuration() > 0.0,
 				OvenTemperatureModel.class,
 				instance,
@@ -287,6 +278,11 @@ extends		AtomicHIOA
 				OvenTemperatureModel.class,
 				instance,
 				"currentTemperature != null");
+		ret &= AssertionChecking.checkImplementationInvariant(
+				instance.targetTemperature != null,
+				OvenTemperatureModel.class,
+				instance,
+				"targetTemperature != null");
 		return ret;
 	}
 
@@ -424,23 +420,34 @@ extends		AtomicHIOA
 	 *
 	 * @param mode		the new mode.
 	 */
-	/*public void setMode(OvenMode mode) {
+	public void setMode(OvenMode mode, Time t) {
 	    assert mode != null;
 
 	    OvenMode old = this.currentMode;
 	    this.currentMode = mode;
 
-	    if (mode != OvenMode.CUSTOM) {
-	        this.targetTemperature =
-	            equipments.oven.Oven.MODE_TEMPERATURES.get(mode);
-	    }
-
+	    if (mode != OvenMode.CUSTOM)
+	        this.targetTemperature.setNewValue(
+	        				Oven.MODE_TEMPERATURES.get(mode).getData(), t);
+	     
 	    if (VERBOSE) {
 	        this.logMessage("OvenTemperatureModel: mode changed from "
 	                        + old + " to " + mode + ". New target temperature = "
 	                        + this.targetTemperature);
 	    }
-	}*/
+	}
+	
+	public void setTargetTemperature(Double targetTemperature, Time t) {
+		assert targetTemperature != null;
+		
+		if (this.currentMode == OvenMode.CUSTOM)
+			this.targetTemperature.setNewValue(targetTemperature, t);
+		
+		if (VERBOSE) {
+			this.logMessage("OvenTemperatureModel: targetTemperature changed to "
+		                        + this.targetTemperature);
+		}
+	}
 
 	/**
 	 * return the state of the Oven.
@@ -471,10 +478,10 @@ extends		AtomicHIOA
 	 *
 	 * @return	the current mode.
 	 */
-	/*public OvenMode	getMode()
+	public OvenMode	getMode()
 	{
 		return this.currentMode;
-	}*/
+	}
 
 	/**
 	 * compute the current heat transfer constant given the current heating
@@ -501,7 +508,7 @@ extends		AtomicHIOA
 	}
 
 	/**
-	 * compute the current derivative of the room temperature.
+	 * compute the current derivative of the oven internal temperature.
 	 * 
 	 * <p><strong>Contract</strong></p>
 	 * 
@@ -517,25 +524,18 @@ extends		AtomicHIOA
 	{
 		double currentTempDerivative = 0.0;
 		if (this.currentState == OvenState.HEATING) {
-			// the heating contribution: temperature difference between the
-			// heating temperature and the room temperature divided by the
-			// heat transfer constant taking into account the size of the
-			// room
 			if (this.currentHeatingPower.getValue() >
 												POWER_HEAT_TRANSFER_TOLERANCE) {
 				currentTempDerivative =
-						(STANDARD_HEATING_TEMP - current)/
+						(this.targetTemperature.getValue() - current)/
 											this.currentHeatTransfertConstant();
 			}
 		}
 
-		// the cooling contribution: difference between the external temperature
-		// and the temperature of the room divided by the insulation transfer
-		// constant taking into account the surface of the walls.
 		Time t = this.getCurrentStateTime();
 		currentTempDerivative +=
 				(this.externalTemperature.evaluateAt(t) - current)/
-												INSULATION_TRANSFER_CONSTANT;
+												COOLING_TRANSFER_CONSTANT;
 		return currentTempDerivative;
 	}
 
@@ -560,8 +560,6 @@ extends		AtomicHIOA
 		double newTemp;
 
 		if (deltaT > TEMPERATURE_UPDATE_TOLERANCE) {
-			// update the room temperature using the Euler integration of the
-			// differential equation
 			double derivative = this.currentTemperature.getFirstDerivative();
 			newTemp = oldTemp + derivative*deltaT;
 		} else {
@@ -622,7 +620,7 @@ extends		AtomicHIOA
 	{
 		int justInitialised = 0;
 		int notInitialisedYet = 0;
-
+		
 		// Only one variable must be initialised, the current temperature, and
 		// it depends upon only one variable, the external temperature.
 		if (!this.currentTemperature.isInitialised() &&

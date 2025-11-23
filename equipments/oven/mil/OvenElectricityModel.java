@@ -16,7 +16,9 @@ import fr.sorbonne_u.components.hem2025e2.GlobalReportI;
 import fr.sorbonne_u.components.hem2025e2.utils.Electricity;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
 import fr.sorbonne_u.devs_simulation.hioa.annotations.ExportedVariable;
+import fr.sorbonne_u.devs_simulation.hioa.annotations.ImportedVariable;
 import fr.sorbonne_u.devs_simulation.hioa.annotations.ModelExportedVariable;
+import fr.sorbonne_u.devs_simulation.hioa.annotations.ModelImportedVariable;
 import fr.sorbonne_u.devs_simulation.hioa.models.AtomicHIOA;
 import fr.sorbonne_u.devs_simulation.hioa.models.vars.Value;
 import fr.sorbonne_u.devs_simulation.models.annotations.ModelExternalEvents;
@@ -100,6 +102,7 @@ import fr.sorbonne_u.devs_simulation.utils.AssertionChecking;
 								 DoNotHeat.class})
 @ModelExportedVariable(name = "currentIntensity", type = Double.class)
 @ModelExportedVariable(name = "currentHeatingPower", type = Double.class)
+@ModelImportedVariable(name = "targetTemperature", type = Double.class)
 //-----------------------------------------------------------------------------
 public class			OvenElectricityModel
 extends		AtomicHIOA
@@ -119,8 +122,7 @@ extends		AtomicHIOA
 
 	/** current state of the Oven.										*/
 	protected OvenState		currentState = OvenState.OFF;
-										
-	// protected OvenMode		currentMode = OvenMode.CUSTOM;
+	
 	/** true when the electricity consumption of the Oven has changed
 	 *  after executing an external event; the external event changes the
 	 *  value of <code>currentState</code> and then an internal transition
@@ -144,6 +146,9 @@ extends		AtomicHIOA
 	/** current intensity in the power unit used by the electric meter.		*/
 	@ExportedVariable(type = Double.class)
 	protected final Value<Double>	currentIntensity = new Value<Double>(this);
+	
+	@ImportedVariable(type = Double.class)
+	protected Value<Double>			targetTemperature;
 
 	// -------------------------------------------------------------------------
 	// Invariants
@@ -342,40 +347,6 @@ extends		AtomicHIOA
 				new NeoSim4JavaException(
 						"OvenElectricityModel.invariants(this)");
 	}
-	
-	/**
-	 * set the state of the Oven.
-	 * 
-	 * <p><strong>Contract</strong></p>
-	 * 
-	 * <pre>
-	 * pre	{@code mode != null}
-	 * post	{@code true}	// no postcondition.
-	 * </pre>
-	 *
-	 * @param mode	the new mode.
-	 * @param t		time at which the mode {@code mode} is set.
-	 */
-	/*public void setMode(OvenMode mode, Time t)
-	{
-	    assert mode != null :
-	        new NeoSim4JavaException("mode must not be null");
-
-	    OvenMode oldMode = this.currentMode;
-	    this.currentMode = mode;
-
-	    if (VERBOSE) {
-	    	this.logMessage("OvenElectricityModel: mode changed from "
-                    + oldMode + " to " + mode + " at " + t + ".");
-	    }
-	    
-	    assert	OvenElectricityModel.implementationInvariants(this) :
-			new NeoSim4JavaException(
-					"OvenElectricityModel.implementationInvariants(this)");
-		assert	OvenElectricityModel.invariants(this) :
-				new NeoSim4JavaException(
-						"OvenElectricityModel.invariants(this)");
-	}*/
 
 	/**
 	 * return the state of the Oven.
@@ -393,22 +364,6 @@ extends		AtomicHIOA
 	{
 		return this.currentState;
 	}
-	
-	/**
-	 * return the mode of the Oven.
-	 * 
-	 * <p><strong>Contract</strong></p>
-	 * 
-	 * <pre>
-	 * pre	{@code true}	// no precondition.
-	 * post	{@code ret != null}
-	 * </pre>
-	 *
-	 * @return	the current state.
-	 */
-	/*public OvenMode getCurrentMode() {
-	    return this.currentMode;
-	}*/
 
 	/**
 	 * set the current heating power of the Oven to {@code newPower}.
@@ -459,7 +414,6 @@ extends		AtomicHIOA
 		super.initialiseState(initialTime);
 
 		this.currentState = OvenState.OFF;
-		//this.currentMode = OvenMode.CUSTOM;
 		this.consumptionHasChanged = false;
 		this.totalConsumption = 0.0;
 
@@ -572,21 +526,24 @@ extends		AtomicHIOA
 		super.userDefinedInternalTransition(elapsedTime);
 
 		Time t = this.getCurrentStateTime();
-		if (this.currentState == OvenState.ON) {
+		if (this.currentState == OvenState.ON || 
+			this.currentState == OvenState.WAITING) 
+		{
 			this.currentIntensity.setNewValue(
 					OvenExternalControlI.NOT_HEATING_POWER.getData()/
 									OvenExternalControlI.TENSION.getData(),
 					t);
-		} else if (this.currentState == OvenState.WAITING) {
-			this.currentIntensity.setNewValue(
-					OvenExternalControlI.NOT_HEATING_POWER.getData()/
-									OvenExternalControlI.TENSION.getData(),
-					t);
+
 		} else if (this.currentState == OvenState.HEATING) {
-			this.currentIntensity.setNewValue(
-					this.currentHeatingPower.getValue()/
-									OvenExternalControlI.TENSION.getData(),
-					t);
+			double targetTemperature = this.targetTemperature.getValue();
+			// FIXME: Maniere temporaire d'obtenir power
+			double newPower = targetTemperature  * 10;
+
+	        this.setCurrentHeatingPower(newPower, t);
+	        this.currentIntensity.setNewValue(newPower /
+	                        OvenExternalControlI.TENSION.getData(),
+	                        t);
+
 		} else {
 			assert	this.currentState == OvenState.OFF;
 			this.currentIntensity.setNewValue(0.0, t);

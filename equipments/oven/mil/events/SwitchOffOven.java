@@ -93,11 +93,13 @@ implements	OvenEventI
 
 		if (model instanceof OvenElectricityModel) {
 			OvenElectricityModel Oven = (OvenElectricityModel)model;
-			assert	Oven.getState() != OvenState.ON :
+			assert	Oven.getState() != OvenState.ON ||
+					Oven.getState() != OvenState.WAITING || 
+					Oven.getState() != OvenState.HEATING:
 					new NeoSim4JavaException(
 							"model not in the right state, should not be "
-							+ "OvenElectricityModel.State.ON but is "
-							+ Oven.getState());
+							+ "OvenElectricityModel.State.ON or  WAITING or "
+							+ "HEATING but is " + Oven.getState());
 			Oven.setState(OvenState.OFF,
 							this.getTimeOfOccurrence());
 		} else {

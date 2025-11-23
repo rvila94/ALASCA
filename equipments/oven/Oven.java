@@ -1,5 +1,6 @@
 package equipments.oven;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -135,7 +136,7 @@ implements	OvenUserI,
 	
 	public static final String EQUIPMENT_UID = "1A10026";
 	
-	protected static final String PATH_TO_CONNECTOR_DESCRIPTOR = "src/connectorGenerator/ovenci-descriptor.xml";
+	protected static final File PATH_TO_CONNECTOR_DESCRIPTOR = new File("src/connectorGenerator/ovenci-descriptor.xml");
 	
 	/** Inbound ports. */
 	protected OvenUserJava4InboundPort ouip;
@@ -558,7 +559,7 @@ implements	OvenUserI,
 	        boolean registration = this.registrationOutboundPort.register(
 	            EQUIPMENT_UID,
 	            this.oecip.getPortURI(),
-	            PATH_TO_CONNECTOR_DESCRIPTOR
+	            PATH_TO_CONNECTOR_DESCRIPTOR.getAbsolutePath()
 	        );
 	        if (Oven.VERBOSE) {
 	            this.traceMessage("Oven registered to HEM: " + registration + "\n");

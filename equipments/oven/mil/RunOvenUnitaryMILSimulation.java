@@ -8,10 +8,12 @@ import java.util.concurrent.TimeUnit;
 
 import equipments.oven.mil.events.DoNotHeat;
 import equipments.oven.mil.events.Heat;
+import equipments.oven.mil.events.SetModeOven;
 import equipments.oven.mil.events.SetPowerOven;
 import equipments.oven.mil.events.SwitchOffOven;
 import equipments.oven.mil.events.SwitchOnOven;
 import equipments.oven.mil.events.SetPowerOven.PowerValue;
+import equipments.oven.mil.events.SetTargetTemperature;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -233,6 +235,19 @@ public class			RunOvenUnitaryMILSimulation
 							new EventSink(OvenTemperatureModel.URI,
 										  DoNotHeat.class)
 					});
+			connections.put(
+			        new EventSource(OvenUnitTesterModel.URI, SetModeOven.class),
+			        new EventSink[]{
+			                new EventSink(OvenTemperatureModel.URI, 
+			                				SetModeOven.class)
+			        });
+
+			connections.put(
+			        new EventSource(OvenUnitTesterModel.URI, SetTargetTemperature.class),
+			        new EventSink[]{
+			                new EventSink(OvenTemperatureModel.URI, 
+			                				SetTargetTemperature.class)
+			        });
 
 			// variable bindings between exporting and importing models
 			Map<VariableSource,VariableSink[]> bindings =
@@ -254,6 +269,15 @@ public class			RunOvenUnitaryMILSimulation
 										 		  Double.class,
 										 		  OvenTemperatureModel.URI)
 						 });
+			bindings.put(
+				    new VariableSource("targetTemperature",
+				            			Double.class,
+				            			OvenTemperatureModel.URI),
+				    new VariableSink[]{
+				    			new VariableSink("targetTemperature",
+				    							Double.class,
+				    							OvenElectricityModel.URI)
+				    });
 
 			// coupled model descriptor
 			coupledModelDescriptors.put(
