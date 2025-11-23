@@ -59,7 +59,7 @@ extends AtomicES_Model {
     public static final String STEP_RUN_PARAMETER = "STEP_MEAN_DURATION";
     public static final String DELAY_RUN_PARAMETER = "DELAY_MEAN_DURATION";
 
-    protected static final String URI = DimmerLampUserModel.class.getSimpleName();
+    public static final String URI = DimmerLampUserModel.class.getSimpleName();
 
     // -------------------------------------------------------------------------
     // Variables

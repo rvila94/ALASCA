@@ -271,15 +271,15 @@ public class RunHeatPumpUnitaryMILSimulation {
             "               Then the heat pump is on\n" +
             "           Scenario: Set power while on\n" +
             "               Given the heat pump is on\n" +
-            "               When the power is set to a valid wattage\n" +
-            "               Then the power is equal to the set wattage\n" +
+            "               When the power is set to the maximum wattage\n" +
+            "               Then the power is equal to the maximum wattage\n" +
             "           Scenario: Heat pump starts heating\n" +
             "               Given the heat pump is on\n" +
             "               When the heat pump starts heating\n" +
             "               Then the heat pump is heating\n" +
             "           Scenario: Set power while heating\n" +
             "               Given the heat pump is heating\n" +
-            "               When the power is set to a valid wattage\n" +
+            "               When the power is set to a valid wattage that is not the maximum\n" +
             "               Then the power is equal to the set wattage\n" +
             "           Scenario: Heat pump stops heating\n" +
             "               Given the heat pump is heating\n" +
@@ -292,8 +292,8 @@ public class RunHeatPumpUnitaryMILSimulation {
             "               Then the heat pump is cooling\n" +
             "           Scenario: Set power while cooling\n" +
             "               Given the heat pump is cooling\n" +
-            "               When the power is set to a valid wattage\n" +
-            "               Then the power is equal to the set wattage\n" +
+            "               When the power is set to the maximum wattage\n" +
+            "               Then the power is equal to the maximum wattage\n" +
             "           Scenario: Heat pump stops cooling\n" +
             "               Given the heat pump is cooling\n" +
             "               When the heat pump stops cooling\n" +
@@ -422,9 +422,9 @@ public class RunHeatPumpUnitaryMILSimulation {
     protected static SimulationTestStep[] testScenarios() {
         ArrayList<SimulationTestStep> testSteps = new ArrayList<>();
 
-        final double power_hour2 = 100.;
+        final double power_hour2 = HeatPump.MAX_POWER_LEVEL.getData();
         final double power_hour4 = 50.;
-        final double power_hour9 = 100.;
+        final double power_hour9 = HeatPump.MAX_POWER_LEVEL.getData();
 
         testSteps.add(ScenarioSwitchOn(testInstant(1)));
         testSteps.add(ScenarioSetPower(testInstant(2), power_hour2));

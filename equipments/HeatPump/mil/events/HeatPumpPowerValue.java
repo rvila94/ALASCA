@@ -1,5 +1,6 @@
 package equipments.HeatPump.mil.events;
 
+import equipments.HeatPump.HeatPump;
 import equipments.dimmerlamp.DimmerLamp;
 import fr.sorbonne_u.devs_simulation.models.events.EventInformationI;
 import fr.sorbonne_u.exceptions.PreconditionException;
@@ -40,10 +41,10 @@ public class HeatPumpPowerValue implements EventInformationI {
      */
     public HeatPumpPowerValue(double power) {
 
-        assert DimmerLamp.MIN_POWER_VARIATION.getData() <= power
-                && power <= DimmerLamp.MAX_POWER_VARIATION.getData() :
-                new PreconditionException("DimmerLamp.MIN_POWER_VARIATION.getData() > power" +
-                        " || power > DimmerLamp.MAX_POWER_VARIATION.getData()");
+        assert HeatPump.MIN_REQUIRED_POWER_LEVEL.getData() <= power
+                && power <= HeatPump.MAX_POWER_LEVEL.getData() :
+                new PreconditionException("HeatPump.MIN_REQUIRED_POWER_LEVEL.getData() > power" +
+                        " || power > HeatPump.MAX_POWER_LEVEL.getData()");
 
         this.power = power;
     }

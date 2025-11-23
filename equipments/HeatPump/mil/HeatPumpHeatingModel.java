@@ -5,7 +5,6 @@ import equipments.HeatPump.interfaces.HeatPumpUserI;
 import equipments.HeatPump.mil.events.*;
 import equipments.HeatPump.mil.reports.HeatPumpTemperatureReport;
 import fr.sorbonne_u.alasca.physical_data.MeasurementUnit;
-import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeterImplementationI;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
 import fr.sorbonne_u.devs_simulation.hioa.annotations.ImportedVariable;
 import fr.sorbonne_u.devs_simulation.hioa.annotations.InternalVariable;

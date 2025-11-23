@@ -83,7 +83,7 @@ implements HeatPumpUserI,
     public static final MeasurementUnit TEMPERATURE_UNIT = MeasurementUnit.CELSIUS;
 
     /** maximum power level of the heat pump, in watts                                */
-    public static final Measure<Double> MAX_POWER_LEVEL = new Measure<>(100., POWER_UNIT);
+    public static final Measure<Double> MAX_POWER_LEVEL = new Measure<>(1090., POWER_UNIT);
     /** minimum power level of the heat pump, in watts */
     // TODO delete MIN_POWER_LEVEL
     protected static final Measure<Double> MIN_POWER_LEVEL = new Measure<>(0., POWER_UNIT);
