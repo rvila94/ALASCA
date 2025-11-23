@@ -700,7 +700,7 @@ public class			RunGlobalSimulation
 										  SwitchOffOven.class)
 					});
 			connections.put(
-					new EventSource(OvenUnitTesterModel.URI, Heat.class),
+					new EventSource(OvenUnitTesterModel.URI, HeatOven.class),
 					new EventSink[] {
 							new EventSink(OvenElectricityModel.URI,
 										  HeatOven.class),
@@ -708,7 +708,7 @@ public class			RunGlobalSimulation
 										  HeatOven.class)
 					});
 			connections.put(
-					new EventSource(OvenUnitTesterModel.URI, DoNotHeat.class),
+					new EventSource(OvenUnitTesterModel.URI, DoNotHeatOven.class),
 					new EventSink[] {
 							new EventSink(OvenElectricityModel.URI,
 										  DoNotHeatOven.class),
