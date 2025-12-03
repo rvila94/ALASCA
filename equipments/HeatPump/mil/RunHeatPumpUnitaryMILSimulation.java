@@ -2,8 +2,8 @@ package equipments.HeatPump.mil;
 
 import equipments.HeatPump.HeatPump;
 import equipments.HeatPump.mil.events.*;
-import fr.sorbonne_u.components.hem2025.tests_utils.SimulationTestStep;
-import fr.sorbonne_u.components.hem2025.tests_utils.TestScenario;
+import fr.sorbonne_u.components.cyphy.utils.tests.SimulationTestStep;
+import fr.sorbonne_u.components.cyphy.utils.tests.TestScenarioWithSimulation;
 import fr.sorbonne_u.components.hem2025e2.equipments.heater.mil.ExternalTemperatureModel;
 import fr.sorbonne_u.devs_simulation.architectures.Architecture;
 import fr.sorbonne_u.devs_simulation.architectures.ArchitectureI;
@@ -229,7 +229,9 @@ public class RunHeatPumpUnitaryMILSimulation {
             SimulationEngine.SIMULATION_STEP_SLEEP_TIME = 0L;
 
             // run a CLASSICAL test scenario
-            CLASSICAL.setUpSimulator(se);
+            Map<String, Object> classicalRunParameters = new HashMap<>();
+            CLASSICAL.addToRunParameters(classicalRunParameters);
+            se.setSimulationRunParameters(classicalRunParameters);
             Time startTime = CLASSICAL.getStartTime();
             Duration d = CLASSICAL.getEndTime().subtract(startTime);
             se.doStandAloneSimulation(startTime.getSimulatedTime(),
@@ -440,21 +442,21 @@ public class RunHeatPumpUnitaryMILSimulation {
         return testSteps.toArray(result);
     }
 
-    protected final static TestScenario CLASSICAL =
-            new TestScenario(
+    protected final static TestScenarioWithSimulation CLASSICAL =
+            new TestScenarioWithSimulation(
                     GHERKIN_SPEC,
                     END_MESSAGE,
+                    "clock_uri",
                     START_INSTANT,
                     END_INSTANT,
+                    HeatPumpCoupledModel.URI,
                     START_TIME,
-                    (se, ts) -> {
-                        HashMap<String, Object> simParams = new HashMap<>();
+                    (ts, simParams) -> {
                         simParams.put(
                                 ModelI.createRunParameterName(
                                         HeatPumpUnitTesterModel.URI,
                                         HeatPumpUnitTesterModel.TEST_SCENARIO_RP_NAME),
                                 ts);
-                        se.setSimulationRunParameters(simParams);
                     },
                     testScenarios()
             );

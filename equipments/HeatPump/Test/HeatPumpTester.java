@@ -3,7 +3,6 @@ package equipments.HeatPump.Test;
 import equipments.HeatPump.HeatPump;
 import equipments.HeatPump.compressor.Compressor;
 import equipments.HeatPump.connections.*;
-import equipments.HeatPump.connections.*;
 import equipments.HeatPump.interfaces.HeatPumpExternalControlCI;
 import equipments.HeatPump.interfaces.HeatPumpInternalControlCI;
 import equipments.HeatPump.interfaces.HeatPumpUserCI;
@@ -15,8 +14,8 @@ import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.annotations.RequiredInterfaces;
 import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
-import fr.sorbonne_u.components.hem2025.tests_utils.TestsStatistics;
 import fr.sorbonne_u.components.hem2025e1.CVMIntegrationTest;
+import fr.sorbonne_u.components.utils.tests.TestsStatistics;
 import fr.sorbonne_u.utils.aclocks.*;
 
 import java.time.Instant;

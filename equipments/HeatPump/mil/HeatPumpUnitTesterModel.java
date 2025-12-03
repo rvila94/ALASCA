@@ -1,8 +1,8 @@
 package equipments.HeatPump.mil;
 
 import equipments.HeatPump.mil.events.*;
-import fr.sorbonne_u.components.hem2025.tests_utils.AbstractTestScenarioBasedAtomicModel;
-import fr.sorbonne_u.components.hem2025.tests_utils.TestScenario;
+import fr.sorbonne_u.components.cyphy.utils.tests.AbstractTestScenarioBasedAtomicModel;
+import fr.sorbonne_u.components.cyphy.utils.tests.TestScenarioWithSimulation;
 import fr.sorbonne_u.devs_simulation.exceptions.MissingRunParameterException;
 import fr.sorbonne_u.devs_simulation.models.annotations.ModelExternalEvents;
 import fr.sorbonne_u.devs_simulation.models.interfaces.ModelI;
@@ -100,7 +100,7 @@ public class HeatPumpUnitTesterModel extends AbstractTestScenarioBasedAtomicMode
         assert	simParams.containsKey(testScenarioName) :
                 new MissingRunParameterException(testScenarioName);
 
-        this.setTestScenario((TestScenario) simParams.get(testScenarioName));
+        this.setTestScenario((TestScenarioWithSimulation) simParams.get(testScenarioName));
     }
 
     // -------------------------------------------------------------------------

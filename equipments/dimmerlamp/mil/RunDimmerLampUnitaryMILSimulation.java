@@ -5,8 +5,8 @@ import equipments.dimmerlamp.mil.events.LampPowerValue;
 import equipments.dimmerlamp.mil.events.SetPowerLampEvent;
 import equipments.dimmerlamp.mil.events.SwitchOffLampEvent;
 import equipments.dimmerlamp.mil.events.SwitchOnLampEvent;
-import fr.sorbonne_u.components.hem2025.tests_utils.SimulationTestStep;
-import fr.sorbonne_u.components.hem2025.tests_utils.TestScenario;
+import fr.sorbonne_u.components.cyphy.utils.tests.SimulationTestStep;
+import fr.sorbonne_u.components.cyphy.utils.tests.TestScenarioWithSimulation;
 import fr.sorbonne_u.devs_simulation.architectures.Architecture;
 import fr.sorbonne_u.devs_simulation.architectures.ArchitectureI;
 import fr.sorbonne_u.devs_simulation.hioa.architectures.AtomicHIOA_Descriptor;
@@ -151,7 +151,9 @@ public class RunDimmerLampUnitaryMILSimulation {
             SimulationEngine.SIMULATION_STEP_SLEEP_TIME = 0L;
 
             // run a CLASSICAL test scenario
-            CLASSICAL.setUpSimulator(se);
+            Map<String, Object> classicalRunParameters = new HashMap<>();
+            CLASSICAL.addToRunParameters(classicalRunParameters);
+            se.setSimulationRunParameters(classicalRunParameters);
             Time startTime = CLASSICAL.getStartTime();
             Duration d = CLASSICAL.getEndTime().subtract(startTime);
             se.doStandAloneSimulation(startTime.getSimulatedTime(),
@@ -333,21 +335,21 @@ public class RunDimmerLampUnitaryMILSimulation {
     }
 
     /** standard test scenario, see Gherkin specification.				 	*/
-    protected final static TestScenario CLASSICAL =
-            new TestScenario(
+    protected final static TestScenarioWithSimulation CLASSICAL =
+            new TestScenarioWithSimulation(
                     GHERKIN_SPEC_CLASSICAL,
                     END_MESSAGE,
+                    "clock_uri",
                     START_INSTANT_CLASSICAL,
                     END_INSTANT_CLASSICAL,
+                    DimmerLampCoupledModel.URI,
                     START_TIME,
-                    (se, ts) -> {
-                        HashMap<String, Object> simParams = new HashMap<>();
+                    (ts, simParams) -> {
                         simParams.put(
                                 ModelI.createRunParameterName(
                                         DimmerLampUnitTesterModel.URI,
                                         DimmerLampUnitTesterModel.TEST_SCENARIO_RP_NAME),
                                 ts);
-                        se.setSimulationRunParameters(simParams);
                     },
                     testScenariosClassical(REPETITION)
             );
@@ -366,21 +368,21 @@ public class RunDimmerLampUnitaryMILSimulation {
     /** priority test all the Event are used at the same
      *  We expect to kwh == 0
      */
-    protected final static TestScenario PRIORITY_SCENARIO =
-            new TestScenario(
+    protected final static TestScenarioWithSimulation PRIORITY_SCENARIO =
+            new TestScenarioWithSimulation(
                 GHERKIN_SPEC_PRIORITY,
                 END_MESSAGE,
+                "clock_uri",
                 START_INSTANT_PRIORITY,
                     END_INSTANT_PRIORITY,
+                    DimmerLampCoupledModel.URI,
                     START_TIME,
-                    (se, ts) -> {
-                        HashMap<String, Object> simParams = new HashMap<>();
+                    (ts, simParams) -> {
                         simParams.put(
                                 ModelI.createRunParameterName(
                                         DimmerLampUnitTesterModel.URI,
                                         DimmerLampUnitTesterModel.TEST_SCENARIO_RP_NAME),
                                 ts);
-                        se.setSimulationRunParameters(simParams);
                     },
                     testScenariosPriority()
             );
