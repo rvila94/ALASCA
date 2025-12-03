@@ -39,6 +39,7 @@ import java.util.Set;
 import java.time.Instant;
 import java.util.ArrayList;
 
+import fr.sorbonne_u.components.utils.tests.TestStepI;
 import equipments.HeatPump.HeatPump;
 import equipments.HeatPump.mil.HeatPumpElectricityModel;
 import equipments.HeatPump.mil.HeatPumpHeatingModel;
@@ -70,12 +71,14 @@ import equipments.oven.mil.events.HeatOven;
 import equipments.oven.mil.events.DoNotHeatOven;
 import equipments.oven.mil.events.SetModeOven.ModeValue;
 import equipments.oven.mil.events.SetTargetTemperatureOven.TargetTemperatureValue;
+import fr.sorbonne_u.components.cyphy.utils.tests.TestScenarioWithSimulation;
 import fr.sorbonne_u.components.hem2025.tests_utils.SimulationTestStep;
 import fr.sorbonne_u.components.hem2025.tests_utils.TestScenario;
 import fr.sorbonne_u.components.hem2025e1.equipments.batteries.Batteries;
 import fr.sorbonne_u.components.hem2025e1.equipments.generator.Generator;
 import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.SolarPanel;
 import fr.sorbonne_u.components.hem2025e2.GlobalCoupledModel;
+import fr.sorbonne_u.components.hem2025e2.GlobalSimulationConfigurationI;
 import fr.sorbonne_u.components.hem2025e2.GlobalCoupledModel.GlobalReport;
 import fr.sorbonne_u.components.hem2025e2.equipments.batteries.mil.BatteriesPowerModel;
 import fr.sorbonne_u.components.hem2025e2.equipments.batteries.mil.BatteriesSimulationConfiguration;
@@ -92,6 +95,7 @@ import fr.sorbonne_u.components.hem2025e2.equipments.generator.mil.events.TankEm
 import fr.sorbonne_u.components.hem2025e2.equipments.generator.mil.events.TankNoLongerEmpty;
 import fr.sorbonne_u.components.hem2025e2.equipments.hairdryer.mil.HairDryerElectricityModel;
 import fr.sorbonne_u.components.hem2025e2.equipments.hairdryer.mil.HairDryerSimpleUserModel;
+import fr.sorbonne_u.components.hem2025e2.equipments.hairdryer.mil.HairDryerUnitTesterModel;
 import fr.sorbonne_u.components.hem2025e2.equipments.hairdryer.mil.events.SetHighHairDryer;
 import fr.sorbonne_u.components.hem2025e2.equipments.hairdryer.mil.events.SetLowHairDryer;
 import fr.sorbonne_u.components.hem2025e2.equipments.hairdryer.mil.events.SwitchOffHairDryer;
@@ -133,6 +137,7 @@ import fr.sorbonne_u.devs_simulation.models.time.Duration;
 import fr.sorbonne_u.devs_simulation.models.time.Time;
 import fr.sorbonne_u.devs_simulation.simulators.SimulationEngine;
 import fr.sorbonne_u.devs_simulation.simulators.interfaces.SimulatorI;
+import fr.sorbonne_u.exceptions.VerboseException;
 
 // -----------------------------------------------------------------------------
 /**
@@ -195,7 +200,7 @@ import fr.sorbonne_u.devs_simulation.simulators.interfaces.SimulatorI;
  * 
  * @author	<a href="mailto:Jacques.Malenfant@lip6.fr">Jacques Malenfant</a>
  */
-public class			RunGlobalSimulation
+public class			RunFunctionalTestGlobalSimulation
 {
 	// -------------------------------------------------------------------------
 	// Invariants
@@ -1340,9 +1345,13 @@ public class			RunGlobalSimulation
 			// Test scenario
 
 			// run a CLASSICAL test scenario
-			CLASSICAL.setUpSimulator(se, simParams);
-			Time startTime = CLASSICAL.getStartTime();
-			Duration d = CLASSICAL.getEndTime().subtract(startTime);
+			TestScenarioWithSimulation classical = classical();
+			Map<String, Object> classicalRunParameters =
+											new HashMap<String, Object>();
+			classical.addToRunParameters(classicalRunParameters);
+			se.setSimulationRunParameters(classicalRunParameters);
+			Time startTime = classical.getStartTime();
+			Duration d = classical.getEndTime().subtract(startTime);
 			se.doStandAloneSimulation(startTime.getSimulatedTime(),
 									  d.getSimulatedDuration());
 			// Optional: simulation report
@@ -1357,219 +1366,91 @@ public class			RunGlobalSimulation
 	// Test scenarios
 	// -------------------------------------------------------------------------
 
-	/** standard test scenario, see Gherkin specification.				 	*/
-	protected static TestScenario	CLASSICAL =
-		new TestScenario(
+	/** standard test scenario.											 	
+	 * @throws VerboseException */
+	protected static TestScenarioWithSimulation	classical()
+			throws VerboseException
+	{
+		return new TestScenarioWithSimulation(
 				"-----------------------------------------------------\n" +
-						"Classical\n\n" +
-						"  Gherkin specification\n\n" +
-						"    Feature: heater operation\n\n" +
-						"      Scenario: heater switched on\n" +
-						"        Given a heater that is off\n" +
-						"        When it is switched on\n" +
-						"        Then it is on but not heating though set at the highest power level\n" +
-						"      Scenario: heater heats\n" +
-						"        Given a heater that is on and not heating\n" +
-						"        When it is asked to heat\n" +
-						"        Then it is on and it heats at the current power level\n" +
-						"      Scenario: heater stops heating\n" +
-						"        Given a hair dryer that is heating\n" +
-						"        When it is asked not to heat\n" +
-						"        Then it is on but it stops heating\n" +
-						"      Scenario: heater heats\n" +
-						"        Given a heater that is on and not heating\n" +
-						"        When it is asked to heat\n" +
-						"        Then it is on and it heats at the current power level\n" +
-						"      Scenario: heater set a different power level\n" +
-						"        Given a heater that is heating\n" +
-						"        When it is set to a new power level\n" +
-						"        Then it is on and it heats at the new power level\n" +
-						"      Scenario: hair dryer switched off\n" +
-						"        Given a hair dryer that is on\n" +
-						"        When it is switched of\n" +
-						"        Then it is off\n" +
-						"   Feature: Oven operation\n\n" +
-						"      Scenario: Oven switched on\n" +
-				        "        Given a Oven that is off\n" +
-				        "        When it is switched on\n" +
-				        "        Then it is on but not heating\n" +
-				        "      Scenario: Target temperature set to 50\n" +
-				        "        Given a Oven that is on and not heating\n" +
-				        "        When a target temperature of 50 is set\n" +
-				        "        Then its mode is CUSTOM and target temperature is 50\n" +
-				        "      Scenario: Oven heats\n" +
-				        "        Given a Oven that is on and not heating\n" +
-				        "        When it is asked to heat\n" +
-				        "        Then it is on and it heats at 500W power level\n" +
-				        "      Scenario: Oven stops heating\n" +
-				        "        Given a Oven that is heating\n" +
-				        "        When it is asked not to heat\n" +
-				        "        Then it is on but it stops heating\n" +
-				        "      Scenario: Mode set to GRILL\n" +
-				        "        Given a Oven that is on\n" +
-				        "        When its mode is set to DEFROST\n" +
-				        "        Then its target temperature is 80\n" +
-				        "      Scenario: Oven heats again\n" +
-				        "        Given a Oven that is on and not heating\n" +
-				        "        When it is asked to heat\n" +
-				        "        Then it is on and it heats at 800W power level\n" +
-				        "      Scenario: Oven stops heating\n" +
-				        "        Given a Oven that is heating\n" +
-				        "        When it is asked not to heat\n" +
-				        "        Then it is on but it stops heating\n" +
-				        "      Scenario: Mode set to GRILL\n" +
-				        "        Given a Oven that is on\n" +
-				        "        When its mode is set to GRILL\n" +
-				        "        Then its target temperature is 220\n" +
-				        "      Scenario: Oven heats again\n" +
-				        "        Given a Oven that is on and not heating\n" +
-				        "        When it is asked to heat\n" +
-				        "        Then it is on and it heats at 2200W power level\n" +
-				        "      Scenario: Oven set a different power level\n" +
-				        "        Given a Oven that is heating\n" +
-				        "        When it is set to a new power level\n" +
-				        "        Then it is on and it heats at the new power level\n" +
-				        "      Scenario: Oven switched off\n" +
-				        "        Given a Oven that is on\n" +
-				        "        When it is switched off\n" +
-				        "        Then it is off\n" +
-						"   Feature: Heat pump operation\n" +
-						"      Scenario: Heat pump switched on\n" +
-						"        Given the heat pump is off\n" +
-						"        When the heat pump is switched on\n" +
-						"        Then the heat pump is on\n" +
-						"      Scenario: Set power while on\n" +
-						"         Given the heat pump is on\n" +
-						"         When the power is set to the maximum wattage\n" +
-						"         Then the power is equal to the maximum wattage\n" +
-						"      Scenario: Heat pump starts heating\n" +
-						"         Given the heat pump is on\n" +
-						"         When the heat pump starts heating\n" +
-						"         Then the heat pump is heating\n" +
-						"      Scenario: Set power while heating\n" +
-						"         Given the heat pump is heating\n" +
-						"         When the power is set to a valid wattage that is not the maximum\n" +
-						"         Then the power is equal to the set wattage\n" +
-						"      Scenario: Heat pump stops heating\n" +
-						"         Given the heat pump is heating\n" +
-						"         When the heat pump stops heating\n" +
-						"         Then the heat pump is not heating\n" +
-						"         And is still on\n" +
-						"      Scenario: Heat pump starts cooling\n" +
-						"         Given the heat pump is on\n" +
-						"         When the heat pump starts cooling\n" +
-						"         Then the heat pump is cooling\n" +
-						"      Scenario: Set power while cooling\n" +
-						"         Given the heat pump is cooling\n" +
-						"         When the power is set to the maximum wattage\n" +
-						"         Then the power is equal to the maximum wattage\n" +
-						"      Scenario: Heat pump stops cooling\n" +
-						"         Given the heat pump is cooling\n" +
-						"         When the heat pump stops cooling\n" +
-						"         Then the heat pump is not cooling\n" +
-						"         And is still on\n" +
-						"      Scenario: Heat pump switches off\n" +
-						"         Given the heat pump is on\n" +
-						"         When the heat pump is switched off\n" +
-						"         Then the heat pump is off\n" +
-						"	 Feature: dimmer lamp operations \n" +
-						"	   Scenario: dimmer lamp switched on\n" +
-						"          Given the dimmer lamp is off\n" +
-						"          When it is switched on\n" +
-						"          Then it is on\n" +
-						"          And the power consumption is minimal\n" +
-						"      Scenario: dimmer lamp sets power\n" +
-						"          Given the dimmer lamp is on\n" +
-						"          When the power is set to a valid wattage\n" +
-						"          Then the power is equal to the set wattage\n" +
-						"      Scenario: dimmer lamp switch off\n" +
-						"          Given the dimmer lamp is on\n" +
-						"          When the dimmer lamp is switched off\n" +
-						"          Then the dimmer lamp is off\n" +
-						"      Scenario: The tests are repeated another time\n" +
-						"          Given the dimmer lamp has just been switched off\n" +
-						"          When the tests are repeated\n" +
-						"          Then the behaviour of the tests is still the same\n" +
-						"    Feature: fan operation\n\n" +
-						"      Scenario: fan switched on\n" +
-						"        Given a fan that is off\n" +
-						"        When it is switched on\n" +
-						"        Then it is on and low\n" +
-						"      Scenario: fan set high\n" +
-						"        Given a fan that is on\n" +
-						"        When it is set high\n" +
-						"        Then it is on and high\n" +
-						"      Scenario: fan set medium\n" +
-						"        Given a fan that is on\n" +
-						"        When it is set medium\n" +
-						"        Then it is on and medium\n" +
-						"      Scenario: fan set low\n" +
-						"        Given a fan that is on\n" +
-						"        When it is set low\n" +
-						"        Then it is on and low\n" +
-						"      Scenario: fan switched off\n" +
-						"        Given a fan that is on\n" +
-						"        When it is switched of\n" +
-						"        Then it is off\n" +
-				"    Feature: generator production\n\n" +
-				"      Scenario: generator produces for a limited time without emptying the tank\n" +
-				"        Given a standard generator with a tank not full neither empty\n" +
-				"        When it is producing for a limited time\n" +
-				"        Then the tank level goes down but stays not empty\n" +
-				"-----------------------------------------------------\n",
+				"Classical\n" + 
 				"\n-----------------------------------------------------\n" +
 				"End Classical\n" +
 				"-----------------------------------------------------",
+				"fake-clock-URI",	// for simulation only test scenario, no clock needed
 				GlobalSimulationConfigurationI.START_INSTANT,
 				GlobalSimulationConfigurationI.END_INSTANT,
+				GlobalCoupledModel.URI,
 				GlobalSimulationConfigurationI.START_TIME,
-				(simulationEngine, testScenario, simulationParameters) -> {
+				(testScenario, simulationParameters) -> {
+					// run parameters for hair dryer models
+					simulationParameters.put(
+						ModelI.createRunParameterName(
+							HairDryerElectricityModel.URI,
+							HairDryerElectricityModel.LOW_MODE_CONSUMPTION_RPNAME),
+						660.0);
+					simulationParameters.put(
+						ModelI.createRunParameterName(
+							HairDryerElectricityModel.URI,
+							HairDryerElectricityModel.HIGH_MODE_CONSUMPTION_RPNAME),
+						1320.0);
+					simulationParameters.put(
+						ModelI.createRunParameterName(
+							HairDryerUnitTesterModel.URI,
+							HairDryerUnitTesterModel.TEST_SCENARIO_RP_NAME),
+						testScenario);
+
+					// run parameters for heater models
 					simulationParameters.put(
 						ModelI.createRunParameterName(
 							HeaterUnitTesterModel.URI,
 							HeaterUnitTesterModel.TEST_SCENARIO_RP_NAME),
 						testScenario);
+
+					// run parameters for batteries models
 					simulationParameters.put(
 						ModelI.createRunParameterName(
 							BatteriesPowerModel.URI,
 							BatteriesPowerModel.CAPACITY_RP_NAME),
-						BatteriesSimulationConfiguration.NUMBER_OF_PARALLEL_CELLS
-								* BatteriesSimulationConfiguration.
-														NUMBER_OF_CELL_GROUPS_IN_SERIES
+						GlobalSimulationConfigurationI.NUMBER_OF_PARALLEL_CELLS
+								* GlobalSimulationConfigurationI.
+													NUMBER_OF_CELL_GROUPS_IN_SERIES
 									* Batteries.CAPACITY_PER_UNIT.getData());
 					simulationParameters.put(
 						ModelI.createRunParameterName(
 							BatteriesPowerModel.URI,
 							BatteriesPowerModel.IN_POWER_RP_NAME),
-						BatteriesSimulationConfiguration.NUMBER_OF_PARALLEL_CELLS
+						GlobalSimulationConfigurationI.NUMBER_OF_PARALLEL_CELLS
 								* Batteries.IN_POWER_PER_CELL.getData());
 					simulationParameters.put(
 						ModelI.createRunParameterName(
 							BatteriesPowerModel.URI,
 							BatteriesPowerModel.MAX_OUT_POWER_RP_NAME),
-						BatteriesSimulationConfiguration.NUMBER_OF_PARALLEL_CELLS
+						GlobalSimulationConfigurationI.NUMBER_OF_PARALLEL_CELLS
 								* Batteries.MAX_OUT_POWER_PER_CELL.getData());
 					simulationParameters.put(
 						ModelI.createRunParameterName(
 							BatteriesPowerModel.URI,
 							BatteriesPowerModel.LEVEL_QUANTUM_RP_NAME),
-						BatteriesSimulationConfiguration.
-													STANDARD_LEVEL_INTEGRATION_QUANTUM);
+						GlobalSimulationConfigurationI.
+											BATTERIES_LEVEL_INTEGRATION_QUANTUM);
 					simulationParameters.put(
 						ModelI.createRunParameterName(
 							BatteriesPowerModel.URI,
 							BatteriesPowerModel.INITIAL_LEVEL_RP_NAME),
-						BatteriesSimulationConfiguration.INITIAL_BATTERIES_LEVEL);
+						GlobalSimulationConfigurationI.INITIAL_BATTERIES_LEVEL);
+
+					// run parameters for generator models
 					simulationParameters.put(
 						ModelI.createRunParameterName(
 							GeneratorFuelModel.URI,
 							GeneratorFuelModel.CAPACITY_RP_NAME),
-						GeneratorSimulationConfiguration.TANK_CAPACITY);
+						GlobalSimulationConfigurationI.TANK_CAPACITY);
 					simulationParameters.put(
 						ModelI.createRunParameterName(
 							GeneratorFuelModel.URI,
 							GeneratorFuelModel.INITIAL_LEVEL_RP_NAME),
-						GeneratorSimulationConfiguration.INITIAL_TANK_LEVEL);
+						GlobalSimulationConfigurationI.INITIAL_TANK_LEVEL);
 					simulationParameters.put(
 						ModelI.createRunParameterName(
 							GeneratorFuelModel.URI,
@@ -1584,8 +1465,7 @@ public class			RunGlobalSimulation
 						ModelI.createRunParameterName(
 							GeneratorFuelModel.URI,
 							GeneratorFuelModel.LEVEL_QUANTUM_RP_NAME),
-						GeneratorSimulationConfiguration.
-											STANDARD_LEVEL_INTEGRATION_QUANTUM);
+						GlobalSimulationConfigurationI.FUEL_LEVEL_INTEGRATION_QUANTUM);
 					simulationParameters.put(
 						ModelI.createRunParameterName(
 							GeneratorFuelModel.URI,
@@ -1597,12 +1477,109 @@ public class			RunGlobalSimulation
 							GeneratorPowerModel.MAX_OUT_POWER_RP_NAME),
 						Generator.MAX_POWER.getData());
 					simulationParameters.put(
+						ModelI.createRunParameterName(
+							GeneratorGlobalTesterModel.URI,
+							GeneratorGlobalTesterModel.TEST_SCENARIO_RP_NAME),
+						testScenario);
+
+					// run parameters for solar panel models
+					simulationParameters.put(
+						ModelI.createRunParameterName(
+							DeterministicSunRiseAndSetModel.URI,
+							SunRiseAndSetModelI.LATITUDE_RP_NAME),
+						GlobalSimulationConfigurationI.LATITUDE);
+					simulationParameters.put(
+						ModelI.createRunParameterName(
+							DeterministicSunRiseAndSetModel.URI,
+							SunRiseAndSetModelI.LONGITUDE_RP_NAME),
+						GlobalSimulationConfigurationI.LONGITUDE);
+					simulationParameters.put(
+						ModelI.createRunParameterName(
+							DeterministicSunRiseAndSetModel.URI,
+							SunRiseAndSetModelI.START_INSTANT_RP_NAME),
+						GlobalSimulationConfigurationI.START_INSTANT);
+					simulationParameters.put(
+						ModelI.createRunParameterName(
+							DeterministicSunRiseAndSetModel.URI,
+							SunRiseAndSetModelI.ZONE_ID_RP_NAME),
+						GlobalSimulationConfigurationI.ZONE);
+					simulationParameters.put(
+						ModelI.createRunParameterName(
+							DeterministicSunIntensityModel.URI,
+							SunIntensityModelI.LATITUDE_RP_NAME),
+						GlobalSimulationConfigurationI.LATITUDE);
+					simulationParameters.put(
+						ModelI.createRunParameterName(
+							DeterministicSunIntensityModel.URI,
+							SunIntensityModelI.LONGITUDE_RP_NAME),
+						GlobalSimulationConfigurationI.LONGITUDE);
+					simulationParameters.put(
+						ModelI.createRunParameterName(
+							DeterministicSunIntensityModel.URI,
+							SunIntensityModelI.START_INSTANT_RP_NAME),
+						GlobalSimulationConfigurationI.START_INSTANT);
+					simulationParameters.put(
+						ModelI.createRunParameterName(
+							DeterministicSunIntensityModel.URI,
+							SunIntensityModelI.ZONE_ID_RP_NAME),
+						GlobalSimulationConfigurationI.ZONE);
+					simulationParameters.put(
+						ModelI.createRunParameterName(
+							DeterministicSunIntensityModel.URI,
+							SunIntensityModelI.SLOPE_RP_NAME),
+						GlobalSimulationConfigurationI.SLOPE);
+					simulationParameters.put(
+						ModelI.createRunParameterName(
+							DeterministicSunIntensityModel.URI,
+							SunIntensityModelI.ORIENTATION_RP_NAME),
+						GlobalSimulationConfigurationI.ORIENTATION);
+					simulationParameters.put(
+						ModelI.createRunParameterName(
+							DeterministicSunIntensityModel.URI,
+							SunIntensityModelI.COMPUTATION_STEP_RP_NAME),
+						GlobalSimulationConfigurationI.SUN_INTENSITY_MODEL_STEP);
+					simulationParameters.put(
+						ModelI.createRunParameterName(
+							SolarPanelPowerModel.URI,
+							SolarPanelPowerModel.LATITUDE_RP_NAME),
+						GlobalSimulationConfigurationI.LATITUDE);
+					simulationParameters.put(
+						ModelI.createRunParameterName(
+							SolarPanelPowerModel.URI,
+							SolarPanelPowerModel.LONGITUDE_RP_NAME),
+						GlobalSimulationConfigurationI.LONGITUDE);
+					simulationParameters.put(
+						ModelI.createRunParameterName(
+							SolarPanelPowerModel.URI,
+							SolarPanelPowerModel.START_INSTANT_RP_NAME),
+						GlobalSimulationConfigurationI.START_INSTANT);
+					simulationParameters.put(
+						ModelI.createRunParameterName(
+							SolarPanelPowerModel.URI,
+							SolarPanelPowerModel.ZONE_ID_RP_NAME),
+						GlobalSimulationConfigurationI.ZONE);
+					simulationParameters.put(
+						ModelI.createRunParameterName(
+							SolarPanelPowerModel.URI,
+							SolarPanelPowerModel.MAX_POWER_RP_NAME),
+						GlobalSimulationConfigurationI.NB_SQUARE_METERS
+								* SolarPanel.CAPACITY_PER_SQUARE_METER.getData());
+					simulationParameters.put(
+						ModelI.createRunParameterName(
+							SolarPanelPowerModel.URI,
+							SolarPanelPowerModel.COMPUTATION_STEP_RP_NAME),
+						GlobalSimulationConfigurationI.SOLAR_PANEL_POWER_MODEL_STEP);
+				
+					// run parameters for oven models
+					simulationParameters.put(
 							ModelI.createRunParameterName(
 									OvenUnitTesterModel.URI,
 									OvenUnitTesterModel.TEST_SCENARIO_RP_NAME
 							),
 							testScenario
 					);
+					
+					// run parameters for heatpump models
 					simulationParameters.put(
 							ModelI.createRunParameterName(
 									HeatPumpUnitTesterModel.URI,
@@ -1610,6 +1587,8 @@ public class			RunGlobalSimulation
 							),
 							testScenario
 					);
+					
+					// run parameters for dimmerlamp models
 					simulationParameters.put(
 							ModelI.createRunParameterName(
 									DimmerLampUnitTesterModel.URI,
@@ -1617,6 +1596,8 @@ public class			RunGlobalSimulation
 							),
 							testScenario
 					);
+					
+					// run parameters for fan models
 					simulationParameters.put(
 							ModelI.createRunParameterName(
 									FanUnitTesterModel.URI,
@@ -1624,15 +1605,10 @@ public class			RunGlobalSimulation
 							),
 							testScenario
 					);
-					simulationParameters.put(
-						ModelI.createRunParameterName(
-							GeneratorGlobalTesterModel.URI,
-							GeneratorGlobalTesterModel.TEST_SCENARIO_RP_NAME),
-						testScenario);
 					simulationEngine.setSimulationRunParameters(
 														simulationParameters);
 				},
-				new SimulationTestStep[]{
+				new TestStepI[]{
 						new SimulationTestStep(
 								GeneratorGlobalTesterModel.URI,
 								Instant.parse("2025-10-20T12:15:00.00Z"),

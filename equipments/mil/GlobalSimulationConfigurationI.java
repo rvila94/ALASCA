@@ -1,6 +1,7 @@
 package equipments.mil;
 
 import java.time.Instant;
+import java.time.ZoneId;
 
 // Copyright Jacques Malenfant, Sorbonne Universite.
 // Jacques.Malenfant@lip6.fr
@@ -41,6 +42,7 @@ import fr.sorbonne_u.alasca.physical_data.MeasurementUnit;
 import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeter;
 import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeterImplementationI;
 import fr.sorbonne_u.components.hem2025e2.equipments.heater.mil.HeaterSimulationConfigurationI;
+import fr.sorbonne_u.components.hem2025e2.equipments.solar_panel.mil.events.SolarPanelEventI.Position;
 import fr.sorbonne_u.devs_simulation.models.time.Time;
 import fr.sorbonne_u.exceptions.AssertionChecking;
 
@@ -89,6 +91,68 @@ public interface		GlobalSimulationConfigurationI
 	/** the start time in simulated time, corresponding to
 	 *  {@code START_INSTANT}.												*/
 	public static Time		START_TIME = new Time(0.0, TimeUnit.HOURS);
+	
+	/** acceleration factor for the real time simulation; with a factor 2.0,
+	 *  the simulation runs two times faster than real time i.e., a run that
+	 *  is supposed to take 10 seconds in real time will take 5 seconds to
+	 *  execute.															*/
+	public static double 		ACCELERATION_FACTOR = 1200.0;
+	
+	// Batteries configuration
+
+	/** number of batteries cells put in parallel to get a better
+	 *  maximum output power.												*/
+	public static int			NUMBER_OF_PARALLEL_CELLS = 2;
+	/** number of groups of parallel batteries cells put in series to get
+	 *  a better total capacity.											*/
+	public static int			NUMBER_OF_CELL_GROUPS_IN_SERIES = 2;
+	/** initial charge level of the batteries in
+	 *  {@code MeasurementUnit.WATTS}.										*/
+	public static double		INITIAL_BATTERIES_LEVEL = 11000.0;
+	/** in the QSS integration algorithm, the standard level quantum between
+	 *  successive points computations.										*/
+	public static double		BATTERIES_LEVEL_INTEGRATION_QUANTUM = 300.0;
+
+	// Generator configuration
+
+	/** capacity of the TANK in {@code MeasurementUnit.LITERS}.	*/
+	public static double		TANK_CAPACITY = 40.0;
+	/** initial FUEL level of the TANK in {@code MeasurementUnit.LITERS}.	*/
+	public static double		INITIAL_TANK_LEVEL = 15.0;
+	/** in the QSS integration algorithm, the standard level quantum between
+	 *  successive points computations.										*/
+	public static double		FUEL_LEVEL_INTEGRATION_QUANTUM = 0.1;
+
+	// Solar panel configuration
+
+	/** latitude of the solar panel.										*/
+	public static Position		LATITUDE = new Position(48, 51, 24.0);
+	/** longitude of the solar panel.										*/
+	public static Position		LONGITUDE = new Position(2, 21, 6.0);
+	/** time zone of the solar panel.										*/
+	public static ZoneId		ZONE = ZoneId.of("Europe/Paris");
+	/** Sun azimuth from the solar panel, in degrees, north-based; this is
+	 *  the direction along the horizon, measured from north to east (or
+	 *  example, {@code 0.0} means north, {@code 135.0} means southeast,
+	 *  {@code 270.0} means west.
+	*/
+	public static double		ORIENTATION = 190.0;
+	/** slope of the solar panel.											*/
+	public static double		SLOPE = 45.0;
+	/**	available number of square meters of solar panel.					*/
+	public static int			NB_SQUARE_METERS = 5;
+	/** when using the deterministic sunrise and sunset model, the hour of
+	 *  sunrise each day.													*/
+	public static int			DETERMINISTIC_SUNRISE_HOUR = 6;
+	/** when using the deterministic sunrise and sunset model, the hour of
+	 *  sunset each day.													*/
+	public static int			DETERMINISTIC_SUNSET_HOUR = 18;
+
+	/** delay between successive updates of the sun intensity.				*/
+	public static double		SUN_INTENSITY_MODEL_STEP = 0.1;
+	/** delay between successive updates of the sun intensity.				*/
+	public static double		SOLAR_PANEL_POWER_MODEL_STEP = 0.1;
+
 
 	// -------------------------------------------------------------------------
 	// Invariants

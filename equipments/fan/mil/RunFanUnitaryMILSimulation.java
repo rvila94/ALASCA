@@ -5,14 +5,15 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import equipments.fan.mil.events.SetHighFan;
 import equipments.fan.mil.events.SetLowFan;
 import equipments.fan.mil.events.SetMediumFan;
 import equipments.fan.mil.events.SwitchOffFan;
 import equipments.fan.mil.events.SwitchOnFan;
-import fr.sorbonne_u.components.hem2025.tests_utils.SimulationTestStep;
-import fr.sorbonne_u.components.hem2025.tests_utils.TestScenario;
+import fr.sorbonne_u.components.cyphy.utils.tests.SimulationTestStep;
+import fr.sorbonne_u.components.cyphy.utils.tests.TestScenarioWithSimulation;
 import fr.sorbonne_u.devs_simulation.architectures.Architecture;
 import fr.sorbonne_u.devs_simulation.architectures.ArchitectureI;
 import fr.sorbonne_u.devs_simulation.hioa.architectures.AtomicHIOA_Descriptor;
@@ -28,6 +29,8 @@ import fr.sorbonne_u.devs_simulation.models.time.Time;
 import fr.sorbonne_u.devs_simulation.simulators.SimulationEngine;
 import fr.sorbonne_u.devs_simulation.simulators.interfaces.SimulationReportI;
 import fr.sorbonne_u.devs_simulation.simulators.interfaces.SimulatorI;
+import fr.sorbonne_u.exceptions.VerboseException;
+
 import java.time.Instant;
 import java.util.ArrayList;
 
@@ -225,13 +228,21 @@ public class			RunFanUnitaryMILSimulation
 			SimulationEngine.SIMULATION_STEP_SLEEP_TIME = 0L;
 
 			// run a CLASSICAL test scenario
-			CLASSICAL.setUpSimulator(se);
-			Time startTime = CLASSICAL.getStartTime();
-			Duration d = CLASSICAL.getEndTime().subtract(startTime);
+			TestScenarioWithSimulation classical = classical();
+			Map<String, Object> classicalRunParameters =
+												new HashMap<String, Object>();
+			classical.addToRunParameters(classicalRunParameters);
+			se.setSimulationRunParameters(classicalRunParameters);
+			Time startTime = classical.getStartTime();
+			Duration d = classical.getEndTime().subtract(startTime);
+			((Consumer<String>) (m -> { if (m != null) System.out.println(m); }))
+											.accept(classical.beginMessage());
 			se.doStandAloneSimulation(startTime.getSimulatedTime(),
 									  d.getSimulatedDuration());
 			SimulationReportI sr = se.getSimulatedModel().getFinalReport();
 			System.out.println(sr);
+			((Consumer<String>) (m -> { if (m != null) System.out.println(m); }))
+											.accept(classical.endMessage());
 			System.exit(0);
 		} catch (Throwable e) {
 			throw new RuntimeException(e) ;
@@ -254,8 +265,9 @@ public class			RunFanUnitaryMILSimulation
 									new Time(0.0, TimeUnit.HOURS);
 
 	/** standard test scenario, see Gherkin specification.				 	*/
-	protected static TestScenario	CLASSICAL =
-		new TestScenario(
+	protected static TestScenarioWithSimulation	classical() throws VerboseException
+	{
+		return new TestScenarioWithSimulation(
 			"-----------------------------------------------------\n" +
 			"Classical\n\n" +
 			"  Gherkin specification\n\n" +
@@ -284,17 +296,17 @@ public class			RunFanUnitaryMILSimulation
 			"\n-----------------------------------------------------\n" +
 			"End Classical\n" +
 			"-----------------------------------------------------",
+			"fake-clock",	// for simulation only test scenario, no clock needed
 			START_INSTANT,
 			END_INSTANT,
+			FanCoupledModel.URI,
 			START_TIME,
-			(se, ts) -> { 
-				HashMap<String, Object> simParams = new HashMap<>();
+			(ts, simParams) -> {
 				simParams.put(
 					ModelI.createRunParameterName(
 						FanUnitTesterModel.URI,
 						FanUnitTesterModel.TEST_SCENARIO_RP_NAME),
 					ts);
-				se.setSimulationRunParameters(simParams);
 			},
 			new SimulationTestStep[]{
 				new SimulationTestStep(
@@ -343,5 +355,6 @@ public class			RunFanUnitaryMILSimulation
 						},
 						(m, t) -> {})
 			});
+	}
 }
 // -----------------------------------------------------------------------------

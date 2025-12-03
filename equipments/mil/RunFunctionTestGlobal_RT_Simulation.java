@@ -69,12 +69,15 @@ import equipments.oven.mil.events.HeatOven;
 import equipments.oven.mil.events.DoNotHeatOven;
 import equipments.oven.mil.events.SetModeOven.ModeValue;
 import equipments.oven.mil.events.SetTargetTemperatureOven.TargetTemperatureValue;
+import fr.sorbonne_u.components.cyphy.utils.tests.TestScenarioWithSimulation;
 import fr.sorbonne_u.components.hem2025.tests_utils.SimulationTestStep;
 import fr.sorbonne_u.components.hem2025.tests_utils.TestScenario;
 import fr.sorbonne_u.components.hem2025e1.equipments.batteries.Batteries;
 import fr.sorbonne_u.components.hem2025e1.equipments.generator.Generator;
 import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.SolarPanel;
 import fr.sorbonne_u.components.hem2025e2.GlobalCoupledModel;
+import fr.sorbonne_u.components.hem2025e2.GlobalSimulationConfigurationI;
+import fr.sorbonne_u.components.hem2025e2.RunFunctionalTestGlobalSimulation;
 import fr.sorbonne_u.components.hem2025e2.GlobalCoupledModel.GlobalReport;
 import fr.sorbonne_u.components.hem2025e2.equipments.batteries.mil.BatteriesPowerModel;
 import fr.sorbonne_u.components.hem2025e2.equipments.batteries.mil.BatteriesSimulationConfiguration;
@@ -197,17 +200,12 @@ import javax.jws.WebParam;
  *
  * @author    <a href="mailto:Jacques.Malenfant@lip6.fr">Jacques Malenfant</a>
  */
-public class RunGlobal_RT_Simulation
+public class RunFunctionTestGlobal_RT_Simulation
 {
 	// -------------------------------------------------------------------------
 	// Constants and variables
 	// -------------------------------------------------------------------------
 
-	/** acceleration factor for the real time simulation; with a factor 2.0,
-	 *  the simulation runs two times faster than real time i.e., a run that
-	 *  is supposed to take 10 seconds in real time will take 5 seconds to
-	 *  execute.															*/
-	protected static final double ACCELERATION_FACTOR = 1200.0;
 
 	// -------------------------------------------------------------------------
 	// Invariants
@@ -266,7 +264,7 @@ public class RunGlobal_RT_Simulation
 							HairDryerElectricityModel.URI,
 							GlobalSimulationConfigurationI.TIME_UNIT,
 							null,
-							ACCELERATION_FACTOR));
+							GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 			// for atomic model, we use an RTAtomicModelDescriptor
 			atomicModelDescriptors.put(
 					HairDryerSimpleUserModel.URI,
@@ -275,7 +273,7 @@ public class RunGlobal_RT_Simulation
 							HairDryerSimpleUserModel.URI,
 							GlobalSimulationConfigurationI.TIME_UNIT,
 							null,
-							ACCELERATION_FACTOR));
+							GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 
 			// Heater models
 
@@ -286,7 +284,7 @@ public class RunGlobal_RT_Simulation
 							HeaterElectricityModel.URI,
 							GlobalSimulationConfigurationI.TIME_UNIT,
 							null,
-							ACCELERATION_FACTOR));
+							GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 			atomicModelDescriptors.put(
 					HeaterTemperatureModel.URI,
 					RTAtomicHIOA_Descriptor.create(
@@ -294,7 +292,7 @@ public class RunGlobal_RT_Simulation
 							HeaterTemperatureModel.URI,
 							GlobalSimulationConfigurationI.TIME_UNIT,
 							null,
-							ACCELERATION_FACTOR));
+							GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 			atomicModelDescriptors.put(
 					ExternalTemperatureModel.URI,
 					RTAtomicHIOA_Descriptor.create(
@@ -302,7 +300,7 @@ public class RunGlobal_RT_Simulation
 							ExternalTemperatureModel.URI,
 							GlobalSimulationConfigurationI.TIME_UNIT,
 							null,
-							ACCELERATION_FACTOR));
+							GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 			atomicModelDescriptors.put(
 					HeaterUnitTesterModel.URI,
 					RTAtomicModelDescriptor.create(
@@ -310,7 +308,7 @@ public class RunGlobal_RT_Simulation
 							HeaterUnitTesterModel.URI,
 							GlobalSimulationConfigurationI.TIME_UNIT,
 							null,
-							ACCELERATION_FACTOR));
+							GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 
 			// Fan models
 
@@ -321,8 +319,7 @@ public class RunGlobal_RT_Simulation
 							FanElectricityModel.URI,
 							GlobalSimulationConfigurationI.TIME_UNIT,
 							null,
-							ACCELERATION_FACTOR
-					));
+							GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 
 			atomicModelDescriptors.put(
 					FanUnitTesterModel.URI,
@@ -331,9 +328,7 @@ public class RunGlobal_RT_Simulation
 							FanUnitTesterModel.URI,
 							GlobalSimulationConfigurationI.TIME_UNIT,
 							null,
-							ACCELERATION_FACTOR
-					)
-			);
+							GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 
 			atomicModelDescriptors.put(
 					FanSimpleUserModel.URI,
@@ -342,9 +337,7 @@ public class RunGlobal_RT_Simulation
 							FanSimpleUserModel.URI,
 							GlobalSimulationConfigurationI.TIME_UNIT,
 							null,
-							ACCELERATION_FACTOR
-					)
-			);
+							GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 			
 			// Oven models
 
@@ -355,7 +348,7 @@ public class RunGlobal_RT_Simulation
 							OvenElectricityModel.URI,
 							GlobalSimulationConfigurationI.TIME_UNIT,
 							null,
-							ACCELERATION_FACTOR));
+							GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 			atomicModelDescriptors.put(
 					OvenTemperatureModel.URI,
 					RTAtomicHIOA_Descriptor.create(
@@ -363,7 +356,7 @@ public class RunGlobal_RT_Simulation
 							OvenTemperatureModel.URI,
 							GlobalSimulationConfigurationI.TIME_UNIT,
 							null,
-							ACCELERATION_FACTOR));
+							GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 			atomicModelDescriptors.put(
 					OvenUnitTesterModel.URI,
 					RTAtomicModelDescriptor.create(
@@ -371,7 +364,7 @@ public class RunGlobal_RT_Simulation
 							OvenUnitTesterModel.URI,
 							GlobalSimulationConfigurationI.TIME_UNIT,
 							null,
-							ACCELERATION_FACTOR));
+							GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 
 			// Heat Pump models
 
@@ -382,8 +375,8 @@ public class RunGlobal_RT_Simulation
 							HeatPumpElectricityModel.URI,
 							GlobalSimulationConfigurationI.TIME_UNIT,
 							null,
-							ACCELERATION_FACTOR
-					));
+							GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
+
 			atomicModelDescriptors.put(
 					HeatPumpHeatingModel.URI,
 					RTAtomicHIOA_Descriptor.create(
@@ -391,8 +384,7 @@ public class RunGlobal_RT_Simulation
 							HeatPumpHeatingModel.URI,
 							GlobalSimulationConfigurationI.TIME_UNIT,
 							null,
-							ACCELERATION_FACTOR
-					));
+							GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 
 			atomicModelDescriptors.put(
 					HeatPumpUnitTesterModel.URI,
@@ -401,8 +393,7 @@ public class RunGlobal_RT_Simulation
 							HeatPumpUnitTesterModel.URI,
 							GlobalSimulationConfigurationI.TIME_UNIT,
 							null,
-							ACCELERATION_FACTOR
-					));
+							GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 
 			// Dimmer lamp models
 
@@ -413,8 +404,7 @@ public class RunGlobal_RT_Simulation
 							DimmerLampUnitTesterModel.URI,
 							GlobalSimulationConfigurationI.TIME_UNIT,
 							null,
-							ACCELERATION_FACTOR
-					));
+							GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 
 			atomicModelDescriptors.put(
 					DimmerLampUserModel.URI,
@@ -423,7 +413,7 @@ public class RunGlobal_RT_Simulation
 							DimmerLampUserModel.URI,
 							GlobalSimulationConfigurationI.TIME_UNIT,
 							null,
-							ACCELERATION_FACTOR
+							GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 					));
 
 			atomicModelDescriptors.put(
@@ -433,9 +423,7 @@ public class RunGlobal_RT_Simulation
 							DimmerLampElectricityModel.URI,
 							GlobalSimulationConfigurationI.TIME_UNIT,
 							null,
-							ACCELERATION_FACTOR
-					)
-			);
+							GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 
 			// Batteries models
 
@@ -448,7 +436,7 @@ public class RunGlobal_RT_Simulation
 							BatteriesPowerModel.URI,
 							BatteriesSimulationConfiguration.TIME_UNIT,
 							null,
-							ACCELERATION_FACTOR));
+							GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 
 			// Solar panel models
 
@@ -464,7 +452,7 @@ public class RunGlobal_RT_Simulation
 								AstronomicalSunRiseAndSetModel.URI,
 								SolarPanelSimulationConfigurationI.TIME_UNIT,
 								null,
-								ACCELERATION_FACTOR));
+								GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 			} else {
 				// DeterministicSunRiseAndSetModel is an atomic event scheduling
 				// model, so needs an AtomicModelDescriptor
@@ -476,7 +464,7 @@ public class RunGlobal_RT_Simulation
 								DeterministicSunRiseAndSetModel.URI,
 								SolarPanelSimulationConfigurationI.TIME_UNIT,
 								null,
-								ACCELERATION_FACTOR));
+								GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 			}
 			String sunIntensityModelURI = null;
 			if (SolarPanelSimulationConfigurationI.
@@ -491,7 +479,7 @@ public class RunGlobal_RT_Simulation
 								StochasticSunIntensityModel.URI,
 								SolarPanelSimulationConfigurationI.TIME_UNIT,
 								null,
-								ACCELERATION_FACTOR));
+								GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 			} else {
 				// DeterministicSunIntensityModel is an atomic HIOA model, so
 				// needs an AtomicHIOA_Descriptor
@@ -503,7 +491,7 @@ public class RunGlobal_RT_Simulation
 								DeterministicSunIntensityModel.URI,
 								SolarPanelSimulationConfigurationI.TIME_UNIT,
 								null,
-								ACCELERATION_FACTOR));
+								GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 			}
 			// SolarPanelPowerModel is an atomic HIOA model, so needs an
 			// AtomicHIOA_Descriptor
@@ -514,7 +502,7 @@ public class RunGlobal_RT_Simulation
 							SolarPanelPowerModel.URI,
 							SolarPanelSimulationConfigurationI.TIME_UNIT,
 							null,
-							ACCELERATION_FACTOR));
+							GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 
 			// Generator models
 
@@ -527,7 +515,7 @@ public class RunGlobal_RT_Simulation
 							GeneratorFuelModel.URI,
 							GeneratorSimulationConfiguration.TIME_UNIT,
 							null,
-							ACCELERATION_FACTOR));
+							GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 			// GeneratorPowerModel is an atomic HIOA model, so needs an
 			// AtomicHIOA_Descriptor
 			atomicModelDescriptors.put(
@@ -537,7 +525,7 @@ public class RunGlobal_RT_Simulation
 							GeneratorPowerModel.URI,
 							GeneratorSimulationConfiguration.TIME_UNIT,
 							null,
-							ACCELERATION_FACTOR));
+							GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 			// BatteriesUnitTesterModel is an atomic HIOA model, so needs an
 			// AtomicHIOA_Descriptor
 			atomicModelDescriptors.put(
@@ -547,7 +535,7 @@ public class RunGlobal_RT_Simulation
 							GeneratorGlobalTesterModel.URI,
 							GeneratorSimulationConfiguration.TIME_UNIT,
 							null,
-							ACCELERATION_FACTOR));
+							GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 
 			// the electric meter model
 			atomicModelDescriptors.put(
@@ -557,7 +545,7 @@ public class RunGlobal_RT_Simulation
 							ElectricMeterElectricityModel.URI,
 							GlobalSimulationConfigurationI.TIME_UNIT,
 							null,
-							ACCELERATION_FACTOR));
+							GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 
 			// -----------------------------------------------------------------
 			// Global coupled model
@@ -1135,7 +1123,7 @@ public class RunGlobal_RT_Simulation
 							null,
 							null,
 							bindings,
-							ACCELERATION_FACTOR));
+							GlobalSimulationConfigurationI.ACCELERATION_FACTOR));
 
 			// simulation architecture
 			ArchitectureI architecture =
@@ -1375,25 +1363,30 @@ public class RunGlobal_RT_Simulation
 			// Test scenario
 
 			// run a CLASSICAL test scenario
-			CLASSICAL.setUpSimulator(se, simParams);
-			Time startTime = CLASSICAL.getStartTime();
-			Duration d = CLASSICAL.getEndTime().subtract(startTime);
+			TestScenarioWithSimulation classical =
+					RunFunctionalTestGlobalSimulation.classical();
+			Map<String, Object> classicalRunParameters =
+												new HashMap<String, Object>();
+			classical.addToRunParameters(classicalRunParameters);
+			se.setSimulationRunParameters(classicalRunParameters);
+			Time startTime = classical.getStartTime();
+			Duration d = classical.getEndTime().subtract(startTime);
 			// the real time of start of the simulation plus a 1s delay to give
 			// the time to initialise all models in the architecture.
 			long realTimeOfStart = System.currentTimeMillis() + 1000L;
 
 			se.startRTSimulation(realTimeOfStart,
-					startTime.getSimulatedTime(),
-					d.getSimulatedDuration());
+								 startTime.getSimulatedTime(),
+								 d.getSimulatedDuration());
 
 			// wait until the simulation ends i.e., the start delay  plus the
 			// duration of the simulation in milliseconds plus another 2s delay
 			// to make sure...
 			Thread.sleep(
-					1000L
-							+ ((long)((d.getSimulatedDuration()*3600*1000.0)/
-							ACCELERATION_FACTOR))
-							+ 3000L);
+				1000L
+				+ ((long)((d.getSimulatedDuration()*3600*1000.0)/
+							GlobalSimulationConfigurationI.ACCELERATION_FACTOR))
+				+ 3000L);
 			// Optional: simulation report
 			GlobalReport r = (GlobalReport) se.getFinalReport();
 			System.out.println(r.printout(""));
@@ -1401,7 +1394,7 @@ public class RunGlobal_RT_Simulation
 			throw new RuntimeException(e) ;
 		}
 	}
-
+// FIXME HERE
 	// -------------------------------------------------------------------------
 	// Test scenarios
 	// -------------------------------------------------------------------------

@@ -7,8 +7,8 @@ import equipments.fan.mil.events.SetMediumFan;
 import equipments.fan.mil.events.SetLowFan;
 import equipments.fan.mil.events.SwitchOffFan;
 import equipments.fan.mil.events.SwitchOnFan;
-import fr.sorbonne_u.components.hem2025.tests_utils.AbstractTestScenarioBasedAtomicModel;
-import fr.sorbonne_u.components.hem2025.tests_utils.TestScenario;
+import fr.sorbonne_u.components.cyphy.utils.tests.AbstractTestScenarioBasedAtomicModel;
+import fr.sorbonne_u.components.cyphy.utils.tests.TestScenarioWithSimulation;
 import fr.sorbonne_u.devs_simulation.exceptions.MissingRunParameterException;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
 import fr.sorbonne_u.devs_simulation.models.annotations.ModelExternalEvents;
@@ -146,7 +146,7 @@ extends		AbstractTestScenarioBasedAtomicModel
 		assert	simParams.containsKey(testScenarioName) :
 				new MissingRunParameterException(testScenarioName);
 
-		this.setTestScenario((TestScenario) simParams.get(testScenarioName));
+		this.setTestScenario((TestScenarioWithSimulation) simParams.get(testScenarioName));
 	}
 }
 // -----------------------------------------------------------------------------

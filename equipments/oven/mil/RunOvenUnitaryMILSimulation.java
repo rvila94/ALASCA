@@ -19,8 +19,8 @@ import equipments.oven.mil.events.SetTargetTemperatureOven.TargetTemperatureValu
 
 import java.time.Instant;
 import java.util.ArrayList;
-import fr.sorbonne_u.components.hem2025.tests_utils.SimulationTestStep;
-import fr.sorbonne_u.components.hem2025.tests_utils.TestScenario;
+import fr.sorbonne_u.components.cyphy.utils.tests.SimulationTestStep;
+import fr.sorbonne_u.components.cyphy.utils.tests.TestScenarioWithSimulation;
 import fr.sorbonne_u.devs_simulation.architectures.Architecture;
 import fr.sorbonne_u.devs_simulation.architectures.ArchitectureI;
 import fr.sorbonne_u.devs_simulation.hioa.architectures.AtomicHIOA_Descriptor;
@@ -38,6 +38,7 @@ import fr.sorbonne_u.devs_simulation.models.time.Duration;
 import fr.sorbonne_u.devs_simulation.models.time.Time;
 import fr.sorbonne_u.devs_simulation.simulators.SimulationEngine;
 import fr.sorbonne_u.devs_simulation.simulators.interfaces.SimulatorI;
+import fr.sorbonne_u.exceptions.VerboseException;
 
 // -----------------------------------------------------------------------------
 /**
@@ -294,9 +295,13 @@ public class			RunOvenUnitaryMILSimulation
 			SimulationEngine.SIMULATION_STEP_SLEEP_TIME = 0L;
 
 			// run a CLASSICAL test scenario
-			CLASSICAL.setUpSimulator(se);
-			Time startTime = CLASSICAL.getStartTime();
-			Duration d = CLASSICAL.getEndTime().subtract(startTime);
+			TestScenarioWithSimulation classical = classical();
+			Map<String, Object> classicalRunParameters =
+												new HashMap<String, Object>();
+			classical.addToRunParameters(classicalRunParameters);
+			se.setSimulationRunParameters(classicalRunParameters);
+			Time startTime = classical.getStartTime();
+			Duration d = classical.getEndTime().subtract(startTime);
 			se.doStandAloneSimulation(startTime.getSimulatedTime(),
 									  d.getSimulatedDuration());
 			System.exit(0);
@@ -320,8 +325,9 @@ public class			RunOvenUnitaryMILSimulation
 	protected static Time		START_TIME = new Time(0.0, TimeUnit.HOURS);
 
 	/** standard test scenario, see Gherkin specification.				 	*/
-	protected static TestScenario CLASSICAL =
-		    new TestScenario(
+	protected static TestScenarioWithSimulation	classical() throws VerboseException
+	{	    
+		return new TestScenarioWithSimulation(
 		        "-----------------------------------------------------\n" +
 		        "Classical\n\n" +
 		        "  Gherkin specification\n\n" +
@@ -374,17 +380,17 @@ public class			RunOvenUnitaryMILSimulation
 		        "\n-----------------------------------------------------\n" +
 		        "End Classical\n" +
 		        "-----------------------------------------------------",
+		        "fake-clock-URI",	// for simulation only test scenario, no clock needed
 		        START_INSTANT,
 		        END_INSTANT,
+		        OvenCoupledModel.URI,
 		        START_TIME,
-		        (se, ts) -> {
-		            HashMap<String, Object> simParams = new HashMap<>();
-		            simParams.put(
+		        (ts, simParams) -> {
+					simParams.put(
 		                ModelI.createRunParameterName(
 		                    OvenUnitTesterModel.URI,
 		                    OvenUnitTesterModel.TEST_SCENARIO_RP_NAME),
 		                ts);
-		            se.setSimulationRunParameters(simParams);
 		        },
 		        new SimulationTestStep[] {
 		            // Switch on
@@ -513,6 +519,6 @@ public class			RunOvenUnitaryMILSimulation
 		                (m, t) -> {})
 		        }
 		    );
-
+	}
 }
 // -----------------------------------------------------------------------------

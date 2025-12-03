@@ -49,7 +49,7 @@ import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.components.hem2025.bases.AdjustableCI;
 import fr.sorbonne_u.components.hem2025.bases.RegistrationCI;
-import fr.sorbonne_u.components.hem2025.tests_utils.TestsStatistics;
+import fr.sorbonne_u.components.utils.tests.TestsStatistics;
 import fr.sorbonne_u.components.hem2025e1.equipments.batteries.Batteries;
 import fr.sorbonne_u.components.hem2025e1.equipments.batteries.BatteriesCI;
 import fr.sorbonne_u.components.hem2025e1.equipments.batteries.BatteriesUnitTester;
