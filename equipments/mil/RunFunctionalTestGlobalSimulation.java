@@ -53,7 +53,6 @@ import equipments.dimmerlamp.mil.events.LampPowerValue;
 import equipments.dimmerlamp.mil.events.SetPowerLampEvent;
 import equipments.dimmerlamp.mil.events.SwitchOffLampEvent;
 import equipments.dimmerlamp.mil.events.SwitchOnLampEvent;
-import equipments.fan.Fan;
 import equipments.fan.mil.FanElectricityModel;
 import equipments.fan.mil.FanSimpleUserModel;
 import equipments.fan.mil.FanUnitTesterModel;
@@ -72,8 +71,7 @@ import equipments.oven.mil.events.DoNotHeatOven;
 import equipments.oven.mil.events.SetModeOven.ModeValue;
 import equipments.oven.mil.events.SetTargetTemperatureOven.TargetTemperatureValue;
 import fr.sorbonne_u.components.cyphy.utils.tests.TestScenarioWithSimulation;
-import fr.sorbonne_u.components.hem2025.tests_utils.SimulationTestStep;
-import fr.sorbonne_u.components.hem2025.tests_utils.TestScenario;
+import fr.sorbonne_u.components.cyphy.utils.tests.SimulationTestStep;
 import fr.sorbonne_u.components.hem2025e1.equipments.batteries.Batteries;
 import fr.sorbonne_u.components.hem2025e1.equipments.generator.Generator;
 import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.SolarPanel;
@@ -1115,162 +1113,6 @@ public class			RunFunctionalTestGlobalSimulation
 			SimulatorI se = architecture.constructSimulator();
 
 			// -----------------------------------------------------------------
-			// Simulation run parameters
-			// -----------------------------------------------------------------
-
-			Map<String,Object> simParams = new HashMap<>();
-
-			// run parameters for hair dryer models
-
-			simParams.put(
-				ModelI.createRunParameterName(
-					HairDryerElectricityModel.URI,
-					HairDryerElectricityModel.LOW_MODE_CONSUMPTION_RPNAME),
-				660.0);
-			simParams.put(
-				ModelI.createRunParameterName(
-					HairDryerElectricityModel.URI,
-					HairDryerElectricityModel.HIGH_MODE_CONSUMPTION_RPNAME),
-				1320.0);
-			simParams.put(
-				ModelI.createRunParameterName(
-					HairDryerSimpleUserModel.URI,
-					HairDryerSimpleUserModel.MEAN_STEP_RPNAME),
-				0.05);
-			simParams.put(
-				ModelI.createRunParameterName(
-					HairDryerSimpleUserModel.URI,
-					HairDryerSimpleUserModel.MEAN_DELAY_RPNAME),
-				2.0);
-
-			// run parameters for dimmer lamp models
-
-			simParams.put(
-					ModelI.createRunParameterName(
-							DimmerLampUserModel.URI,
-							DimmerLampUserModel.STEP_RUN_PARAMETER
-					),
-					0.25
-			);
-
-			simParams.put(
-					ModelI.createRunParameterName(
-							DimmerLampUserModel.URI,
-							DimmerLampUserModel.DELAY_RUN_PARAMETER
-					),
-					1.
-			);
-
-			// run parameters for fan models
-
-			simParams.put(
-					ModelI.createRunParameterName(
-							FanSimpleUserModel.URI,
-							FanSimpleUserModel.MEAN_DELAY_RPNAME
-					),
-					1.
-			);
-
-			simParams.put(
-					ModelI.createRunParameterName(
-							FanSimpleUserModel.URI,
-							FanSimpleUserModel.MEAN_STEP_RPNAME
-					),
-					0.05
-			);
-
-			// run parameters for solar panel models
-
-			simParams.put(
-				ModelI.createRunParameterName(
-					sunRiseAndSetURI,
-					SunRiseAndSetModelI.LATITUDE_RP_NAME),
-				SolarPanelSimulationConfigurationI.LATITUDE);
-			simParams.put(
-				ModelI.createRunParameterName(
-					sunRiseAndSetURI,
-					SunRiseAndSetModelI.LONGITUDE_RP_NAME),
-				SolarPanelSimulationConfigurationI.LONGITUDE);
-			simParams.put(
-				ModelI.createRunParameterName(
-					sunRiseAndSetURI,
-					SunRiseAndSetModelI.START_INSTANT_RP_NAME),
-				GlobalSimulationConfigurationI.START_INSTANT);
-			simParams.put(
-				ModelI.createRunParameterName(
-					sunRiseAndSetURI,
-					SunRiseAndSetModelI.ZONE_ID_RP_NAME),
-				SolarPanelSimulationConfigurationI.ZONE);
-
-			simParams.put(
-				ModelI.createRunParameterName(
-					sunIntensityModelURI,
-					SunIntensityModelI.LATITUDE_RP_NAME),
-				SolarPanelSimulationConfigurationI.LATITUDE);
-			simParams.put(
-				ModelI.createRunParameterName(
-					sunIntensityModelURI,
-					SunIntensityModelI.LONGITUDE_RP_NAME),
-				SolarPanelSimulationConfigurationI.LONGITUDE);
-			simParams.put(
-				ModelI.createRunParameterName(
-					sunIntensityModelURI,
-					SunIntensityModelI.START_INSTANT_RP_NAME),
-				GlobalSimulationConfigurationI.START_INSTANT);
-			simParams.put(
-				ModelI.createRunParameterName(
-					sunIntensityModelURI,
-					SunIntensityModelI.ZONE_ID_RP_NAME),
-				SolarPanelSimulationConfigurationI.ZONE);
-			simParams.put(
-				ModelI.createRunParameterName(
-					sunIntensityModelURI,
-					SunIntensityModelI.SLOPE_RP_NAME),
-				SolarPanelSimulationConfigurationI.SLOPE);
-			simParams.put(
-				ModelI.createRunParameterName(
-					sunIntensityModelURI,
-					SunIntensityModelI.ORIENTATION_RP_NAME),
-				SolarPanelSimulationConfigurationI.ORIENTATION);
-			simParams.put(
-				ModelI.createRunParameterName(
-					sunIntensityModelURI,
-					SunIntensityModelI.COMPUTATION_STEP_RP_NAME),
-				0.5);
-
-			simParams.put(
-				ModelI.createRunParameterName(
-					SolarPanelPowerModel.URI,
-					SolarPanelPowerModel.LATITUDE_RP_NAME),
-				SolarPanelSimulationConfigurationI.LATITUDE);
-			simParams.put(
-				ModelI.createRunParameterName(
-					SolarPanelPowerModel.URI,
-					SolarPanelPowerModel.LONGITUDE_RP_NAME),
-				SolarPanelSimulationConfigurationI.LONGITUDE);
-			simParams.put(
-				ModelI.createRunParameterName(
-					SolarPanelPowerModel.URI,
-					SolarPanelPowerModel.START_INSTANT_RP_NAME),
-				GlobalSimulationConfigurationI.START_INSTANT);
-			simParams.put(
-				ModelI.createRunParameterName(
-					SolarPanelPowerModel.URI,
-					SolarPanelPowerModel.ZONE_ID_RP_NAME),
-				SolarPanelSimulationConfigurationI.ZONE);
-			simParams.put(
-				ModelI.createRunParameterName(
-					SolarPanelPowerModel.URI,
-					SolarPanelPowerModel.MAX_POWER_RP_NAME),
-				SolarPanelSimulationConfigurationI.NB_SQUARE_METERS *
-								SolarPanel.CAPACITY_PER_SQUARE_METER.getData());
-			simParams.put(
-				ModelI.createRunParameterName(
-					SolarPanelPowerModel.URI,
-					SolarPanelPowerModel.COMPUTATION_STEP_RP_NAME),
-				0.25);
-
-			// -----------------------------------------------------------------
 			// Simulation runs
 			// -----------------------------------------------------------------
 
@@ -1374,6 +1216,7 @@ public class			RunFunctionalTestGlobalSimulation
 		return new TestScenarioWithSimulation(
 				"-----------------------------------------------------\n" +
 				"Classical\n" + 
+				"-----------------------------------------------------\n",
 				"\n-----------------------------------------------------\n" +
 				"End Classical\n" +
 				"-----------------------------------------------------",
@@ -1605,362 +1448,361 @@ public class			RunFunctionalTestGlobalSimulation
 							),
 							testScenario
 					);
-					simulationEngine.setSimulationRunParameters(
-														simulationParameters);
 				},
 				new TestStepI[]{
-						new SimulationTestStep(
-								GeneratorGlobalTesterModel.URI,
-								Instant.parse("2025-10-20T12:15:00.00Z"),
-								(m, t) -> {
-									ArrayList<EventI> ret = new ArrayList<>();
-									ret.add(new Start(t));
-									return ret;
-								},
-								(m, t) -> {}),
-						new SimulationTestStep(
-								HeaterUnitTesterModel.URI,
-								Instant.parse("2025-10-20T12:30:00.00Z"),
-								(m, t) -> {
-									ArrayList<EventI> ret = new ArrayList<>();
-									ret.add(new SwitchOnHeater(t));
-									return ret;
-								},
-								(m, t) -> {}),
-						new SimulationTestStep(
-								HeaterUnitTesterModel.URI,
-								Instant.parse("2025-10-20T13:00:00.00Z"),
-								(m, t) -> {
-									ArrayList<EventI> ret = new ArrayList<>();
-									ret.add(new Heat(t));
-									return ret;
-								},
-								(m, t) -> {}),
-						new SimulationTestStep(
-								HeaterUnitTesterModel.URI,
-								Instant.parse("2025-10-20T13:30:00.00Z"),
-								(m, t) -> {
-									ArrayList<EventI> ret = new ArrayList<>();
-									ret.add(new DoNotHeat(t));
-									return ret;
-								},
-								(m, t) -> {}),
-						new SimulationTestStep(
-								HeaterUnitTesterModel.URI,
-								Instant.parse("2025-10-20T14:00:00.00Z"),
-								(m, t) -> {
-									ArrayList<EventI> ret = new ArrayList<>();
-									ret.add(new Heat(t));
-									return ret;
-								},
-								(m, t) -> {}),
-						new SimulationTestStep(
-								HeaterUnitTesterModel.URI,
-								Instant.parse("2025-10-20T14:10:00.00Z"),
-								(m, t) -> {
-									ArrayList<EventI> ret = new ArrayList<>();
-									ret.add(new SetPowerHeater(t,
-											new PowerValue(880.0)));
-									return ret;
-								},
-								(m, t) -> {}),
-						new SimulationTestStep(
-								HeaterUnitTesterModel.URI,
-								Instant.parse("2025-10-20T14:20:00.00Z"),
-								(m, t) -> {
-									ArrayList<EventI> ret = new ArrayList<>();
-									ret.add(new SwitchOffHeater(t));
-									return ret;
-								},
-								(m, t) -> {}),
-						new SimulationTestStep(
-								HeatPumpUnitTesterModel.URI,
-								Instant.parse("2025-10-20T14:30:00.00Z"),
-								(m, t) -> {
-									ArrayList<EventI> ret = new ArrayList<>();
-									ret.add(new SwitchOnEvent(t));
-									return ret;
-								},
-								(m, t) -> {}),
-						new SimulationTestStep(
-								HeatPumpUnitTesterModel.URI,
-								Instant.parse("2025-10-20T14:40:00.00Z"),
-								(m, t) -> {
-									ArrayList<EventI> ret = new ArrayList<>();
-									ret.add(new SetPowerEvent(t,
-											new HeatPumpPowerValue(HeatPump.MAX_POWER_LEVEL.getData())));
-									return ret;
-								},
-								(m, t) -> {}),
-						new SimulationTestStep(
-								HeatPumpUnitTesterModel.URI,
-								Instant.parse("2025-10-20T14:50:00.00Z"),
-								(m, t) -> {
-									ArrayList<EventI> ret = new ArrayList<>();
-									ret.add(new StartHeatingEvent(t));
-									return ret;
-								},
-								(m, t) -> {}),
-						new SimulationTestStep(
-								HeatPumpUnitTesterModel.URI,
-								Instant.parse("2025-10-20T15:00:00.00Z"),
-								(m, t) -> {
-									ArrayList<EventI> ret = new ArrayList<>();
-									ret.add(new SetPowerEvent(t,
-											new HeatPumpPowerValue(HeatPump.MAX_POWER_LEVEL.getData() / 2.)));
-									return ret;
-								},
-								(m, t) -> {}),
-						new SimulationTestStep(
-								HeatPumpUnitTesterModel.URI,
-								Instant.parse("2025-10-20T15:10:00.00Z"),
-								(m, t) -> {
-									ArrayList<EventI> ret = new ArrayList<>();
-									ret.add(new StopHeatingEvent(t));
-									return ret;
-								},
-								(m, t) -> {}),
-						new SimulationTestStep(
-								HeatPumpUnitTesterModel.URI,
-								Instant.parse("2025-10-20T15:20:00.00Z"),
-								(m, t) -> {
-									ArrayList<EventI> ret = new ArrayList<>();
-									ret.add(new StartCoolingEvent(t));
-									return ret;
-								},
-								(m, t) -> {}),
-						new SimulationTestStep(
-								HeatPumpUnitTesterModel.URI,
-								Instant.parse("2025-10-20T15:30:00.00Z"),
-								(m, t) -> {
-									ArrayList<EventI> ret = new ArrayList<>();
-									ret.add(new SetPowerEvent(t, new HeatPumpPowerValue(HeatPump.MAX_POWER_LEVEL.getData())));
-									return ret;
-								},
-								(m, t) -> {}),
-						new SimulationTestStep(
-								HeatPumpUnitTesterModel.URI,
-								Instant.parse("2025-10-20T15:40:00.00Z"),
-								(m, t) -> {
-									ArrayList<EventI> ret = new ArrayList<>();
-									ret.add(new StopCoolingEvent(t));
-									return ret;
-								},
-								(m, t) -> {}),
-						new SimulationTestStep(
-								HeatPumpUnitTesterModel.URI,
-								Instant.parse("2025-10-20T15:50:00.00Z"),
-								(m, t) -> {
-									ArrayList<EventI> ret = new ArrayList<>();
-									ret.add(new SwitchOffEvent(t));
-									return ret;
-								},
-								(m, t) -> {}),
-						new SimulationTestStep(
-								DimmerLampUnitTesterModel.URI,
-								Instant.parse("2025-10-20T16:00:00.00Z"),
-								(m, t) -> {
-									ArrayList<EventI> ret = new ArrayList<>();
-									ret.add(new SwitchOnLampEvent(t));
-									return ret;
-								},
-								(m, t) -> {}),
-						new SimulationTestStep(
-								DimmerLampUnitTesterModel.URI,
-								Instant.parse("2025-10-20T16:10:00.00Z"),
-								(m, t) -> {
-									ArrayList<EventI> ret = new ArrayList<>();
-									ret.add(new SetPowerLampEvent(t, new LampPowerValue(DimmerLamp.MAX_POWER_VARIATION.getData())));
-									return ret;
-								},
-								(m, t) -> {}),
-						new SimulationTestStep(
-								DimmerLampUnitTesterModel.URI,
-								Instant.parse("2025-10-20T16:20:00.00Z"),
-								(m, t) -> {
-									ArrayList<EventI> ret = new ArrayList<>();
-									ret.add(new SwitchOffLampEvent(t));
-									return ret;
-								},
-								(m, t) -> {}),
-						new SimulationTestStep(
-								FanUnitTesterModel.URI,
-								Instant.parse("2025-10-20T16:30:00.00Z"),
-								(m, t) -> {
-									ArrayList<EventI> ret = new ArrayList<>();
-									ret.add(new SwitchOnFan(t));
-									return ret;
-								},
-								(m, t) -> {}),
-						new SimulationTestStep(
-								FanUnitTesterModel.URI,
-								Instant.parse("2025-10-20T16:40:00.00Z"),
-								(m, t) -> {
-									ArrayList<EventI> ret = new ArrayList<>();
-									ret.add(new SetHighFan(t));
-									return ret;
-								},
-								(m, t) -> {}),
-						new SimulationTestStep(
-								FanUnitTesterModel.URI,
-								Instant.parse("2025-10-20T16:50:00.00Z"),
-								(m, t) -> {
-									ArrayList<EventI> ret = new ArrayList<>();
-									ret.add(new SetMediumFan(t));
-									return ret;
-								},
-								(m, t) -> {}),
-						new SimulationTestStep(
-								FanUnitTesterModel.URI,
-								Instant.parse("2025-10-20T17:00:00.00Z"),
-								(m, t) -> {
-									ArrayList<EventI> ret = new ArrayList<>();
-									ret.add(new SetLowFan(t));
-									return ret;
-								},
-								(m, t) -> {}),
-						new SimulationTestStep(
-								FanUnitTesterModel.URI,
-								Instant.parse("2025-10-20T17:10:00.00Z"),
-								(m, t) -> {
-									ArrayList<EventI> ret = new ArrayList<>();
-									ret.add(new SwitchOffFan(t));
-									return ret;
-								},
-								(m, t) -> {}),
-						// Switch on
-			            new SimulationTestStep(
-			                OvenUnitTesterModel.URI,
-			                Instant.parse("2025-10-20T17:20:00.00Z"),
-			                (m, t) -> {
-			                    ArrayList<EventI> ret = new ArrayList<>();
-			                    ret.add(new SwitchOnOven(t));
-			                    return ret;
-			                },
-			                (m, t) -> {}),
+					new SimulationTestStep(
+							GeneratorGlobalTesterModel.URI,
+							Instant.parse("2025-10-20T12:15:00.00Z"),
+							(m, t) -> {
+								ArrayList<EventI> ret = new ArrayList<>();
+								ret.add(new Start(t));
+								return ret;
+							},
+							(m, t) -> {}),
+					new SimulationTestStep(
+							HeaterUnitTesterModel.URI,
+							Instant.parse("2025-10-20T12:30:00.00Z"),
+							(m, t) -> {
+								ArrayList<EventI> ret = new ArrayList<>();
+								ret.add(new SwitchOnHeater(t));
+								return ret;
+							},
+							(m, t) -> {}),
+					new SimulationTestStep(
+							HeaterUnitTesterModel.URI,
+							Instant.parse("2025-10-20T13:00:00.00Z"),
+							(m, t) -> {
+								ArrayList<EventI> ret = new ArrayList<>();
+								ret.add(new Heat(t));
+								return ret;
+							},
+							(m, t) -> {}),
+					new SimulationTestStep(
+							HeaterUnitTesterModel.URI,
+							Instant.parse("2025-10-20T13:30:00.00Z"),
+							(m, t) -> {
+								ArrayList<EventI> ret = new ArrayList<>();
+								ret.add(new DoNotHeat(t));
+								return ret;
+							},
+							(m, t) -> {}),
+					new SimulationTestStep(
+							HeaterUnitTesterModel.URI,
+							Instant.parse("2025-10-20T14:00:00.00Z"),
+							(m, t) -> {
+								ArrayList<EventI> ret = new ArrayList<>();
+								ret.add(new Heat(t));
+								return ret;
+							},
+							(m, t) -> {}),
+					new SimulationTestStep(
+							HeaterUnitTesterModel.URI,
+							Instant.parse("2025-10-20T14:10:00.00Z"),
+							(m, t) -> {
+								ArrayList<EventI> ret = new ArrayList<>();
+								ret.add(new SetPowerHeater(t,
+										new PowerValue(880.0)));
+								return ret;
+							},
+							(m, t) -> {}),
+					new SimulationTestStep(
+							HeaterUnitTesterModel.URI,
+							Instant.parse("2025-10-20T14:20:00.00Z"),
+							(m, t) -> {
+								ArrayList<EventI> ret = new ArrayList<>();
+								ret.add(new SwitchOffHeater(t));
+								return ret;
+							},
+							(m, t) -> {}),
+					new SimulationTestStep(
+							HeatPumpUnitTesterModel.URI,
+							Instant.parse("2025-10-20T14:30:00.00Z"),
+							(m, t) -> {
+								ArrayList<EventI> ret = new ArrayList<>();
+								ret.add(new SwitchOnEvent(t));
+								return ret;
+							},
+							(m, t) -> {}),
+					new SimulationTestStep(
+							HeatPumpUnitTesterModel.URI,
+							Instant.parse("2025-10-20T14:40:00.00Z"),
+							(m, t) -> {
+								ArrayList<EventI> ret = new ArrayList<>();
+								ret.add(new SetPowerEvent(t,
+										new HeatPumpPowerValue(HeatPump.MAX_POWER_LEVEL.getData())));
+								return ret;
+							},
+							(m, t) -> {}),
+					new SimulationTestStep(
+							HeatPumpUnitTesterModel.URI,
+							Instant.parse("2025-10-20T14:50:00.00Z"),
+							(m, t) -> {
+								ArrayList<EventI> ret = new ArrayList<>();
+								ret.add(new StartHeatingEvent(t));
+								return ret;
+							},
+							(m, t) -> {}),
+					new SimulationTestStep(
+							HeatPumpUnitTesterModel.URI,
+							Instant.parse("2025-10-20T15:00:00.00Z"),
+							(m, t) -> {
+								ArrayList<EventI> ret = new ArrayList<>();
+								ret.add(new SetPowerEvent(t,
+										new HeatPumpPowerValue(HeatPump.MAX_POWER_LEVEL.getData() / 2.)));
+								return ret;
+							},
+							(m, t) -> {}),
+					new SimulationTestStep(
+							HeatPumpUnitTesterModel.URI,
+							Instant.parse("2025-10-20T15:10:00.00Z"),
+							(m, t) -> {
+								ArrayList<EventI> ret = new ArrayList<>();
+								ret.add(new StopHeatingEvent(t));
+								return ret;
+							},
+							(m, t) -> {}),
+					new SimulationTestStep(
+							HeatPumpUnitTesterModel.URI,
+							Instant.parse("2025-10-20T15:20:00.00Z"),
+							(m, t) -> {
+								ArrayList<EventI> ret = new ArrayList<>();
+								ret.add(new StartCoolingEvent(t));
+								return ret;
+							},
+							(m, t) -> {}),
+					new SimulationTestStep(
+							HeatPumpUnitTesterModel.URI,
+							Instant.parse("2025-10-20T15:30:00.00Z"),
+							(m, t) -> {
+								ArrayList<EventI> ret = new ArrayList<>();
+								ret.add(new SetPowerEvent(t, new HeatPumpPowerValue(HeatPump.MAX_POWER_LEVEL.getData())));
+								return ret;
+							},
+							(m, t) -> {}),
+					new SimulationTestStep(
+							HeatPumpUnitTesterModel.URI,
+							Instant.parse("2025-10-20T15:40:00.00Z"),
+							(m, t) -> {
+								ArrayList<EventI> ret = new ArrayList<>();
+								ret.add(new StopCoolingEvent(t));
+								return ret;
+							},
+							(m, t) -> {}),
+					new SimulationTestStep(
+							HeatPumpUnitTesterModel.URI,
+							Instant.parse("2025-10-20T15:50:00.00Z"),
+							(m, t) -> {
+								ArrayList<EventI> ret = new ArrayList<>();
+								ret.add(new SwitchOffEvent(t));
+								return ret;
+							},
+							(m, t) -> {}),
+					new SimulationTestStep(
+							DimmerLampUnitTesterModel.URI,
+							Instant.parse("2025-10-20T16:00:00.00Z"),
+							(m, t) -> {
+								ArrayList<EventI> ret = new ArrayList<>();
+								ret.add(new SwitchOnLampEvent(t));
+								return ret;
+							},
+							(m, t) -> {}),
+					new SimulationTestStep(
+							DimmerLampUnitTesterModel.URI,
+							Instant.parse("2025-10-20T16:10:00.00Z"),
+							(m, t) -> {
+								ArrayList<EventI> ret = new ArrayList<>();
+								ret.add(new SetPowerLampEvent(t, new LampPowerValue(DimmerLamp.MAX_POWER_VARIATION.getData())));
+								return ret;
+							},
+							(m, t) -> {}),
+					new SimulationTestStep(
+							DimmerLampUnitTesterModel.URI,
+							Instant.parse("2025-10-20T16:20:00.00Z"),
+							(m, t) -> {
+								ArrayList<EventI> ret = new ArrayList<>();
+								ret.add(new SwitchOffLampEvent(t));
+								return ret;
+							},
+							(m, t) -> {}),
+					new SimulationTestStep(
+							FanUnitTesterModel.URI,
+							Instant.parse("2025-10-20T16:30:00.00Z"),
+							(m, t) -> {
+								ArrayList<EventI> ret = new ArrayList<>();
+								ret.add(new SwitchOnFan(t));
+								return ret;
+							},
+							(m, t) -> {}),
+					new SimulationTestStep(
+							FanUnitTesterModel.URI,
+							Instant.parse("2025-10-20T16:40:00.00Z"),
+							(m, t) -> {
+								ArrayList<EventI> ret = new ArrayList<>();
+								ret.add(new SetHighFan(t));
+								return ret;
+							},
+							(m, t) -> {}),
+					new SimulationTestStep(
+							FanUnitTesterModel.URI,
+							Instant.parse("2025-10-20T16:50:00.00Z"),
+							(m, t) -> {
+								ArrayList<EventI> ret = new ArrayList<>();
+								ret.add(new SetMediumFan(t));
+								return ret;
+							},
+							(m, t) -> {}),
+					new SimulationTestStep(
+							FanUnitTesterModel.URI,
+							Instant.parse("2025-10-20T17:00:00.00Z"),
+							(m, t) -> {
+								ArrayList<EventI> ret = new ArrayList<>();
+								ret.add(new SetLowFan(t));
+								return ret;
+							},
+							(m, t) -> {}),
+					new SimulationTestStep(
+							FanUnitTesterModel.URI,
+							Instant.parse("2025-10-20T17:10:00.00Z"),
+							(m, t) -> {
+								ArrayList<EventI> ret = new ArrayList<>();
+								ret.add(new SwitchOffFan(t));
+								return ret;
+							},
+							(m, t) -> {}),
+					// Switch on
+		            new SimulationTestStep(
+		                OvenUnitTesterModel.URI,
+		                Instant.parse("2025-10-20T17:20:00.00Z"),
+		                (m, t) -> {
+		                    ArrayList<EventI> ret = new ArrayList<>();
+		                    ret.add(new SwitchOnOven(t));
+		                    return ret;
+		                },
+		                (m, t) -> {}),
 
-			            // Set target temperature 50
-			            new SimulationTestStep(
-			                OvenUnitTesterModel.URI,
-			                Instant.parse("2025-10-20T17:30:00.00Z"),
-			                (m, t) -> {
-			                    ArrayList<EventI> ret = new ArrayList<>();
-			                    ret.add(new SetTargetTemperatureOven(
-			                        t, new TargetTemperatureValue(50.0)));
-			                    return ret;
-			                },
-			                (m, t) -> {}),
+		            // Set target temperature 50
+		            new SimulationTestStep(
+		                OvenUnitTesterModel.URI,
+		                Instant.parse("2025-10-20T17:30:00.00Z"),
+		                (m, t) -> {
+		                    ArrayList<EventI> ret = new ArrayList<>();
+		                    ret.add(new SetTargetTemperatureOven(
+		                        t, new TargetTemperatureValue(50.0)));
+		                    return ret;
+		                },
+		                (m, t) -> {}),
 
-			            // Heat
-			            new SimulationTestStep(
-			                OvenUnitTesterModel.URI,
-			                Instant.parse("2025-10-20T17:40:00.00Z"),
-			                (m, t) -> {
-			                    ArrayList<EventI> ret = new ArrayList<>();
-			                    ret.add(new HeatOven(t));
-			                    return ret;
-			                },
-			                (m, t) -> {}),
+		            // Heat
+		            new SimulationTestStep(
+		                OvenUnitTesterModel.URI,
+		                Instant.parse("2025-10-20T17:40:00.00Z"),
+		                (m, t) -> {
+		                    ArrayList<EventI> ret = new ArrayList<>();
+		                    ret.add(new HeatOven(t));
+		                    return ret;
+		                },
+		                (m, t) -> {}),
 
-			            // Stop heating
-			            new SimulationTestStep(
-			                OvenUnitTesterModel.URI,
-			                Instant.parse("2025-10-20T17:50:00.00Z"),
-			                (m, t) -> {
-			                    ArrayList<EventI> ret = new ArrayList<>();
-			                    ret.add(new DoNotHeatOven(t));
-			                    return ret;
-			                },
-			                (m, t) -> {}),
+		            // Stop heating
+		            new SimulationTestStep(
+		                OvenUnitTesterModel.URI,
+		                Instant.parse("2025-10-20T17:50:00.00Z"),
+		                (m, t) -> {
+		                    ArrayList<EventI> ret = new ArrayList<>();
+		                    ret.add(new DoNotHeatOven(t));
+		                    return ret;
+		                },
+		                (m, t) -> {}),
 
-			            // Set DEFROST mode
-			            new SimulationTestStep(
-			                OvenUnitTesterModel.URI,
-			                Instant.parse("2025-10-20T18:00:00.00Z"),
-			                (m, t) -> {
-			                    ArrayList<EventI> ret = new ArrayList<>();
-			                    ret.add(new SetModeOven(t,
-			                        new ModeValue(OvenMode.DEFROST)));
-			                    return ret;
-			                },
-			                (m, t) -> {}),
+		            // Set DEFROST mode
+		            new SimulationTestStep(
+		                OvenUnitTesterModel.URI,
+		                Instant.parse("2025-10-20T18:00:00.00Z"),
+		                (m, t) -> {
+		                    ArrayList<EventI> ret = new ArrayList<>();
+		                    ret.add(new SetModeOven(t,
+		                        new ModeValue(OvenMode.DEFROST)));
+		                    return ret;
+		                },
+		                (m, t) -> {}),
 
-			            // Heat after DEFROST
-			            new SimulationTestStep(
-			                OvenUnitTesterModel.URI,
-			                Instant.parse("2025-10-20T18:10:00.00Z"),
-			                (m, t) -> {
-			                    ArrayList<EventI> ret = new ArrayList<>();
-			                    ret.add(new HeatOven(t));
-			                    return ret;
-			                },
-			                (m, t) -> {}),
+		            // Heat after DEFROST
+		            new SimulationTestStep(
+		                OvenUnitTesterModel.URI,
+		                Instant.parse("2025-10-20T18:10:00.00Z"),
+		                (m, t) -> {
+		                    ArrayList<EventI> ret = new ArrayList<>();
+		                    ret.add(new HeatOven(t));
+		                    return ret;
+		                },
+		                (m, t) -> {}),
 
-			            // Stop heating again
-			            new SimulationTestStep(
-			                OvenUnitTesterModel.URI,
-			                Instant.parse("2025-10-20T18:20:00.00Z"),
-			                (m, t) -> {
-			                    ArrayList<EventI> ret = new ArrayList<>();
-			                    ret.add(new DoNotHeatOven(t));
-			                    return ret;
-			                },
-			                (m, t) -> {}),
+		            // Stop heating again
+		            new SimulationTestStep(
+		                OvenUnitTesterModel.URI,
+		                Instant.parse("2025-10-20T18:20:00.00Z"),
+		                (m, t) -> {
+		                    ArrayList<EventI> ret = new ArrayList<>();
+		                    ret.add(new DoNotHeatOven(t));
+		                    return ret;
+		                },
+		                (m, t) -> {}),
 
-			            // Set GRILL mode
-			            new SimulationTestStep(
-			                OvenUnitTesterModel.URI,
-			                Instant.parse("2025-10-20T18:30:00.00Z"),
-			                (m, t) -> {
-			                    ArrayList<EventI> ret = new ArrayList<>();
-			                    ret.add(new SetModeOven(
-			                        t, new ModeValue(OvenMode.GRILL)));
-			                    return ret;
-			                },
-			                (m, t) -> {}),
+		            // Set GRILL mode
+		            new SimulationTestStep(
+		                OvenUnitTesterModel.URI,
+		                Instant.parse("2025-10-20T18:30:00.00Z"),
+		                (m, t) -> {
+		                    ArrayList<EventI> ret = new ArrayList<>();
+		                    ret.add(new SetModeOven(
+		                        t, new ModeValue(OvenMode.GRILL)));
+		                    return ret;
+		                },
+		                (m, t) -> {}),
 
-			            // Heat after GRILL
-			            new SimulationTestStep(
-			                OvenUnitTesterModel.URI,
-			                Instant.parse("2025-10-20T18:40:00.00Z"),
-			                (m, t) -> {
-			                    ArrayList<EventI> ret = new ArrayList<>();
-			                    ret.add(new HeatOven(t));
-			                    return ret;
-			                },
-			                (m, t) -> {}),
+		            // Heat after GRILL
+		            new SimulationTestStep(
+		                OvenUnitTesterModel.URI,
+		                Instant.parse("2025-10-20T18:40:00.00Z"),
+		                (m, t) -> {
+		                    ArrayList<EventI> ret = new ArrayList<>();
+		                    ret.add(new HeatOven(t));
+		                    return ret;
+		                },
+		                (m, t) -> {}),
 
-			            // Change power level
-			            new SimulationTestStep(
-			                OvenUnitTesterModel.URI,
-			                Instant.parse("2025-10-20T18:50:00.00Z"),
-			                (m, t) -> {
-			                    ArrayList<EventI> ret = new ArrayList<>();
-			                    ret.add(new SetPowerOven(
-			                        t, new SetPowerOven.PowerValueOven(880.0)));
-			                    return ret;
-			                },
-			                (m, t) -> {}),
+		            // Change power level
+		            new SimulationTestStep(
+		                OvenUnitTesterModel.URI,
+		                Instant.parse("2025-10-20T18:50:00.00Z"),
+		                (m, t) -> {
+		                    ArrayList<EventI> ret = new ArrayList<>();
+		                    ret.add(new SetPowerOven(
+		                        t, new SetPowerOven.PowerValueOven(880.0)));
+		                    return ret;
+		                },
+		                (m, t) -> {}),
 
-			            // Switch off
-			            new SimulationTestStep(
-			                OvenUnitTesterModel.URI,
-			                Instant.parse("2025-10-20T19:00:00.00Z"),
-			                (m, t) -> {
-			                    ArrayList<EventI> ret = new ArrayList<>();
-			                    ret.add(new SwitchOffOven(t));
-			                    return ret;
-			                },
-			                (m, t) -> {}),
-						new SimulationTestStep(
-								GeneratorGlobalTesterModel.URI,
-								Instant.parse("2025-10-20T19:10:00.00Z"),
-								(m, t) -> {
-									ArrayList<EventI> ret = new ArrayList<>();
-									ret.add(new Stop(t));
-									return ret;
-								},
-								(m, t) -> {}),
+		            // Switch off
+		            new SimulationTestStep(
+		                OvenUnitTesterModel.URI,
+		                Instant.parse("2025-10-20T19:00:00.00Z"),
+		                (m, t) -> {
+		                    ArrayList<EventI> ret = new ArrayList<>();
+		                    ret.add(new SwitchOffOven(t));
+		                    return ret;
+		                },
+		                (m, t) -> {}),
+					new SimulationTestStep(
+							GeneratorGlobalTesterModel.URI,
+							Instant.parse("2025-10-20T19:10:00.00Z"),
+							(m, t) -> {
+								ArrayList<EventI> ret = new ArrayList<>();
+								ret.add(new Stop(t));
+								return ret;
+							},
+							(m, t) -> {}),
 				});
 	}
+}
 // -----------------------------------------------------------------------------
