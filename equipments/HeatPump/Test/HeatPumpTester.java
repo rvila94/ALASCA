@@ -8,6 +8,7 @@ import equipments.HeatPump.interfaces.HeatPumpInternalControlCI;
 import equipments.HeatPump.interfaces.HeatPumpUserCI;
 import equipments.HeatPump.temperatureSensor.TemperatureSensor;
 import fr.sorbonne_u.alasca.physical_data.Measure;
+import fr.sorbonne_u.alasca.physical_data.MeasureI;
 import fr.sorbonne_u.alasca.physical_data.MeasurementUnit;
 import fr.sorbonne_u.alasca.physical_data.SignalData;
 import fr.sorbonne_u.components.AbstractComponent;
@@ -1365,7 +1366,7 @@ extends AbstractComponent {
         this.logMessage("    Given the heat pump is initialised");
         this.logMessage("    And the heat pump is on");
 
-        Measure<Double> powerLevel = null;
+        MeasureI<Double> powerLevel = null;
         Random rd = new Random();
         boolean result = false;
         try {

@@ -11,6 +11,7 @@ import equipments.HeatPump.temperatureSensor.TemperatureSensorCI;
 import equipments.HeatPump.compressor.CompressorCI;
 import equipments.hem.RegistrationOutboundPort;
 import fr.sorbonne_u.alasca.physical_data.Measure;
+import fr.sorbonne_u.alasca.physical_data.MeasureI;
 import fr.sorbonne_u.alasca.physical_data.MeasurementUnit;
 import fr.sorbonne_u.alasca.physical_data.SignalData;
 import fr.sorbonne_u.components.AbstractComponent;
@@ -683,7 +684,7 @@ implements HeatPumpUserI,
             this.traceMessage("The heat pump gets the current power level used by the temperature sensor");
         }
 
-        Measure<Double> sensorPowerLevel = this.temperatureOutboundPort.getCurrentPower().getMeasure();
+        MeasureI<Double> sensorPowerLevel = this.temperatureOutboundPort.getCurrentPower().getMeasure();
 
         if (HeatPump.VERBOSE) {
             this.traceMessage("The heat pump successfully completed the call to the temperature sensor: "
@@ -692,8 +693,8 @@ implements HeatPumpUserI,
         }
 
 
-        Measure<Double> compressorPowerLevel = this.compressorBoundPort.getCurrentPower().getMeasure();
-        Measure<Double> pumpPowerLevel = this.currentPower.getMeasure();
+        MeasureI<Double> compressorPowerLevel = this.compressorBoundPort.getCurrentPower().getMeasure();
+        MeasureI<Double> pumpPowerLevel = this.currentPower.getMeasure();
 
         Measure<Double> new_measure = new Measure<>(
                 sensorPowerLevel.getData() +
