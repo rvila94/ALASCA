@@ -60,6 +60,10 @@ extends		OvenTemperatureI
 	public static final Measure<Double>	NOT_HEATING_POWER =
 											new Measure<>(5.0, POWER_UNIT);
 	
+	/** power level of the oven in defrost mode in watts. */
+	public static final Measure<Double> DEFROST_POWER_LEVEL =
+	        new Measure<>(500.0, POWER_UNIT);
+	
 	/** maximum power level of the oven in watts.							*/
 	public static final Measure<Double> MAX_POWER_LEVEL =
 											new Measure<>(3000.0, POWER_UNIT);

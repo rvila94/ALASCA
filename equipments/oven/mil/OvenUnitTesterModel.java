@@ -9,6 +9,8 @@ import equipments.oven.mil.events.SetPowerOven;
 import equipments.oven.mil.events.SwitchOffOven;
 import equipments.oven.mil.events.SwitchOnOven;
 import equipments.oven.mil.events.SetModeOven;
+import equipments.oven.mil.events.OpenDoorOven;
+import equipments.oven.mil.events.CloseDoorOven;
 import equipments.oven.mil.events.SetTargetTemperatureOven;
 import fr.sorbonne_u.components.cyphy.utils.tests.AbstractTestScenarioBasedAtomicModel;
 import fr.sorbonne_u.components.cyphy.utils.tests.TestScenarioWithSimulation;
@@ -34,9 +36,11 @@ import fr.sorbonne_u.devs_simulation.utils.StandardLogger;
  *   {@code SwitchOffOven},
  *   {@code SetPowerOven},
  *   {@code Heat},
- *   {@code DoNotHeat}
- *   {@code SetModeOven}
- *   {@code SetTargetTemperatureOven}</li>
+ *   {@code DoNotHeat},
+ *   {@code SetModeOven},
+ *   {@code SetTargetTemperatureOven},
+ *   {@code OpenDoorOven},
+ *   {@code CloseDoorOven}</li>
  * </ul>
  * 
  * <p><strong>Implementation Invariants</strong></p>
@@ -62,7 +66,9 @@ import fr.sorbonne_u.devs_simulation.utils.StandardLogger;
 								 DoNotHeatOven.class,
 								 SetPowerOven.class,
 								 SetModeOven.class,
-								 SetTargetTemperatureOven.class})
+								 SetTargetTemperatureOven.class,
+								 OpenDoorOven.class,
+								 CloseDoorOven.class})
 // -----------------------------------------------------------------------------
 public class			OvenUnitTesterModel
 extends		AbstractTestScenarioBasedAtomicModel

@@ -233,4 +233,21 @@ implements OvenUserCI
 	public Oven.OvenMode getMode() throws Exception {
 		return this.getOwner().handleRequest(o -> ((OvenUserI)o).getMode());
 	}
+
+	@Override
+	public void openDoor() throws Exception {
+		this.getOwner().handleRequest(o -> { ((OvenUserI)o).openDoor(); return null; });
+		
+	}
+
+	@Override
+	public void closeDoor() throws Exception {
+		this.getOwner().handleRequest(o -> { ((OvenUserI)o).closeDoor(); return null; });
+		
+	}
+
+	@Override
+	public boolean isDoorOpen() throws Exception {
+		return this.getOwner().handleRequest(o -> ((OvenUserI)o).isDoorOpen());
+	}
 }

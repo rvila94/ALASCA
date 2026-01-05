@@ -106,7 +106,7 @@ implements	OvenUserI,
 	 * 
 	 * <p>
 	 * The oven can be either in <code>CUSTOM</code> mode (user defines temperature) or
-	 * in <code>DEFROST</code> mode (temperature = 80°C) or
+	 * in <code>DEFROST</code> mode (temperature = 50°C) or
 	 * in <code>GRILL</code> mode (temperature = 220°C).
 	 * </p>
 	 * 
@@ -118,7 +118,7 @@ implements	OvenUserI,
 	 public static enum OvenMode {
 		/** User defines the temperature. */
 		CUSTOM, 
-		/** Temperature set at 80°C. */
+		/** Temperature set at 50°C. */
 		DEFROST, 
 		/** Temperature set at 220°C. */
 		GRILL
@@ -156,7 +156,7 @@ implements	OvenUserI,
 	/** Default temperatures per mode. */
 	public static final Map<OvenMode, Measure<Double>> MODE_TEMPERATURES = new HashMap<>();
 	static {
-		MODE_TEMPERATURES.put(OvenMode.DEFROST, new Measure<>(80.0, TEMPERATURE_UNIT));
+		MODE_TEMPERATURES.put(OvenMode.DEFROST, new Measure<>(50.0, TEMPERATURE_UNIT));
 		MODE_TEMPERATURES.put(OvenMode.GRILL, new Measure<>(220.0, TEMPERATURE_UNIT));
 	}
 	
@@ -169,6 +169,7 @@ implements	OvenUserI,
 	protected OvenMode currentMode;
 	protected SignalData<Double> currentPowerLevel;
 	protected Measure<Double> targetTemperature;
+	protected boolean doorOpen;
 	
 	protected boolean isUnitTest;
 
@@ -457,6 +458,7 @@ implements	OvenUserI,
 		this.currentMode = OvenMode.CUSTOM;
 		this.currentPowerLevel = new SignalData<>(new Measure<>(0.0, POWER_UNIT));
 		this.targetTemperature = new Measure<>(0.0, TEMPERATURE_UNIT);
+		this.doorOpen = false;
 
 		this.ouip = new OvenUserJava4InboundPort(ovenUserInboundPortURI, this);
 		this.ouip.publishPort();
@@ -841,5 +843,24 @@ implements	OvenUserI,
 		if (Oven.VERBOSE)
 			this.traceMessage("Oven returns its mode: " + this.currentMode + ".\n");
 		return this.currentMode;
+	}
+
+	@Override
+	public void openDoor() throws Exception {
+		assert !this.doorOpen : "The oven door is already open.";
+	    this.doorOpen = true;
+		
+	}
+
+	@Override
+	public void closeDoor() throws Exception {
+		assert this.doorOpen : "The oven door is already closed.";
+	    this.doorOpen = false;
+		
+	}
+
+	@Override
+	public boolean isDoorOpen() throws Exception {
+		return this.doorOpen;
 	}
 }

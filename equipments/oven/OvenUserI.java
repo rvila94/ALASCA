@@ -219,5 +219,48 @@ extends		OvenExternalControlI
 	 * @throws Exception if an error occurs.
 	 */
 	public Oven.OvenMode getMode() throws Exception;
+	
+	/**
+	 * Open the oven door.
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * pre  {@code !isDoorOpen()}
+	 * post {@code isDoorOpen()}
+	 * </pre>
+	 * 
+	 * @throws Exception if an error occurs.
+	 */
+	public void openDoor() throws Exception;
+
+	/**
+	 * Close the oven door.
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * pre  {@code isDoorOpen()}
+	 * post {@code !isDoorOpen()}
+	 * </pre>
+	 * 
+	 * @throws Exception if an error occurs.
+	 */
+	public void closeDoor() throws Exception;
+
+	/**
+	 * Return whether the oven door is currently open.
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * pre  {@code true}
+	 * post {@code true}
+	 * </pre>
+	 * 
+	 * @return {@code true} if the oven door is open, {@code false} otherwise.
+	 * @throws Exception if an error occurs.
+	 */
+	public boolean isDoorOpen() throws Exception;
 
 }

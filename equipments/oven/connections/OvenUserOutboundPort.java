@@ -150,5 +150,22 @@ implements OvenUserCI
 	@Override
 	public Oven.OvenMode getMode() throws Exception {
 		return ((OvenUserCI) this.getConnector()).getMode();
+	}
+
+	@Override
+	public void openDoor() throws Exception {
+		((OvenUserCI) this.getConnector()).openDoor();
+		
+	}
+
+	@Override
+	public void closeDoor() throws Exception {
+		((OvenUserCI) this.getConnector()).closeDoor();
+		
+	}
+
+	@Override
+	public boolean isDoorOpen() throws Exception {
+		return ((OvenUserCI) this.getConnector()).isDoorOpen();
 	}	
 }

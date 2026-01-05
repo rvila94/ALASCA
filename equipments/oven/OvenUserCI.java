@@ -113,4 +113,22 @@ extends		OfferedCI,
 	 */
 	@Override
 	public OvenMode getMode() throws Exception;
+	
+	/**
+	 * @see OvenUserI#openDoor()
+	 */
+	@Override
+	public void openDoor() throws Exception;
+	
+	/**
+	 * @see OvenUserI#closeDoor()
+	 */
+	@Override
+	public void closeDoor() throws Exception;
+	
+	/**
+	 * @see OvenUserI#isDoorOpen()
+	 */
+	@Override
+	public boolean isDoorOpen() throws Exception;
 }

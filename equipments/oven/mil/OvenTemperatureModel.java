@@ -9,6 +9,8 @@ import equipments.oven.mil.events.OvenEventI;
 import equipments.oven.mil.events.SetModeOven;
 import equipments.oven.mil.events.SetTargetTemperatureOven;
 import equipments.oven.mil.events.SwitchOffOven;
+import equipments.oven.mil.events.OpenDoorOven;
+import equipments.oven.mil.events.CloseDoorOven;
 import equipments.oven.Oven;
 import equipments.oven.Oven.OvenMode;
 import equipments.oven.Oven.OvenState;
@@ -91,8 +93,10 @@ import fr.sorbonne_u.devs_simulation.utils.AssertionChecking;
 		 						 HeatOven.class,
 		 						 DoNotHeatOven.class,
 								 SetModeOven.class,
-								 SetTargetTemperatureOven.class})
-@ModelExportedVariable(name = "targetTemperature", type = Double.class)
+								 SetTargetTemperatureOven.class,
+								 OpenDoorOven.class,
+								 CloseDoorOven.class})
+@ModelExportedVariable(name = "currentMode", type = OvenMode.class)
 @ModelImportedVariable(name = "currentHeatingPower", type = Double.class)
 // -----------------------------------------------------------------------------
 public class			OvenTemperatureModel
@@ -119,12 +123,14 @@ extends		AtomicHIOA
 	// TODO: define as simulation run parameters
 	private static double AMBIENT_TEMPERATURE = 20.0;
 	/** temperature when the simulation begins.			*/
-	public static double		INITIAL_TEMPERATURE = 22.0;
-	/** Represents how quickly the oven loses heat to its environment */
-	protected static double 	COOLING_TRANSFER_CONSTANT = 1000.0;
+	public static double		INITIAL_TEMPERATURE = 1.0;
+	/** Represents how quickly the oven loses heat when the door is closed */
+	protected static double 	COOLING_TRANSFER_CONSTANT_CLOSED = 1000.0;
+	/** Represents how quickly the oven loses heat when the door is open. */
+	protected static double 	COOLING_TRANSFER_CONSTANT_OPEN = 50.0;
 	/** heating transfer constant in the differential equation when the
 	 *  heating power is maximal.											*/
-	protected static double		MIN_HEATING_TRANSFER_CONSTANT = 1.0;
+	protected static double		MIN_HEATING_TRANSFER_CONSTANT = 0.6;
 	/** update tolerance for the temperature <i>i.e.</i>, shortest elapsed
 	 *  time since the last update under which the temperature is not
 	 *  changed by the update to avoid too large computation errors.		*/
@@ -139,8 +145,9 @@ extends		AtomicHIOA
 	 *  or notheating, which assimilates to on or waiting but not heating <i>i.e.</i>,
 	 *  {@code OvenState.ON}.												*/
 	protected OvenState		currentState = OvenState.ON;
-	protected OvenMode 		currentMode  = OvenMode.CUSTOM;
-
+	
+	protected boolean doorOpen = false;
+	
 	// Simulation run variables
 
 	/** integration step as a duration, including the time unit.			*/
@@ -166,8 +173,11 @@ extends		AtomicHIOA
 	@InternalVariable(type = Double.class)
 	protected final DerivableValue<Double>	currentTemperature =
 											new DerivableValue<Double>(this);
-	@ExportedVariable(type = Double.class)
-	protected final Value<Double> targetTemperature = new Value<Double>(this);
+	@InternalVariable(type = Double.class)
+	protected final Value<Double> targetTemperature = new Value<>(this);
+	@ExportedVariable(type = OvenMode.class)
+	protected final Value<OvenMode> currentMode =
+	        new Value<OvenMode>(this);
 
 	// -------------------------------------------------------------------------
 	// Invariants
@@ -198,9 +208,13 @@ extends		AtomicHIOA
 				OvenTemperatureModel.class,
 				"POWER_HEAT_TRANSFER_TOLERANCE >= 0.0");
 		ret &= AssertionChecking.checkStaticImplementationInvariant(
-				COOLING_TRANSFER_CONSTANT > 0.0,
+				COOLING_TRANSFER_CONSTANT_CLOSED > 0.0,
 				OvenTemperatureModel.class,
-				"COOLING_TRANSFER_CONSTANT > 0.0");
+				"COOLING_TRANSFER_CONSTANT_CLOSED > 0.0");
+		ret &= AssertionChecking.checkStaticImplementationInvariant(
+				COOLING_TRANSFER_CONSTANT_OPEN > 0.0,
+				OvenTemperatureModel.class,
+				"COOLING_TRANSFER_CONSTANT_OPEN > 0.0");
 		ret &= AssertionChecking.checkStaticImplementationInvariant(
 				MIN_HEATING_TRANSFER_CONSTANT > 0.0,
 				OvenTemperatureModel.class,
@@ -271,6 +285,11 @@ extends		AtomicHIOA
 				OvenTemperatureModel.class,
 				instance,
 				"targetTemperature != null");
+		ret &= AssertionChecking.checkImplementationInvariant(
+				instance.currentMode != null,
+				OvenTemperatureModel.class,
+				instance,
+				"currentMode != null");
 		return ret;
 	}
 
@@ -411,8 +430,8 @@ extends		AtomicHIOA
 	public void setMode(OvenMode mode, Time t) {
 	    assert mode != null;
 
-	    OvenMode old = this.currentMode;
-	    this.currentMode = mode;
+	    OvenMode old = this.currentMode.getValue();
+	    this.currentMode.setNewValue(mode, t);
 
 	    if (mode != OvenMode.CUSTOM)
 	        this.targetTemperature.setNewValue(
@@ -428,13 +447,21 @@ extends		AtomicHIOA
 	public void setTargetTemperature(Double targetTemperature, Time t) {
 		assert targetTemperature != null;
 		
-		if (this.currentMode == OvenMode.CUSTOM)
+		if (this.currentMode.getValue() == OvenMode.CUSTOM)
 			this.targetTemperature.setNewValue(targetTemperature, t);
 		
 		if (VERBOSE) {
 			this.logMessage("OvenTemperatureModel: targetTemperature changed to "
 		                        + this.targetTemperature);
 		}
+	}
+	
+	public void setDoorOpen(boolean open) {
+		this.doorOpen = open;
+	}
+	
+	public boolean isDoorOpen() {
+		return this.doorOpen;
 	}
 
 	/**
@@ -468,7 +495,7 @@ extends		AtomicHIOA
 	 */
 	public OvenMode	getMode()
 	{
-		return this.currentMode;
+		return this.currentMode.getValue();
 	}
 
 	/**
@@ -520,8 +547,15 @@ extends		AtomicHIOA
 											this.currentHeatTransfertConstant();
 			}
 		}
+		
+		// Cooling contribution (depends on door state)
+		double coolingConstant =
+			this.doorOpen
+				? COOLING_TRANSFER_CONSTANT_OPEN
+				: COOLING_TRANSFER_CONSTANT_CLOSED;
+		
 		currentTempDerivative +=
-				(AMBIENT_TEMPERATURE - current) / COOLING_TRANSFER_CONSTANT;
+				(AMBIENT_TEMPERATURE - current) / coolingConstant;
 		
 		return currentTempDerivative;
 	}
@@ -616,6 +650,11 @@ extends		AtomicHIOA
 		
 		if (!this.targetTemperature.isInitialised()) {
 	        this.targetTemperature.initialise(0.0);
+	        justInitialised++;
+	    }
+		
+		if (!this.currentMode.isInitialised()) {
+	        this.currentMode.initialise(OvenMode.CUSTOM);
 	        justInitialised++;
 	    }
 

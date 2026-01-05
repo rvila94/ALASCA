@@ -9,6 +9,7 @@ import equipments.oven.mil.events.OvenEventI;
 import equipments.oven.mil.events.SetPowerOven;
 import equipments.oven.mil.events.SwitchOffOven;
 import equipments.oven.mil.events.SwitchOnOven;
+import equipments.oven.Oven.OvenMode;
 import equipments.oven.Oven.OvenState;
 import equipments.oven.OvenExternalControlI;
 import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeterImplementationI;
@@ -102,7 +103,7 @@ import fr.sorbonne_u.devs_simulation.utils.AssertionChecking;
 								 DoNotHeatOven.class})
 @ModelExportedVariable(name = "currentIntensity", type = Double.class)
 @ModelExportedVariable(name = "currentHeatingPower", type = Double.class)
-@ModelImportedVariable(name = "targetTemperature", type = Double.class)
+@ModelImportedVariable(name = "currentMode", type = OvenMode.class)
 //-----------------------------------------------------------------------------
 public class			OvenElectricityModel
 extends		AtomicHIOA
@@ -147,8 +148,8 @@ extends		AtomicHIOA
 	@ExportedVariable(type = Double.class)
 	protected final Value<Double>	currentIntensity = new Value<Double>(this);
 	
-	@ImportedVariable(type = Double.class)
-	protected Value<Double>			targetTemperature;
+	@ImportedVariable(type = OvenMode.class)
+	protected Value<OvenMode>			currentMode;
 
 	// -------------------------------------------------------------------------
 	// Invariants
@@ -535,9 +536,12 @@ extends		AtomicHIOA
 					t);
 
 		} else if (this.currentState == OvenState.HEATING) {
-			double targetTemperature = this.targetTemperature.getValue();
-			// FIXME: Maniere temporaire d'obtenir power
-			double newPower = targetTemperature  * 10;
+			double newPower;
+			if (this.currentMode.getValue() == OvenMode.DEFROST) {
+				newPower = OvenExternalControlI.DEFROST_POWER_LEVEL.getData();
+		    } else {
+		    	newPower = OvenExternalControlI.MAX_POWER_LEVEL.getData();
+		    }
 
 	        this.setCurrentHeatingPower(newPower, t);
 	        this.currentIntensity.setNewValue(newPower /

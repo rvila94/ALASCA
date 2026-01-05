@@ -133,4 +133,21 @@ implements OvenUserCI
 	public Oven.OvenMode getMode() throws Exception {
 		return ((OvenUserCI)this.offering).getMode();
 	}
+
+	@Override
+	public void openDoor() throws Exception {
+		((OvenUserCI)this.offering).openDoor();
+		
+	}
+
+	@Override
+	public void closeDoor() throws Exception {
+		((OvenUserCI)this.offering).closeDoor();
+		
+	}
+
+	@Override
+	public boolean isDoorOpen() throws Exception {
+		return ((OvenUserCI)this.offering).isDoorOpen();
+	}
 }

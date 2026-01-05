@@ -16,6 +16,8 @@ import equipments.oven.mil.events.SwitchOffOven;
 import equipments.oven.mil.events.SwitchOnOven;
 import equipments.oven.mil.events.SetTargetTemperatureOven;
 import equipments.oven.mil.events.SetTargetTemperatureOven.TargetTemperatureValue;
+import equipments.oven.mil.events.OpenDoorOven;
+import equipments.oven.mil.events.CloseDoorOven;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -242,6 +244,19 @@ public class			RunOvenUnitaryMILSimulation
 			                new EventSink(OvenTemperatureModel.URI, 
 			                				SetTargetTemperatureOven.class)
 			        });
+			
+			connections.put(
+			        new EventSource(OvenUnitTesterModel.URI, OpenDoorOven.class),
+			        new EventSink[]{
+			                new EventSink(OvenTemperatureModel.URI, 
+			                				OpenDoorOven.class)
+			        });
+			connections.put(
+			        new EventSource(OvenUnitTesterModel.URI, CloseDoorOven.class),
+			        new EventSink[]{
+			                new EventSink(OvenTemperatureModel.URI, 
+			                				CloseDoorOven.class)
+			        });
 
 			// variable bindings between exporting and importing models
 			Map<VariableSource,VariableSink[]> bindings =
@@ -256,12 +271,12 @@ public class			RunOvenUnitaryMILSimulation
 										 		  OvenTemperatureModel.URI)
 						 });
 			bindings.put(
-				    new VariableSource("targetTemperature",
-				            			Double.class,
+				    new VariableSource("currentMode",
+				            			OvenMode.class,
 				            			OvenTemperatureModel.URI),
 				    new VariableSink[]{
-				    			new VariableSink("targetTemperature",
-				    							Double.class,
+				    			new VariableSink("currentMode",
+				    							OvenMode.class,
 				    							OvenElectricityModel.URI)
 				    });
 
@@ -376,6 +391,10 @@ public class			RunOvenUnitaryMILSimulation
 		        "        Given a Oven that is on\n" +
 		        "        When it is switched off\n" +
 		        "        Then it is off\n" +
+		        "	   Scenario: Oven door opened after switch off\r\n" +
+		        "        Given a Oven that is off\r\n" +
+		        "        When its door is opened\r\n" +
+		        "        Then the oven cools faster\n" +
 		        "-----------------------------------------------------\n",
 		        "\n-----------------------------------------------------\n" +
 		        "End Classical\n" +
@@ -514,6 +533,17 @@ public class			RunOvenUnitaryMILSimulation
 		                (m, t) -> {
 		                    ArrayList<EventI> ret = new ArrayList<>();
 		                    ret.add(new SwitchOffOven(t));
+		                    return ret;
+		                },
+		                (m, t) -> {}),
+		            
+		         // Open oven door
+		            new SimulationTestStep(
+		                OvenUnitTesterModel.URI,
+		                Instant.parse("2025-10-20T16:40:00.00Z"),
+		                (m, t) -> {
+		                    ArrayList<EventI> ret = new ArrayList<>();
+		                    ret.add(new OpenDoorOven(t));
 		                    return ret;
 		                },
 		                (m, t) -> {})
