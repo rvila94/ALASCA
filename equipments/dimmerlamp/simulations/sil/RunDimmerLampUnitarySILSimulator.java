@@ -180,7 +180,7 @@ public class RunDimmerLampUnitarySILSimulator {
             se.startRTSimulation(realTimeStart, startTime.getSimulatedTime(), d.getSimulatedDuration());
             long executionDuration =
                     new Double(
-                            HairDryerSimulationConfigurationI.TIME_UNIT.toMillis(1)
+                            DimmerLampSimulationConfigurationI.TIME_UNIT.toMillis(1)
                                     * (d.getSimulatedDuration()/ACCELERATION_FACTOR)).
                             longValue();
             Thread.sleep(executionDuration + 2000L);

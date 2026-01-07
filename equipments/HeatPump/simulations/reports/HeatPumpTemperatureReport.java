@@ -1,7 +1,7 @@
-package equipments.HeatPump.mil.reports;
+package equipments.HeatPump.simulations.reports;
 
 /**
- * The class <code>equipments.HeatPump.mil.reports.HeatPumpTemperatureReport</code>.
+ * The class <code>equipments.HeatPump.simulations.reports.mil.HeatPumpTemperatureReport</code>.
  *
  * <p><strong>Description</strong></p>
  *

@@ -1,9 +1,10 @@
-package equipments.HeatPump.mil;
+package equipments.HeatPump.simulations;
 
 import equipments.HeatPump.HeatPump;
 import equipments.HeatPump.interfaces.HeatPumpUserI;
-import equipments.HeatPump.mil.events.*;
-import equipments.HeatPump.mil.reports.HeatPumpTemperatureReport;
+import equipments.HeatPump.simulations.events.*;
+import equipments.HeatPump.simulations.interfaces.StateModelI;
+import equipments.HeatPump.simulations.reports.HeatPumpTemperatureReport;
 import fr.sorbonne_u.alasca.physical_data.MeasurementUnit;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
 import fr.sorbonne_u.devs_simulation.hioa.annotations.ImportedVariable;
@@ -28,7 +29,7 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The class <code>equipments.HeatPump.mil.HeatPumpHeatingModel</code>.
+ * The class <code>equipments.HeatPump.simulations.HeatPumpHeatingModel</code>.
  *
  * <p><strong>Description</strong></p>
  *
@@ -182,7 +183,7 @@ public class HeatPumpHeatingModel extends AtomicHIOA implements StateModelI {
 
     private void setNewReport(Time time) {
         final double meanTemperature = this.temperatureAcc / this.computeAccumulatedTime(time);
-        System.out.println(this.temperatureAcc);
+
         this.report = new HeatPumpTemperatureReport(this.getURI(), meanTemperature);
     }
 

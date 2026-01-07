@@ -1,14 +1,15 @@
-package equipments.HeatPump.mil.events;
+package equipments.HeatPump.simulations.events;
 
 import equipments.HeatPump.interfaces.HeatPumpUserI;
-import equipments.HeatPump.mil.StateModelI;
+import equipments.HeatPump.simulations.interfaces.CompleteModelI;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
+import fr.sorbonne_u.devs_simulation.models.events.EventInformationI;
 import fr.sorbonne_u.devs_simulation.models.interfaces.AtomicModelI;
 import fr.sorbonne_u.devs_simulation.models.time.Time;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
 /**
- * The class <code>equipments.HeatPump.mil.events.StopCoolingEvent</code>.
+ * The class <code>equipments.HeatPump.simulations.events.mil.SetPowerEvent</code>.
  *
  * <p><strong>Description</strong></p>
  *
@@ -26,7 +27,9 @@ import fr.sorbonne_u.exceptions.PreconditionException;
  * @author    <a href="mailto:Rodrigo.Vila@etu.sorbonne-universite.fr">Rodrigo Vila</a>
  * @author    <a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
  */
-public class StopCoolingEvent extends AbstractHeatPumpEvent {
+public class SetPowerEvent extends AbstractHeatPumpEvent{
+
+    private HeatPumpPowerValue power_value;
 
     /**
      * create an event from the given time of occurrence and event description.
@@ -41,13 +44,18 @@ public class StopCoolingEvent extends AbstractHeatPumpEvent {
      * </pre>
      *
      * @param timeOfOccurrence time of occurrence of the created event.
+     * @param content          description of the created event.
      */
-    public StopCoolingEvent(Time timeOfOccurrence) {
-        super(timeOfOccurrence, null);
+    public SetPowerEvent(Time timeOfOccurrence, EventInformationI content) {
+        super(timeOfOccurrence, content);
+
+        assert content instanceof HeatPumpPowerValue :
+                new NeoSim4JavaException("! content instanceof LampPowerValue");
+        this.power_value = (HeatPumpPowerValue) content;
     }
 
     /**
-     * @see equipments.HeatPump.mil.events.AbstractHeatPumpEvent#priorityIndex
+     * @see AbstractHeatPumpEvent#priorityIndex
      */
     @Override
     protected PriorityIndex priorityIndex() {
@@ -60,15 +68,13 @@ public class StopCoolingEvent extends AbstractHeatPumpEvent {
     @Override
     public void executeOn(AtomicModelI model)
     {
-        assert model != null :
-                new PreconditionException("model == null");
-        assert model instanceof StateModelI :
-                new PreconditionException("model not instanceof StateModelI");
+        assert model instanceof CompleteModelI :
+                new PreconditionException("model not instance of HeatPumpElectricityModel");
 
-        StateModelI state_model = (StateModelI) model;
-        assert state_model.getCurrentState() == HeatPumpUserI.State.Cooling :
-                new NeoSim4JavaException("pump_model.getCurrentState() != HeatPumpUserI.State.Cooling");
+        CompleteModelI pump_model = (CompleteModelI) model;
+        assert pump_model.getCurrentState() != HeatPumpUserI.State.Off :
+            new NeoSim4JavaException("pump_model.getCurrentState() == HeatPumpUserI.State.Off");
 
-        state_model.setCurrentState(HeatPumpUserI.State.On);
+        pump_model.setCurrentPower(this.power_value.power, this.getTimeOfOccurrence());
     }
 }

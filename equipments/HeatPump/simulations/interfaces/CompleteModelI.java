@@ -1,9 +1,7 @@
-package equipments.HeatPump.mil;
-
-import equipments.HeatPump.interfaces.HeatPumpUserI;
+package equipments.HeatPump.simulations.interfaces;
 
 /**
- * The class <code>equipments.HeatPump.mil.StateModelI</code>.
+ * The class <code>equipments.HeatPump.simulations.interfaces.CompleteModelI</code>.
  *
  * <p><strong>Description</strong></p>
  *
@@ -21,9 +19,5 @@ import equipments.HeatPump.interfaces.HeatPumpUserI;
  * @author    <a href="mailto:Rodrigo.Vila@etu.sorbonne-universite.fr">Rodrigo Vila</a>
  * @author    <a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
  */
-public interface StateModelI {
-
-    void setCurrentState(HeatPumpUserI.State state);
-    HeatPumpUserI.State getCurrentState();
-
+public interface CompleteModelI extends StateModelI, ElectricityModelI {
 }

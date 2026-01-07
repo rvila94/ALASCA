@@ -1,7 +1,5 @@
 package equipments.HeatPump;
 
-import fr.sorbonne_u.components.hem2025e2.equipments.heater.mil.events.Heat;
-
 /**
  * The class <code>equipments.HeatPump.HeatPumpCyPhy</code>.
  *

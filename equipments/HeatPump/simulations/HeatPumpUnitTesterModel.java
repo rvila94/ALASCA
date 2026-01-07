@@ -1,6 +1,6 @@
-package equipments.HeatPump.mil;
+package equipments.HeatPump.simulations;
 
-import equipments.HeatPump.mil.events.*;
+import equipments.HeatPump.simulations.events.*;
 import fr.sorbonne_u.components.cyphy.utils.tests.AbstractTestScenarioBasedAtomicModel;
 import fr.sorbonne_u.components.cyphy.utils.tests.TestScenarioWithSimulation;
 import fr.sorbonne_u.devs_simulation.exceptions.MissingRunParameterException;
@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The class <code>equipments.HeatPump.mil.HeatPumpUnitTesterModel</code>.
+ * The class <code>equipments.HeatPump.simulations.HeatPumpUnitTesterModel</code>.
  *
  * <p><strong>Description</strong></p>
  *

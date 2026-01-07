@@ -1,4 +1,4 @@
-package equipments.HeatPump.mil.events;
+package equipments.HeatPump.simulations.events;
 
 import equipments.HeatPump.HeatPump;
 import equipments.dimmerlamp.DimmerLamp;
@@ -6,7 +6,7 @@ import fr.sorbonne_u.devs_simulation.models.events.EventInformationI;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
 /**
- * The class <code>equipments.HeatPump.mil.events.HeatPumpPowerValue</code>.
+ * The class <code>equipments.HeatPump.simulations.events.mil.HeatPumpPowerValue</code>.
  *
  * <p><strong>Description</strong></p>
  *

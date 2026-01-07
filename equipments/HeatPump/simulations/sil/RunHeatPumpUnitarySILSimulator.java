@@ -1,19 +1,19 @@
-package equipments.HeatPump.mil;
+package equipments.HeatPump.simulations.sil;
 
 import equipments.HeatPump.HeatPump;
-import equipments.HeatPump.mil.events.*;
+import equipments.HeatPump.simulations.*;
+import equipments.HeatPump.simulations.events.*;
+import equipments.HeatPump.simulations.interfaces.HeatPumpSimulationConfigurationI;
 import fr.sorbonne_u.components.cyphy.utils.tests.SimulationTestStep;
 import fr.sorbonne_u.components.cyphy.utils.tests.TestScenarioWithSimulation;
-import fr.sorbonne_u.components.hem2025e2.equipments.heater.mil.ExternalTemperatureModel;
-import fr.sorbonne_u.devs_simulation.architectures.Architecture;
+import fr.sorbonne_u.components.hem2025e3.equipments.heater.sil.ExternalTemperatureSILModel;
 import fr.sorbonne_u.devs_simulation.architectures.ArchitectureI;
-import fr.sorbonne_u.devs_simulation.hioa.architectures.AtomicHIOA_Descriptor;
-import fr.sorbonne_u.devs_simulation.hioa.architectures.CoupledHIOA_Descriptor;
+import fr.sorbonne_u.devs_simulation.architectures.RTArchitecture;
+import fr.sorbonne_u.devs_simulation.hioa.architectures.RTAtomicHIOA_Descriptor;
+import fr.sorbonne_u.devs_simulation.hioa.architectures.RTCoupledHIOA_Descriptor;
 import fr.sorbonne_u.devs_simulation.hioa.models.vars.VariableSink;
 import fr.sorbonne_u.devs_simulation.hioa.models.vars.VariableSource;
-import fr.sorbonne_u.devs_simulation.models.architectures.AbstractAtomicModelDescriptor;
-import fr.sorbonne_u.devs_simulation.models.architectures.AtomicModelDescriptor;
-import fr.sorbonne_u.devs_simulation.models.architectures.CoupledModelDescriptor;
+import fr.sorbonne_u.devs_simulation.models.architectures.*;
 import fr.sorbonne_u.devs_simulation.models.events.EventI;
 import fr.sorbonne_u.devs_simulation.models.events.EventSink;
 import fr.sorbonne_u.devs_simulation.models.events.EventSource;
@@ -29,7 +29,7 @@ import java.time.Instant;
 import java.util.*;
 
 /**
- * The class <code>equipments.HeatPump.mil.RunHeatPumpUnitaryMILSimulation</code>.
+ * The class <code>equipments.HeatPump.sil.RunHeatPumpUnitarySILSimulation</code>.
  *
  * <p><strong>Description</strong></p>
  *
@@ -47,162 +47,177 @@ import java.util.*;
  * @author    <a href="mailto:Rodrigo.Vila@etu.sorbonne-universite.fr">Rodrigo Vila</a>
  * @author    <a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
  */
-public class RunHeatPumpUnitaryMILSimulation {
+public class RunHeatPumpUnitarySILSimulator {
 
-    public static void main(String[] args) {
+    // -------------------------------------------------------------------------
+    // Constants
+    // -------------------------------------------------------------------------
+
+    /** the acceleration factor used in the real time MIL simulations.	 	*/
+    public static final double		ACCELERATION_FACTOR = 3600.0;
+
+    protected static void add_connections_all(
+            Map<EventSource, EventSink[]> map,
+            Class <? extends EventI> eventType,
+            String source_uri) {
+        final EventSource source =
+                new EventSource(source_uri, eventType);
+        final EventSink sink_electricity =
+                new EventSink(HeatPumpElectricityModel.URI, eventType);
+        final EventSink sink_heating =
+                new EventSink(HeatPumpHeatingModel.URI, eventType);
+
+        map.put(source, new EventSink[] { sink_electricity, sink_heating });
+    }
+
+    protected static void add_simple_connection(
+            Map<EventSource, EventSink[]> map,
+            Class <? extends EventI> eventType,
+            String source_uri,
+            String dest_uri) {
+        final EventSource source =
+                new EventSource(source_uri, eventType);
+        final EventSink sink =
+                new EventSink(dest_uri, eventType);
+
+        map.put(source, new EventSink[] { sink });
+    }
+
+    public static void add_binding(
+            Map<VariableSource, VariableSink[]> map,
+            String name,
+            Class<?> type,
+            String exportingURI,
+            String importingURI
+    ) {
+        final VariableSource source = new VariableSource(name, type, exportingURI);
+        final VariableSink sink = new VariableSink(name, type, importingURI);
+
+        map.put(source, new VariableSink[]{ sink });
+    }
+
+    // -------------------------------------------------------------------------
+    // Methods
+    // -------------------------------------------------------------------------
+
+    public static void	main(String[] args) {
+        Time.setPrintPrecision(4);
+        Duration.setPrintPrecision(4);
 
         try {
 
             Map<String, AbstractAtomicModelDescriptor> atomicModelDescriptors =
                     new HashMap<>();
 
-            // the heat pump's models simulate are all
-            // atomic HIOA model hence we use an AtomicHIOA_Descriptor(s)
             atomicModelDescriptors.put(
                     HeatPumpElectricityModel.URI,
-                    AtomicHIOA_Descriptor.create(
+                    RTAtomicHIOA_Descriptor.create(
                             HeatPumpElectricityModel.class,
                             HeatPumpElectricityModel.URI,
                             HeatPumpSimulationConfigurationI.TIME_UNIT,
-                            null));
+                            null,
+                            ACCELERATION_FACTOR));
+
             atomicModelDescriptors.put(
                     HeatPumpHeatingModel.URI,
-                    AtomicHIOA_Descriptor.create(
+                    RTAtomicHIOA_Descriptor.create(
                             HeatPumpHeatingModel.class,
                             HeatPumpHeatingModel.URI,
                             HeatPumpSimulationConfigurationI.TIME_UNIT,
-                            null
+                            null,
+                            ACCELERATION_FACTOR
                     ));
             atomicModelDescriptors.put(
-                    ExternalTemperatureModel.URI,
-                    AtomicHIOA_Descriptor.create(
-                            ExternalTemperatureModel.class,
-                            ExternalTemperatureModel.URI,
+                    ExternalTemperatureSILModel.URI,
+                    RTAtomicHIOA_Descriptor.create(
+                            ExternalTemperatureSILModel.class,
+                            ExternalTemperatureSILModel.URI,
                             HeatPumpSimulationConfigurationI.TIME_UNIT,
-                            null));
-            // for atomic model, we use an AtomicModelDescriptor
+                            null,
+                            ACCELERATION_FACTOR));
+
+            atomicModelDescriptors.put(
+                    HeatPumpStateModel.URI,
+                    RTAtomicModelDescriptor.create(
+                            HeatPumpStateModel.class,
+                            HeatPumpStateModel.URI,
+                            HeatPumpSimulationConfigurationI.TIME_UNIT,
+                            null,
+                            ACCELERATION_FACTOR));
+
             atomicModelDescriptors.put(
                     HeatPumpUnitTesterModel.URI,
-                    AtomicModelDescriptor.create(
+                    RTAtomicModelDescriptor.create(
                             HeatPumpUnitTesterModel.class,
                             HeatPumpUnitTesterModel.URI,
                             HeatPumpSimulationConfigurationI.TIME_UNIT,
-                            null));
+                            null,
+                            ACCELERATION_FACTOR));
 
-            // map that will contain the coupled model descriptors to construct
-            // the simulation architecture
-            Map<String, CoupledModelDescriptor> coupledModelDescriptors =
-                    new HashMap<>();
-
-            // the set of submodels of the coupled model, given by their URIs
-            Set<String> submodels = new HashSet<>();
-            submodels.add(HeatPumpHeatingModel.URI);
+            Set<String> submodels = new HashSet<String>();
+            submodels.add(HeatPumpStateModel.URI);
             submodels.add(HeatPumpElectricityModel.URI);
-            submodels.add(ExternalTemperatureModel.URI);
+            submodels.add(HeatPumpHeatingModel.URI);
+            submodels.add(ExternalTemperatureSILModel.URI);
             submodels.add(HeatPumpUnitTesterModel.URI);
 
-            // event exchanging connections between exporting and importing
-            // models
             Map<EventSource, EventSink[]> connections =
                     new HashMap<>();
 
-            connections.put(
-                new EventSource(HeatPumpUnitTesterModel.URI,
-                        SwitchOnEvent.class),
-                    new EventSink[] {
-                            new EventSink(HeatPumpElectricityModel.URI,
-                                    SwitchOnEvent.class)
-                    }
+            add_simple_connection(connections, SwitchOnEvent.class, HeatPumpStateModel.URI, HeatPumpElectricityModel.URI);
+            add_simple_connection(connections, SwitchOffEvent.class, HeatPumpStateModel.URI, HeatPumpElectricityModel.URI);
+            add_simple_connection(connections, SetPowerEvent.class, HeatPumpStateModel.URI, HeatPumpElectricityModel.URI);
+            add_connections_all(connections, StartHeatingEvent.class, HeatPumpStateModel.URI);
+            add_connections_all(connections, StopHeatingEvent.class, HeatPumpStateModel.URI);
+            add_connections_all(connections, StartCoolingEvent.class, HeatPumpStateModel.URI);
+            add_connections_all(connections, StopCoolingEvent.class, HeatPumpStateModel.URI);
+
+            add_simple_connection(
+                    connections, SwitchOnEvent.class,
+                    HeatPumpUnitTesterModel.URI, HeatPumpStateModel.URI
+            );
+            add_simple_connection(
+                    connections, SwitchOffEvent.class,
+                    HeatPumpUnitTesterModel.URI, HeatPumpStateModel.URI
+            );
+            add_simple_connection(
+                    connections, SetPowerEvent.class,
+                    HeatPumpUnitTesterModel.URI, HeatPumpStateModel.URI
+            );
+            add_simple_connection(
+                    connections, StartHeatingEvent.class,
+                    HeatPumpUnitTesterModel.URI, HeatPumpStateModel.URI
+            );
+            add_simple_connection(
+                    connections, StopHeatingEvent.class,
+                    HeatPumpUnitTesterModel.URI, HeatPumpStateModel.URI
+            );
+            add_simple_connection(
+                    connections, StartCoolingEvent.class,
+                    HeatPumpUnitTesterModel.URI, HeatPumpStateModel.URI
+            );
+            add_simple_connection(
+                    connections, StopCoolingEvent.class,
+                    HeatPumpUnitTesterModel.URI, HeatPumpStateModel.URI
             );
 
-            connections.put(
-                    new EventSource(HeatPumpUnitTesterModel.URI,
-                            SwitchOffEvent.class),
-                    new EventSink[] {
-                            new EventSink(HeatPumpElectricityModel.URI,
-                                    SwitchOffEvent.class)
-                    }
-            );
-
-            connections.put(
-                    new EventSource(HeatPumpUnitTesterModel.URI,
-                            SetPowerEvent.class),
-                    new EventSink[] {
-                            new EventSink(HeatPumpElectricityModel.URI,
-                                    SetPowerEvent.class)
-                    }
-            );
-
-            connections.put(
-                    new EventSource(HeatPumpUnitTesterModel.URI,
-                            StartHeatingEvent.class),
-                    new EventSink[] {
-                            new EventSink(HeatPumpElectricityModel.URI,
-                                    StartHeatingEvent.class),
-                            new EventSink(HeatPumpHeatingModel.URI,
-                                    StartHeatingEvent.class)
-                    }
-            );
-
-            connections.put(
-                    new EventSource(HeatPumpUnitTesterModel.URI,
-                            StopHeatingEvent.class),
-                    new EventSink[] {
-                            new EventSink(HeatPumpElectricityModel.URI,
-                                    StopHeatingEvent.class),
-                            new EventSink(HeatPumpHeatingModel.URI,
-                                    StopHeatingEvent.class)
-                    }
-            );
-
-            connections.put(
-                    new EventSource(HeatPumpUnitTesterModel.URI,
-                            StartCoolingEvent.class),
-                    new EventSink[] {
-                            new EventSink(HeatPumpElectricityModel.URI,
-                                    StartCoolingEvent.class),
-                            new EventSink(HeatPumpHeatingModel.URI,
-                                    StartCoolingEvent.class)
-                    }
-            );
-
-            connections.put(
-                    new EventSource(HeatPumpUnitTesterModel.URI,
-                            StopCoolingEvent.class),
-                    new EventSink[] {
-                            new EventSink(HeatPumpElectricityModel.URI,
-                                    StopCoolingEvent.class),
-                            new EventSink(HeatPumpHeatingModel.URI,
-                                    StopCoolingEvent.class)
-                    }
-            );
-
-            // variable bindings between exporting and importing models
             Map<VariableSource, VariableSink[]> bindings =
-                    new HashMap<VariableSource,VariableSink[]>();
+                    new HashMap<>();
 
-            bindings.put(new VariableSource("externalTemperature",
-                    Double.class,
-                    ExternalTemperatureModel.URI),
-                    new VariableSink[] {
-                            new VariableSink("externalTemperature",
-                                    Double.class,
-                                    HeatPumpHeatingModel.URI)
-                    });
+            add_binding(bindings,
+                    "externalTemperature", Double.class,
+                    ExternalTemperatureSILModel.URI, HeatPumpHeatingModel.URI);
+            add_binding(bindings,
+                    "currentTemperaturePower", Double.class,
+                    HeatPumpElectricityModel.URI, HeatPumpHeatingModel.URI
+                    );
 
-            bindings.put(new VariableSource("currentTemperaturePower",
-                    Double.class,
-                    HeatPumpElectricityModel.URI),
-                    new VariableSink[]{
-                            new VariableSink("currentTemperaturePower",
-                                    Double.class,
-                                    HeatPumpHeatingModel.URI)
-                    });
+            Map<String, CoupledModelDescriptor> coupledModelDescriptors =
+                    new HashMap<>();
 
-            // coupled model descriptor
             coupledModelDescriptors.put(
                     HeatPumpCoupledModel.URI,
-                    new CoupledHIOA_Descriptor(
+                    new RTCoupledHIOA_Descriptor(
                             HeatPumpCoupledModel.class,
                             HeatPumpCoupledModel.URI,
                             submodels,
@@ -212,11 +227,12 @@ public class RunHeatPumpUnitaryMILSimulation {
                             null,
                             null,
                             null,
-                            bindings));
+                            bindings,
+                            ACCELERATION_FACTOR
+                    ));
 
-            // simulation architecture
             ArchitectureI architecture =
-                    new Architecture(
+                    new RTArchitecture(
                             HeatPumpCoupledModel.URI,
                             atomicModelDescriptors,
                             coupledModelDescriptors,
@@ -228,21 +244,29 @@ public class RunHeatPumpUnitaryMILSimulation {
             // standard simulations (useful when debugging)
             SimulationEngine.SIMULATION_STEP_SLEEP_TIME = 0L;
 
-            // run a CLASSICAL test scenario
             Map<String, Object> classicalRunParameters = new HashMap<>();
             CLASSICAL.addToRunParameters(classicalRunParameters);
             se.setSimulationRunParameters(classicalRunParameters);
             Time startTime = CLASSICAL.getStartTime();
             Duration d = CLASSICAL.getEndTime().subtract(startTime);
-            se.doStandAloneSimulation(startTime.getSimulatedTime(),
-                    d.getSimulatedDuration());
+            long realTimeStart = System.currentTimeMillis() + 200;
+            se.startRTSimulation(realTimeStart, startTime.getSimulatedTime(), d.getSimulatedDuration());
+            long executionDuration =
+                    new Double(
+                            HeatPumpSimulationConfigurationI.TIME_UNIT.toMillis(1)
+                                    * (d.getSimulatedDuration()/ACCELERATION_FACTOR)).
+                            longValue();
+            Thread.sleep(executionDuration + 2000L);
             SimulationReportI sr = se.getSimulatedModel().getFinalReport();
             System.out.println(sr);
+
+
             System.exit(0);
 
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
     }
 
     // -------------------------------------------------------------------------

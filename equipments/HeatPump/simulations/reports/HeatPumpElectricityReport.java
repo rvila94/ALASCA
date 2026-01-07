@@ -1,11 +1,7 @@
-package equipments.HeatPump.mil.reports;
-
-import fr.sorbonne_u.components.hem2025e2.GlobalReportI;
-import fr.sorbonne_u.devs_simulation.simulators.interfaces.SimulationReportI;
-import fr.sorbonne_u.exceptions.PreconditionException;
+package equipments.HeatPump.simulations.reports;
 
 /**
- * The class <code>equipments.HeatPump.mil.reports.HeatPumpElectricityReport</code>.
+ * The class <code>equipments.HeatPump.simulations.reports.mil.HeatPumpElectricityReport</code>.
  *
  * <p><strong>Description</strong></p>
  *

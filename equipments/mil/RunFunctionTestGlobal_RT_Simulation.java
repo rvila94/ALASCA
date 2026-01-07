@@ -38,10 +38,10 @@ import java.util.Map;
 import java.util.Set;
 
 
-import equipments.HeatPump.mil.HeatPumpElectricityModel;
-import equipments.HeatPump.mil.HeatPumpHeatingModel;
-import equipments.HeatPump.mil.HeatPumpUnitTesterModel;
-import equipments.HeatPump.mil.events.*;
+import equipments.HeatPump.simulations.events.*;
+import equipments.HeatPump.simulations.HeatPumpElectricityModel;
+import equipments.HeatPump.simulations.HeatPumpHeatingModel;
+import equipments.HeatPump.simulations.HeatPumpUnitTesterModel;
 import equipments.dimmerlamp.simulations.DimmerLampElectricityModel;
 import equipments.dimmerlamp.simulations.DimmerLampUnitTesterModel;
 import equipments.dimmerlamp.simulations.DimmerLampUserModel;

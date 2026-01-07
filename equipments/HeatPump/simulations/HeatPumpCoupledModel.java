@@ -1,4 +1,4 @@
-package equipments.HeatPump.mil;
+package equipments.HeatPump.simulations;
 
 import fr.sorbonne_u.devs_simulation.hioa.models.vars.StaticVariableDescriptor;
 import fr.sorbonne_u.devs_simulation.hioa.models.vars.VariableSink;
@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The class <code>equipments.HeatPump.mil.HeatPumpCoupledModel</code>.
+ * The class <code>equipments.HeatPump.simulations.HeatPumpCoupledModel</code>.
  *
  * <p><strong>Description</strong></p>
  *

@@ -1,16 +1,14 @@
-package equipments.HeatPump.mil.events;
+package equipments.HeatPump.simulations.events;
 
 import equipments.HeatPump.interfaces.HeatPumpUserI;
-import equipments.HeatPump.mil.HeatPumpElectricityModel;
-import equipments.HeatPump.mil.StateModelI;
+import equipments.HeatPump.simulations.interfaces.StateModelI;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
-import fr.sorbonne_u.devs_simulation.models.events.EventInformationI;
 import fr.sorbonne_u.devs_simulation.models.interfaces.AtomicModelI;
 import fr.sorbonne_u.devs_simulation.models.time.Time;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
 /**
- * The class <code>equipments.HeatPump.mil.events.StartCoolingEvent</code>.
+ * The class <code>equipments.HeatPump.simulations.events.mil.StartHeatingEvent</code>.
  *
  * <p><strong>Description</strong></p>
  *
@@ -28,7 +26,7 @@ import fr.sorbonne_u.exceptions.PreconditionException;
  * @author    <a href="mailto:Rodrigo.Vila@etu.sorbonne-universite.fr">Rodrigo Vila</a>
  * @author    <a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
  */
-public class StartCoolingEvent extends AbstractHeatPumpEvent{
+public class StartHeatingEvent extends AbstractHeatPumpEvent{
 
     private HeatPumpPowerValue power_value;
 
@@ -46,16 +44,16 @@ public class StartCoolingEvent extends AbstractHeatPumpEvent{
      *
      * @param timeOfOccurrence time of occurrence of the created event.
      */
-    public StartCoolingEvent(Time timeOfOccurrence) {
+    public StartHeatingEvent(Time timeOfOccurrence) {
         super(timeOfOccurrence, null);
     }
 
     /**
-     * @see equipments.HeatPump.mil.events.AbstractHeatPumpEvent#priorityIndex
+     * @see AbstractHeatPumpEvent#priorityIndex
      */
     @Override
     protected PriorityIndex priorityIndex() {
-        return PriorityIndex.StartCoolingEvent;
+        return PriorityIndex.SetPowerEvent;
     }
 
     /**
@@ -73,6 +71,7 @@ public class StartCoolingEvent extends AbstractHeatPumpEvent{
         assert state_model.getCurrentState() == HeatPumpUserI.State.On :
                 new NeoSim4JavaException("pump_model.getCurrentState() != HeatPumpUserI.State.On");
 
-        state_model.setCurrentState(HeatPumpUserI.State.Cooling);
+        state_model.setCurrentState(HeatPumpUserI.State.Heating);
     }
+
 }

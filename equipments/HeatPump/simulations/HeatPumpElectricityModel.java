@@ -1,10 +1,13 @@
-package equipments.HeatPump.mil;
+package equipments.HeatPump.simulations;
 
 import equipments.HeatPump.HeatPump;
 import equipments.HeatPump.interfaces.HeatPumpExternalControlI;
 import equipments.HeatPump.interfaces.HeatPumpUserI;
-import equipments.HeatPump.mil.events.*;
-import equipments.HeatPump.mil.reports.HeatPumpElectricityReport;
+import equipments.HeatPump.simulations.events.*;
+import equipments.HeatPump.simulations.interfaces.CompleteModelI;
+import equipments.HeatPump.simulations.interfaces.ElectricityModelI;
+import equipments.HeatPump.simulations.interfaces.StateModelI;
+import equipments.HeatPump.simulations.reports.HeatPumpElectricityReport;
 import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeterImplementationI;
 import fr.sorbonne_u.components.hem2025e2.utils.Electricity;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
@@ -28,7 +31,7 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The class <code>equipments.HeatPump.mil.HeatPumpElectricityModel</code>.
+ * The class <code>equipments.HeatPump.simulations.HeatPumpElectricityModel</code>.
  *
  * <p><strong>Description</strong></p>
  *
@@ -57,7 +60,7 @@ import java.util.concurrent.TimeUnit;
 })
 @ModelExportedVariable(name = "currentTemperaturePower", type = Double.class)
 @ModelExportedVariable(name = "currentIntensity", type = Double.class)
-public class HeatPumpElectricityModel extends AtomicHIOA implements StateModelI {
+public class HeatPumpElectricityModel extends AtomicHIOA implements CompleteModelI {
 
     // -------------------------------------------------------------------------
     // Constants
@@ -164,11 +167,17 @@ public class HeatPumpElectricityModel extends AtomicHIOA implements StateModelI 
     // Simulation methods
     // -------------------------------------------------------------------------
 
+    /**
+     * @see StateModelI#getCurrentState
+     */
     @Override
     public HeatPumpUserI.State getCurrentState() {
         return currentState;
     }
 
+    /**
+     * @see StateModelI#setCurrentState
+     */
     @Override
     public void setCurrentState(HeatPumpUserI.State state) {
         assert state != null :
@@ -187,6 +196,10 @@ public class HeatPumpElectricityModel extends AtomicHIOA implements StateModelI 
                         "HeatPumpElectricityModel.invariants(this)");
     }
 
+    /**
+     * @see ElectricityModelI#setCurrentPower
+     */
+    @Override
     public void setCurrentPower(double newPower, Time time) {
         assert HeatPump.MIN_REQUIRED_POWER_LEVEL.getData() <= newPower &&
                 newPower <= HeatPump.MAX_POWER_LEVEL.getData() :

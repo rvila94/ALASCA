@@ -1,17 +1,14 @@
-package equipments.HeatPump.mil.events;
+package equipments.HeatPump.simulations.events;
 
 import equipments.HeatPump.interfaces.HeatPumpUserI;
-import equipments.HeatPump.mil.HeatPumpElectricityModel;
-import equipments.HeatPump.mil.HeatPumpHeatingModel;
-import equipments.HeatPump.mil.StateModelI;
+import equipments.HeatPump.simulations.interfaces.StateModelI;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
-import fr.sorbonne_u.devs_simulation.models.events.EventInformationI;
 import fr.sorbonne_u.devs_simulation.models.interfaces.AtomicModelI;
 import fr.sorbonne_u.devs_simulation.models.time.Time;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
 /**
- * The class <code>equipments.HeatPump.mil.events.StartHeatingEvent</code>.
+ * The class <code>equipments.HeatPump.simulations.events.mil.StopHeatingEvent</code>.
  *
  * <p><strong>Description</strong></p>
  *
@@ -29,9 +26,7 @@ import fr.sorbonne_u.exceptions.PreconditionException;
  * @author    <a href="mailto:Rodrigo.Vila@etu.sorbonne-universite.fr">Rodrigo Vila</a>
  * @author    <a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
  */
-public class StartHeatingEvent extends AbstractHeatPumpEvent{
-
-    private HeatPumpPowerValue power_value;
+public class StopHeatingEvent extends AbstractHeatPumpEvent {
 
     /**
      * create an event from the given time of occurrence and event description.
@@ -46,13 +41,14 @@ public class StartHeatingEvent extends AbstractHeatPumpEvent{
      * </pre>
      *
      * @param timeOfOccurrence time of occurrence of the created event.
+     * @param content          description of the created event.
      */
-    public StartHeatingEvent(Time timeOfOccurrence) {
+    public StopHeatingEvent(Time timeOfOccurrence) {
         super(timeOfOccurrence, null);
     }
 
     /**
-     * @see equipments.HeatPump.mil.events.AbstractHeatPumpEvent#priorityIndex
+     * @see AbstractHeatPumpEvent#priorityIndex
      */
     @Override
     protected PriorityIndex priorityIndex() {
@@ -71,10 +67,9 @@ public class StartHeatingEvent extends AbstractHeatPumpEvent{
                 new PreconditionException("model not instanceof StateModelI");
 
         StateModelI state_model = (StateModelI) model;
-        assert state_model.getCurrentState() == HeatPumpUserI.State.On :
-                new NeoSim4JavaException("pump_model.getCurrentState() != HeatPumpUserI.State.On");
+        assert state_model.getCurrentState() == HeatPumpUserI.State.Heating :
+                new NeoSim4JavaException("pump_model.getCurrentState() != HeatPumpUserI.State.Heating");
 
-        state_model.setCurrentState(HeatPumpUserI.State.Heating);
+        state_model.setCurrentState(HeatPumpUserI.State.On);
     }
-
 }
