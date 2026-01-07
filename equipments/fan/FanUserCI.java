@@ -66,4 +66,22 @@ extends		OfferedCI,
      */
     @Override
     public void setLow() throws Exception;
+    
+    /**
+     * @see fr.sorbonne_u.components.hem2025e1.equipments.fan.FanImplementationI#startOscillation()
+     */
+    @Override
+    public void startOscillation() throws Exception;
+    
+    /**
+     * @see fr.sorbonne_u.components.hem2025e1.equipments.fan.FanImplementationI#stopOscillation()
+     */
+    @Override
+    public void stopOscillation() throws Exception;
+    
+    /**
+     * @see fr.sorbonne_u.components.hem2025e1.equipments.fan.FanImplementationI#isOscillating()
+     */
+    @Override
+    public boolean isOscillating() throws Exception;
 }

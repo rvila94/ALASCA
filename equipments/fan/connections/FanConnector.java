@@ -67,4 +67,21 @@ implements FanUserCI
 	public void setLow() throws Exception {
 		((FanUserCI)this.offering).setLow();
 	}
+
+	@Override
+	public void startOscillation() throws Exception {
+		((FanUserCI)this.offering).startOscillation();
+		
+	}
+
+	@Override
+	public void stopOscillation() throws Exception {
+		((FanUserCI)this.offering).stopOscillation();
+		
+	}
+
+	@Override
+	public boolean isOscillating() throws Exception {
+		return ((FanUserCI)this.offering).isOscillating();
+	}
 }

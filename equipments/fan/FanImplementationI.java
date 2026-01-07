@@ -158,6 +158,7 @@ public interface FanImplementationI {
 
 	/**
 	 * turn off the fan.
+	 * if the fan was oscillating, stops the oscillation before turning off
 	 * 
 	 * <p><strong>Contract</strong></p>
 	 * 
@@ -214,5 +215,50 @@ public interface FanImplementationI {
 	 * @throws Exception	<i>to do</i>.
 	 */
 	public void			setLow() throws Exception;
+	
+	/**
+	 * start the oscillation of the fan.
+	 *
+	 * <p><strong>Contract</strong></p>
+	 *
+	 * <pre>
+	 * pre   {@code getState() == FanState.ON}
+	 * pre   {@code getState() == FanState.ON}
+	 * post  {@code isOscillating() == true}
+	 * </pre>
+	 *
+	 * @throws Exception <i>to do</i>.
+	 */
+	public void startOscillation() throws Exception;
+	
+	/**
+	 * stop the oscillation of the fan.
+	 *
+	 * <p><strong>Contract</strong></p>
+	 *
+	 * <pre>
+	 * pre   {@code getState() == FanState.ON}
+	 * pre   {@code isOscillating() == true}
+	 * post  {@code isOscillating() == false}
+	 * </pre>
+	 *
+	 * @throws Exception <i>to do</i>.
+	 */
+	public void stopOscillation() throws Exception;
+
+	/**
+	 * return whether the fan is oscillating or not.
+	 *
+	 * <p><strong>Contract</strong></p>
+	 *
+	 * <pre>
+	 * pre   {@code true} // no precondition.
+	 * post  {@code true} // no postcondition.
+	 * </pre>
+	 *
+	 * @return true if the fan is oscillating, false otherwise.
+	 * @throws Exception <i>to do</i>.
+	 */
+	public boolean isOscillating() throws Exception;
 }
 

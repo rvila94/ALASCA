@@ -1,8 +1,8 @@
 package equipments.fan;
 
 import equipments.fan.connections.FanInboundPort;
-import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.annotations.OfferedInterfaces;
+import fr.sorbonne_u.components.cyphy.AbstractCyPhyComponent;
 import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
 import fr.sorbonne_u.components.hem2025e1.equipments.hairdryer.HairDryer;
 import fr.sorbonne_u.exceptions.AssertionChecking;
@@ -47,7 +47,7 @@ import fr.sorbonne_u.alasca.physical_data.Measure;
  */
 @OfferedInterfaces(offered={FanUserCI.class})
 public class Fan
-extends AbstractComponent
+extends AbstractCyPhyComponent
 implements FanImplementationI
 {
     // -------------------------------------------------------------------------
@@ -89,6 +89,9 @@ implements FanImplementationI
 
     /** inbound port offering the <code>FanUserCI</code> interface. */
     protected FanInboundPort fip;
+    
+    /** true if the fan is oscillating, false otherwise. */
+    protected boolean oscillating;
 
     // -------------------------------------------------------------------------
     // Invariants
@@ -323,6 +326,7 @@ implements FanImplementationI
 
         this.currentState = INITIAL_STATE;
         this.currentMode = INITIAL_MODE;
+        this.oscillating = false;
         this.fip = new FanInboundPort(fanInboundPortURI, this);
         this.fip.publishPort();
 
@@ -394,6 +398,10 @@ implements FanImplementationI
         }
         assert this.getState() == FanState.ON : 
         	new PreconditionException("getCurrentState() == FanState.ON");
+        
+        if (this.isOscillating()) {
+        	stopOscillation();
+        }
 
         this.currentState = FanState.OFF;
     }
@@ -437,4 +445,40 @@ implements FanImplementationI
 
         this.currentMode = FanMode.LOW;
     }
+
+	@Override
+	public void startOscillation() throws Exception {
+		if (Fan.VERBOSE) {
+	        this.traceMessage("Fan starts oscillation.\n");
+	    }
+		assert this.getState() == FanState.ON :
+	        new PreconditionException("getState() == FanState.ON");
+		assert this.isOscillating() == false :
+	        new PreconditionException("this.isOscillating() == false");
+		
+		this.oscillating = true;	
+	}
+	
+	@Override
+	public void stopOscillation() throws Exception {
+		if (Fan.VERBOSE) {
+	        this.traceMessage("Fan stops oscillation.\n");
+	    }
+		assert this.getState() == FanState.ON :
+	        new PreconditionException("getState() == FanState.ON");
+		assert this.isOscillating() == true :
+	        new PreconditionException("this.isOscillating() == true");
+		
+		this.oscillating = false;	
+	}
+
+	@Override
+	public boolean isOscillating() throws Exception {
+		if (Fan.VERBOSE) {
+	        this.traceMessage("Fan returns oscillation state : " +
+	                          this.oscillating + ".\n");
+	    }
+
+	    return this.oscillating;
+	}
 }

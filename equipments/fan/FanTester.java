@@ -785,12 +785,243 @@ public class FanTester extends AbstractComponent
 			this.statistics.incorrectResult();
 		}
 	}
+	
+	/**
+	 * test starting and stopping oscillation of the fan.
+	 *
+	 * <p><strong>Description</strong></p>
+	 * 
+	 * <p>Gherkin specification:</p>
+	 * <pre>
+	 * Feature: controlling the oscillation of the fan.
+	 * 
+	 *   Scenario: start oscillation when the fan is off
+	 *     Given the fan is off
+	 *     When the fan starts oscillation
+	 *     Then a precondition exception is thrown
+	 *     
+	 *   Scenario: stop oscillation when the fan is off
+	 *     Given the fan is off
+	 *     When the fan stops oscillation
+	 *     Then a precondition exception is thrown
+	 * 
+	 *   Scenario: start oscillation when the fan is on and not oscillating
+	 *     Given the fan is on
+	 *     And the fan is not oscillating
+	 *     When the fan starts oscillation
+	 *     Then the fan is on
+	 *     And  the fan is oscillating
+	 * 
+	 *   Scenario: start oscillation when the fan is already oscillating
+	 *     Given the fan is on
+	 *     And the fan is oscillating
+	 *     When the fan starts oscillation
+	 *     Then a precondition exception is thrown 
+	 * 
+	 *   Scenario: stop oscillation when the fan is oscillating
+	 *     Given the fan is on
+	 *     And the fan is oscillating
+	 *     When the fan stops oscillation
+	 *     Then the fan is on
+	 *     And  the fan is not oscillating
+	 * 
+	 *   Scenario: stop oscillation when the fan is not oscillating
+	 *     Given the fan is on
+	 *     And the fan is not oscillating
+	 *     When the fan stops oscillation
+	 *     Then a precondition exception is thrown
+	 * 
+	 *   Scenario: turn off the fan while oscillating
+	 *     Given the fan is on
+	 *     And the fan is oscillating
+	 *     When the fan is turned off
+	 *     Then the fan is off
+	 *     And  the fan is not oscillating
+	 * </pre>
+	 */
+	public void testOscillation()
+	{
+		this.logMessage("Feature: controlling the oscillation of the fan.");
+
+		FanImplementationI.FanState resultState = null;
+		boolean oscillating = false;
+		
+		this.logMessage("  Scenario: start oscillation when the fan is off");
+		this.logMessage("    Given the fan is off");
+		this.logMessage("    When the fan starts oscillation");
+		this.logMessage("    Then a precondition exception is thrown");
+
+		boolean old = BCMException.VERBOSE;
+		try {
+			BCMException.VERBOSE = false;
+			this.fop.startOscillation();
+			this.logMessage("     but it was not thrown");
+			this.statistics.incorrectResult();
+		} catch (Throwable e) {
+			// expected
+		} finally {
+			BCMException.VERBOSE = old;
+		}
+		this.statistics.updateStatistics();
+		
+		this.logMessage("  Scenario: stop oscillation when the fan is off");
+		this.logMessage("    Given the fan is off");
+		this.logMessage("    When the fan stops oscillation");
+		this.logMessage("    Then a precondition exception is thrown");
+
+		old = BCMException.VERBOSE;
+		try {
+			BCMException.VERBOSE = false;
+			this.fop.stopOscillation();
+			this.logMessage("     but it was not thrown");
+			this.statistics.incorrectResult();
+		} catch (Throwable e) {
+			// expected
+		} finally {
+			BCMException.VERBOSE = old;
+		}
+		this.statistics.updateStatistics();
+
+		this.logMessage("  Scenario: start oscillation when the fan is on and not oscillating");
+		try {
+			this.logMessage("    Given the fan is on");
+			this.fop.turnOn();
+
+			this.logMessage("    And the fan is not oscillating");
+			oscillating = this.fop.isOscillating();
+			if (oscillating) {
+				this.logMessage("     but it was oscillating");
+				this.statistics.failedCondition();
+			}
+
+			this.logMessage("    When the fan starts oscillation");
+			this.fop.startOscillation();
+
+			this.logMessage("    Then the fan is on");
+			resultState = this.fop.getState();
+			if (!FanImplementationI.FanState.ON.equals(resultState)) {
+				this.logMessage("     but was: " + resultState);
+				this.statistics.incorrectResult();
+			}
+
+			this.logMessage("    And the fan is oscillating");
+			if (!this.fop.isOscillating()) {
+				this.logMessage("     but it was not oscillating");
+				this.statistics.incorrectResult();
+			}
+		} catch (Throwable e) {
+			this.statistics.incorrectResult();
+			this.logMessage("     but the exception " + e + " has been raised");
+		}
+		this.statistics.updateStatistics();
+
+		this.logMessage("  Scenario: start oscillation when the fan is already oscillating");
+		this.logMessage("    Given the fan is on");
+		this.logMessage("    And the fan is oscillating");
+		this.logMessage("    When the fan starts oscillation");
+		this.logMessage("    Then a precondition exception is thrown");
+
+		old = BCMException.VERBOSE;
+		try {
+			BCMException.VERBOSE = false;
+			this.fop.startOscillation();
+			this.logMessage("     but it was not thrown");
+			this.statistics.incorrectResult();
+		} catch (Throwable e) {
+			// expected
+		} finally {
+			BCMException.VERBOSE = old;
+		}
+		this.statistics.updateStatistics();
+
+		this.logMessage("  Scenario: stop oscillation when the fan is oscillating");
+		this.logMessage("    Given the fan is on");
+		this.logMessage("    And the fan is oscillating");
+		try {
+			if (!this.fop.isOscillating()) {
+				this.logMessage("     but it was not oscillating");
+				this.statistics.failedCondition();
+			}
+
+			this.logMessage("    When the fan stops oscillation");
+			this.fop.stopOscillation();
+
+			this.logMessage("    Then the fan is on");
+			resultState = this.fop.getState();
+			if (!FanImplementationI.FanState.ON.equals(resultState)) {
+				this.logMessage("     but was: " + resultState);
+				this.statistics.incorrectResult();
+			}
+
+			this.logMessage("    And the fan is not oscillating");
+			if (this.fop.isOscillating()) {
+				this.logMessage("     but it was oscillating");
+				this.statistics.incorrectResult();
+			}
+		} catch (Throwable e) {
+			this.statistics.incorrectResult();
+			this.logMessage("     but the exception " + e + " has been raised");
+		}
+		this.statistics.updateStatistics();
+
+		this.logMessage("  Scenario: stop oscillation when the fan is not oscillating");
+		this.logMessage("    Given the fan is on");
+		this.logMessage("    And the fan is not oscillating");
+		this.logMessage("    When the fan stops oscillation");
+		this.logMessage("    Then a precondition exception is thrown");
+
+		old = BCMException.VERBOSE;
+		try {
+			BCMException.VERBOSE = false;
+			this.fop.stopOscillation();
+			this.logMessage("     but it was not thrown");
+			this.statistics.incorrectResult();
+		} catch (Throwable e) {
+			// expected
+		} finally {
+			BCMException.VERBOSE = old;
+		}
+		this.statistics.updateStatistics();
+
+		this.logMessage("  Scenario: turn off the fan while oscillating");
+		try {
+			this.logMessage("    Given the fan is on");
+			this.logMessage("    And the fan is oscillating");
+			this.fop.startOscillation();
+
+			if (!this.fop.isOscillating()) {
+				this.statistics.failedCondition();
+			}
+
+			this.logMessage("    When the fan is turned off");
+			this.fop.turnOff();
+
+			this.logMessage("    Then the fan is off");
+			resultState = this.fop.getState();
+			if (!FanImplementationI.FanState.OFF.equals(resultState)) {
+				this.logMessage("     but was: " + resultState);
+				this.statistics.incorrectResult();
+			}
+
+			this.logMessage("    And the fan is not oscillating");
+			if (this.fop.isOscillating()) {
+				this.logMessage("     but it was oscillating");
+				this.statistics.incorrectResult();
+			}
+		} catch (Throwable e) {
+			this.statistics.incorrectResult();
+			this.logMessage("     but the exception " + e + " has been raised");
+		}
+		this.statistics.updateStatistics();
+	}
+
 
 	protected void runAllUnitTests() {
 		this.testGetState();
 		this.testGetMode();
 		this.testTurnOnOff();
 		this.testSwitchModes();
+		this.testOscillation();
 		this.statistics.statisticsReport(this);
 	}
 

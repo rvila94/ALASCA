@@ -139,4 +139,27 @@ implements FanUserCI
 			o -> { ((FanImplementationI)o).setLow(); return null; }
 		);
 	}
+
+	@Override
+	public void startOscillation() throws Exception {
+		this.getOwner().handleRequest(
+				o -> { ((FanImplementationI)o).startOscillation(); return null; }
+			);
+		
+	}
+
+	@Override
+	public void stopOscillation() throws Exception {
+		this.getOwner().handleRequest(
+				o -> { ((FanImplementationI)o).stopOscillation(); return null; }
+			);
+		
+	}
+
+	@Override
+	public boolean isOscillating() throws Exception {
+		return this.getOwner().handleRequest(
+				o -> ((FanImplementationI)o).isOscillating()
+			);
+	}
 }

@@ -116,4 +116,21 @@ implements FanUserCI
 	public void setLow() throws Exception {
 		((FanUserCI)this.getConnector()).setLow();
 	}
+
+	@Override
+	public void startOscillation() throws Exception {
+		((FanUserCI)this.getConnector()).startOscillation();
+		
+	}
+
+	@Override
+	public void stopOscillation() throws Exception {
+		((FanUserCI)this.getConnector()).stopOscillation();
+		
+	}
+
+	@Override
+	public boolean isOscillating() throws Exception {
+		return ((FanUserCI)this.getConnector()).isOscillating();
+	}
 }
