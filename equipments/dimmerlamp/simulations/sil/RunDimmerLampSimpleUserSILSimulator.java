@@ -1,6 +1,5 @@
 package equipments.dimmerlamp.simulations.sil;
 
-import equipments.dimmerlamp.mil.*;
 import equipments.dimmerlamp.simulations.DimmerLampCoupledModel;
 import equipments.dimmerlamp.simulations.DimmerLampElectricityModel;
 import equipments.dimmerlamp.simulations.DimmerLampSimulationConfigurationI;

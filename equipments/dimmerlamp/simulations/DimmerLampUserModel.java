@@ -1,7 +1,6 @@
 package equipments.dimmerlamp.simulations;
 
 import equipments.dimmerlamp.DimmerLamp;
-import equipments.dimmerlamp.mil.events.*;
 import equipments.dimmerlamp.simulations.events.LampPowerValue;
 import equipments.dimmerlamp.simulations.events.SetPowerLampEvent;
 import equipments.dimmerlamp.simulations.events.SwitchOffLampEvent;
