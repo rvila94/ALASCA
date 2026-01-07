@@ -7,6 +7,7 @@ import equipments.dimmerlamp.simulations.events.SetPowerLampEvent;
 import equipments.dimmerlamp.simulations.events.SwitchOffLampEvent;
 import equipments.dimmerlamp.simulations.events.SwitchOnLampEvent;
 import equipments.dimmerlamp.simulations.sil.DimmerLampStateModel;
+import equipments.dimmerlamp.simulations.sil.LocalSILSimulationArchitectures;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.components.annotations.OfferedInterfaces;
 import fr.sorbonne_u.components.annotations.RequiredInterfaces;
@@ -20,7 +21,6 @@ import fr.sorbonne_u.components.cyphy.utils.tests.TestScenarioWithSimulation;
 import fr.sorbonne_u.components.exceptions.BCMException;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.components.hem2025.bases.RegistrationCI;
-import fr.sorbonne_u.components.hem2025e3.equipments.hairdryer.sil.Local_SIL_SimulationArchitectures;
 import fr.sorbonne_u.devs_simulation.architectures.RTArchitecture;
 import fr.sorbonne_u.devs_simulation.models.annotations.ModelExternalEvents;
 import fr.sorbonne_u.exceptions.PreconditionException;
@@ -181,16 +181,16 @@ extends DimmerLamp {
 
         switch (mode){
             case UNIT_TEST_WITH_SIL_SIMULATION:
-                result = Local_SIL_SimulationArchitectures.
-                        createHairDryerSIL_Architecture4UnitTest(
+                result = LocalSILSimulationArchitectures.
+                        createDimmerLampSIL_Architecture4UnitTest(
                                 architectureURI,
                                 rootModelURI,
                                 simulatedTimeUnit,
                                 accelerationFactor
                         );
             case INTEGRATION_TEST_WITH_HIL_SIMULATION:
-                result = Local_SIL_SimulationArchitectures.
-                        createHairDryerSIL_Architecture4IntegrationTest(
+                result = LocalSILSimulationArchitectures.
+                        createDimmerLampSIL_Architecture4IntegrationTest(
                                 architectureURI,
                                 rootModelURI,
                                 simulatedTimeUnit,

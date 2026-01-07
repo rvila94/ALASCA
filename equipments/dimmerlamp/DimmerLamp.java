@@ -271,7 +271,7 @@ implements DimmerLampUserI, DimmerLampExternalI {
             this.logMessage("The dimmer lamp unregistered from the hem\n");
         }
 
-        assert this.state.isOn() : new PostconditionException("Lamp is on");
+        assert ! this.state.isOn() : new PostconditionException("Lamp is on");
     }
 
     @Override

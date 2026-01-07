@@ -2,14 +2,12 @@ package equipments.dimmerlamp.simulations.sil;
 
 import equipments.dimmerlamp.DimmerLamp;
 import equipments.dimmerlamp.LampState;
-import equipments.dimmerlamp.simulations.DimmerLampElectricityModel;
 import equipments.dimmerlamp.simulations.DimmerLampSimulationOperationI;
 import equipments.dimmerlamp.simulations.events.AbstractLampEvent;
 import equipments.dimmerlamp.simulations.events.SetPowerLampEvent;
 import equipments.dimmerlamp.simulations.events.SwitchOffLampEvent;
 import equipments.dimmerlamp.simulations.events.SwitchOnLampEvent;
 import fr.sorbonne_u.components.cyphy.plugins.devs.AtomicSimulatorPlugin;
-import fr.sorbonne_u.components.exceptions.BCMException;
 import fr.sorbonne_u.devs_simulation.exceptions.MissingRunParameterException;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
 import fr.sorbonne_u.devs_simulation.models.AtomicModel;
@@ -135,19 +133,11 @@ implements DimmerLampSimulationOperationI {
         assert state != null :
                 new PreconditionException("state == null");
 
-        if (this.currentState != state) {
-            this.currentState = state;
-        }
+
+        this.currentState = state;
 
         assert this.currentState == state :
                 new PostconditionException("this.currentState != state");
-
-        assert DimmerLampElectricityModel.implementationInvariants(this):
-                new NeoSim4JavaException(
-                        "DimmerLampElectricityModel.implementationInvariants(this)");
-        assert DimmerLampElectricityModel.invariants(this) :
-                new NeoSim4JavaException(
-                        "DimmerLampElectricityModel.invariants(this)");
     }
 
     /**
@@ -169,14 +159,6 @@ implements DimmerLampSimulationOperationI {
                         "newPower < DimmerLamp.MAX_POWER_VARIATION.getData()");
         assert time != null:
                 new PreconditionException("time == null");
-
-
-        assert DimmerLampElectricityModel.implementationInvariants(this):
-                new NeoSim4JavaException(
-                        "DimmerLampElectricityModel.implementationInvariants(this)");
-        assert DimmerLampElectricityModel.invariants(this) :
-                new NeoSim4JavaException(
-                        "DimmerLampElectricityModel.invariants(this)");
     }
 
     // -------------------------------------------------------------------------
@@ -257,7 +239,7 @@ implements DimmerLampSimulationOperationI {
 
         EventI event = currentEvents.get(0);
         assert event instanceof AbstractLampEvent :
-                new BCMException("event is not an abstract lamp event");
+                new NeoSim4JavaException("event is not an abstract lamp event");
 
         event.executeOn(this);
         this.previousEvent = event;

@@ -56,7 +56,7 @@ public abstract class LocalSILSimulationArchitectures
         map.put(source, new EventSink[] { sink });
     }
 
-    public static RTArchitecture createHairDryerSIL_Architecture4UnitTest(
+    public static RTArchitecture createDimmerLampSIL_Architecture4UnitTest(
             String architectureURI,
             String rootModelURI,
             TimeUnit simulatedTimeUnit,
@@ -142,7 +142,7 @@ public abstract class LocalSILSimulationArchitectures
         return result;
     }
 
-    public static RTArchitecture	createHairDryerSIL_Architecture4IntegrationTest(
+    public static RTArchitecture	createDimmerLampSIL_Architecture4IntegrationTest(
             String architectureURI,
             String rootModelURI,
             TimeUnit simulatedTimeUnit,
