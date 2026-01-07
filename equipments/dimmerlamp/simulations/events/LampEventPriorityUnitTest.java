@@ -1,8 +1,7 @@
-package equipments.dimmerlamp.mil.events;
+package equipments.dimmerlamp.simulations.events;
 
 import equipments.dimmerlamp.DimmerLamp;
 import fr.sorbonne_u.devs_simulation.models.time.Time;
-import fr.sorbonne_u.exceptions.AssertionChecking;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
@@ -10,7 +9,7 @@ import org.junit.jupiter.api.Assertions;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The class <code>equipments.dimmerlamp.mil.events.LampEventPriorityUnitTest</code>.
+ * The class <code>equipments.dimmerlamp.simulations.events.mil.LampEventPriorityUnitTest</code>.
  *
  * <p><strong>Description</strong></p>
  *

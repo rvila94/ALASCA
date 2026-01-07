@@ -1,13 +1,14 @@
-package equipments.dimmerlamp.mil.events;
+package equipments.dimmerlamp.simulations.events;
 
-import equipments.dimmerlamp.DimmerLamp;
-import equipments.dimmerlamp.mil.DimmerLampElectricityModel;
+import equipments.dimmerlamp.LampState;
+import equipments.dimmerlamp.simulations.DimmerLampSimulationOperationI;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
 import fr.sorbonne_u.devs_simulation.models.interfaces.AtomicModelI;
 import fr.sorbonne_u.devs_simulation.models.time.Time;
+import fr.sorbonne_u.exceptions.PreconditionException;
 
 /**
- * The class <code>equipments.dimmerlamp.mil.events.SwitchOnLampEvent</code>.
+ * The class <code>equipments.dimmerlamp.simulations.events.mil.SwitchOffLampEvent</code>.
  *
  * <p><strong>Description</strong></p>
  *
@@ -25,13 +26,7 @@ import fr.sorbonne_u.devs_simulation.models.time.Time;
  * @author    <a href="mailto:Rodrigo.Vila@etu.sorbonne-universite.fr">Rodrigo Vila</a>
  * @author    <a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
  */
-public class SwitchOnLampEvent extends AbstractLampEvent {
-
-    // -------------------------------------------------------------------------
-    // Constants and variables
-    // -------------------------------------------------------------------------
-
-    private static final long serialVersionUID = 1L;
+public class SwitchOffLampEvent extends AbstractLampEvent {
 
     // -------------------------------------------------------------------------
     // Invariants
@@ -45,12 +40,15 @@ public class SwitchOnLampEvent extends AbstractLampEvent {
      *
      * <pre>
      *  pre {@code event != null} // no precondition
-     *  post {@code true} // no postcondition
+     *  post {@code true} // no post condition
      * </pre>
-     * @param event
+     * @param event whose implementations invariants will be checked
      */
-    protected static boolean implementationInvariants(SwitchOnLampEvent event) {
-        return AbstractLampEvent.priorityInvariant(event);
+    protected static boolean implementationInvariants(SwitchOffLampEvent event) {
+        assert event != null :
+                new PreconditionException("event == null");
+
+        return priorityInvariant(event);
     }
 
     // -------------------------------------------------------------------------
@@ -71,7 +69,7 @@ public class SwitchOnLampEvent extends AbstractLampEvent {
      *
      * @param timeOfOccurrence time of occurrence of the created event.
      */
-    public SwitchOnLampEvent(Time timeOfOccurrence) {
+    public SwitchOffLampEvent(Time timeOfOccurrence) {
         super(timeOfOccurrence, null);
     }
 
@@ -87,21 +85,20 @@ public class SwitchOnLampEvent extends AbstractLampEvent {
     {
         super.executeOn(model);
 
-        DimmerLampElectricityModel lamp_model = (DimmerLampElectricityModel)model;
+        DimmerLampSimulationOperationI lamp_model = (DimmerLampSimulationOperationI) model;
 
-        assert lamp_model.getState() == DimmerLamp.LampState.OFF :
-                new NeoSim4JavaException("lamp_mode.getCurrentState() != DimmerLamp.LampState.OFF");
+        assert lamp_model.getState() == LampState.ON :
+                new NeoSim4JavaException("lamp_mode.getCurrentState() != DimmerLamp.LampState.ON");
 
-        lamp_model.setState(DimmerLamp.LampState.ON);
+        lamp_model.setState(LampState.OFF);
     }
 
     /**
-     * @see equipments.dimmerlamp.mil.events.AbstractLampEvent#priorityIndex
+     * @see AbstractLampEvent#priorityIndex
      */
     @Override
     protected PriorityIndex priorityIndex() {
-        return PriorityIndex.SwitchOnEvent;
+        return PriorityIndex.SwitchOffEvent;
     }
-
 
 }

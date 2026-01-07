@@ -1,12 +1,12 @@
-package equipments.dimmerlamp.mil;
+package equipments.dimmerlamp.simulations;
 
 import equipments.dimmerlamp.DimmerLamp;
-import equipments.dimmerlamp.DimmerLamp.LampState;
+import equipments.dimmerlamp.LampState;
 import equipments.dimmerlamp.interfaces.DimmerLampExternalI;
-import equipments.dimmerlamp.mil.events.AbstractLampEvent;
-import equipments.dimmerlamp.mil.events.SetPowerLampEvent;
-import equipments.dimmerlamp.mil.events.SwitchOffLampEvent;
-import equipments.dimmerlamp.mil.events.SwitchOnLampEvent;
+import equipments.dimmerlamp.simulations.events.AbstractLampEvent;
+import equipments.dimmerlamp.simulations.events.SetPowerLampEvent;
+import equipments.dimmerlamp.simulations.events.SwitchOffLampEvent;
+import equipments.dimmerlamp.simulations.events.SwitchOnLampEvent;
 import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeterImplementationI;
 import fr.sorbonne_u.components.hem2025e2.utils.Electricity;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 // TODO TENSION EXTERNAL???
 
 /**
- * The class <code>equipments.dimmerlamp.mil.DimmerLampElectricityModel</code>.
+ * The class <code>equipments.dimmerlamp.simulations.DimmerLampElectricityModel</code>.
  *
  * <p><strong>Description</strong></p>
  *
@@ -57,7 +57,9 @@ import java.util.concurrent.TimeUnit;
 })
 @ModelExportedVariable(name = "currentIntensity", type = Double.class)
 @ModelExportedVariable(name = "currentPower", type = Double.class)
-public class DimmerLampElectricityModel extends AtomicHIOA {
+public class DimmerLampElectricityModel
+        extends AtomicHIOA
+        implements DimmerLampSimulationOperationI {
 
     // -------------------------------------------------------------------------
     // Constants
@@ -322,18 +324,9 @@ public class DimmerLampElectricityModel extends AtomicHIOA {
     // -------------------------------------------------------------------------
 
     /**
-     *
-     * sets the mode of the dimmer lamp in the simulator
-     *
-     * <p><strong>Contract</strong></p>
-     *
-     * <pre>
-     *  pre {@code state != null}
-     *  post {@code this.currentState == state}
-     * </pre>
-     *
-     * @param state the new state
+     * @see DimmerLampSimulationOperationI#setState
      */
+    @Override
     public void setState(LampState state) {
 
         assert state != null :
@@ -357,17 +350,9 @@ public class DimmerLampElectricityModel extends AtomicHIOA {
     }
 
     /**
-     *
-     * gets the current state of the dimmer lamp in the simulator
-     *
-     * <p><strong>Contract</strong></p>
-     *
-     * <pre>
-     *  pre {@code true}        // no precondition
-     *  post {@code true}       // no postcondition
-     * </pre>
-     * @return LampState    the current state of the dimmer lamp
+     * @see DimmerLampSimulationOperationI#getState
      */
+    @Override
     public LampState getState() {
         return this.currentState;
     }
@@ -386,6 +371,7 @@ public class DimmerLampElectricityModel extends AtomicHIOA {
      * @param newPower
      * @param time
      */
+    @Override
     public void setDimmerLampPower(double newPower, Time time) {
         assert DimmerLamp.MIN_POWER_VARIATION.getData() <= newPower &&
             newPower <= DimmerLamp.MAX_POWER_VARIATION.getData() :

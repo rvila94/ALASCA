@@ -312,7 +312,7 @@ extends AbstractComponent {
 
         try {
             this.logMessage("   When the power of the lamp is set to a given wattage");
-            this.externalOutboundPort.setVariationPower(DimmerLamp.BASE_POWER_VARIATION);
+            this.externalOutboundPort.setPower(DimmerLamp.BASE_POWER_VARIATION);
             this.logMessage("But was not");
             this.statistics.incorrectResult();
         } catch (Exception e) {
@@ -337,7 +337,7 @@ extends AbstractComponent {
     }
 
     /**
-     * test of the {@code setVariationPower} and {@code getCurrentPowerLevel} method when the fan is off.
+     * test of the {@code setPower} and {@code getCurrentPowerLevel} method when the fan is off.
      *
      * <p><strong>Description</strong></p>
      *
@@ -415,7 +415,7 @@ extends AbstractComponent {
         try {
             Random rd = new Random();
             Measure<Double> random_power_level = new Measure<>(rd.nextDouble() * 100., MeasurementUnit.WATTS);
-            this.externalOutboundPort.setVariationPower(random_power_level);
+            this.externalOutboundPort.setPower(random_power_level);
             Measure<Double> result = this.externalOutboundPort.getCurrentPowerLevel();
 
             if (result.getData() == random_power_level.getData()) {
@@ -437,7 +437,7 @@ extends AbstractComponent {
         this.logMessage("   And the dimmer lamp is on");
         try {
             this.logMessage("   When the power is set to null");
-            this.externalOutboundPort.setVariationPower(null);
+            this.externalOutboundPort.setPower(null);
             this.logMessage("But was not");
             this.statistics.incorrectResult();
         } catch (Exception e) {
@@ -449,7 +449,7 @@ extends AbstractComponent {
         this.logMessage("   And the dimmer lamp is on");
         try {
             this.logMessage("   When the power is set to a negative wattage");
-            this.externalOutboundPort.setVariationPower(new Measure<>(-1., MeasurementUnit.WATTS));
+            this.externalOutboundPort.setPower(new Measure<>(-1., MeasurementUnit.WATTS));
             this.logMessage("But was not");
             this.statistics.incorrectResult();
         } catch (Exception e) {
@@ -464,7 +464,7 @@ extends AbstractComponent {
         try {
             this.logMessage("   When the power is set to the maximum wattage + 1");
             double max_power = DimmerLamp.MAX_POWER_VARIATION.getData() + 1.;
-            this.externalOutboundPort.setVariationPower(new Measure<>(max_power, MeasurementUnit.WATTS));
+            this.externalOutboundPort.setPower(new Measure<>(max_power, MeasurementUnit.WATTS));
             this.logMessage("But was not");
             this.statistics.incorrectResult();
         } catch (Exception e) {

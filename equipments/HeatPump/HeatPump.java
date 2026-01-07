@@ -883,7 +883,6 @@ implements HeatPumpUserI,
             new_power_measure = MIN_REQUIRED_POWER_LEVEL;
             compressorBoundPort.setPower(min_compressor_measure);
             temperatureOutboundPort.setPower(min_sensor_measure);
-
         }
 
         if (HeatPump.VERBOSE) {

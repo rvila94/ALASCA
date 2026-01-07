@@ -1,18 +1,24 @@
-package equipments.dimmerlamp.mil;
+package equipments.dimmerlamp.simulations.sil;
 
 import equipments.dimmerlamp.DimmerLamp;
-import equipments.dimmerlamp.mil.events.LampPowerValue;
-import equipments.dimmerlamp.mil.events.SetPowerLampEvent;
-import equipments.dimmerlamp.mil.events.SwitchOffLampEvent;
-import equipments.dimmerlamp.mil.events.SwitchOnLampEvent;
+import equipments.dimmerlamp.simulations.DimmerLampCoupledModel;
+import equipments.dimmerlamp.simulations.DimmerLampElectricityModel;
+import equipments.dimmerlamp.simulations.DimmerLampSimulationConfigurationI;
+import equipments.dimmerlamp.simulations.DimmerLampUnitTesterModel;
+import equipments.dimmerlamp.simulations.events.LampPowerValue;
+import equipments.dimmerlamp.simulations.events.SetPowerLampEvent;
+import equipments.dimmerlamp.simulations.events.SwitchOffLampEvent;
+import equipments.dimmerlamp.simulations.events.SwitchOnLampEvent;
 import fr.sorbonne_u.components.cyphy.utils.tests.SimulationTestStep;
 import fr.sorbonne_u.components.cyphy.utils.tests.TestScenarioWithSimulation;
-import fr.sorbonne_u.devs_simulation.architectures.Architecture;
+import fr.sorbonne_u.components.hem2025e2.equipments.hairdryer.mil.HairDryerSimulationConfigurationI;
 import fr.sorbonne_u.devs_simulation.architectures.ArchitectureI;
-import fr.sorbonne_u.devs_simulation.hioa.architectures.AtomicHIOA_Descriptor;
+import fr.sorbonne_u.devs_simulation.architectures.RTArchitecture;
+import fr.sorbonne_u.devs_simulation.hioa.architectures.RTAtomicHIOA_Descriptor;
 import fr.sorbonne_u.devs_simulation.models.architectures.AbstractAtomicModelDescriptor;
-import fr.sorbonne_u.devs_simulation.models.architectures.AtomicModelDescriptor;
 import fr.sorbonne_u.devs_simulation.models.architectures.CoupledModelDescriptor;
+import fr.sorbonne_u.devs_simulation.models.architectures.RTAtomicModelDescriptor;
+import fr.sorbonne_u.devs_simulation.models.architectures.RTCoupledModelDescriptor;
 import fr.sorbonne_u.devs_simulation.models.events.EventI;
 import fr.sorbonne_u.devs_simulation.models.events.EventSink;
 import fr.sorbonne_u.devs_simulation.models.events.EventSource;
@@ -28,7 +34,7 @@ import java.time.Instant;
 import java.util.*;
 
 /**
- * The class <code>equipments.dimmerlamp.mil.RunDimmerLampMILSimulation</code>.
+ * The class <code>equipments.dimmerlamp.sil.RunDimmerLampSILSimulator</code>.
  *
  * <p><strong>Description</strong></p>
  *
@@ -46,104 +52,118 @@ import java.util.*;
  * @author    <a href="mailto:Rodrigo.Vila@etu.sorbonne-universite.fr">Rodrigo Vila</a>
  * @author    <a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
  */
-public class RunDimmerLampUnitaryMILSimulation {
+public class RunDimmerLampUnitarySILSimulator {
 
     // -------------------------------------------------------------------------
-    // Invariants
+    // Constants
     // -------------------------------------------------------------------------
 
-    // TODO
+    /** the acceleration factor used in the real time MIL simulations.	 	*/
+    public static final double		ACCELERATION_FACTOR = 3600.0;
 
     // -------------------------------------------------------------------------
     // Methods
     // -------------------------------------------------------------------------
 
-    public static void main(String[] args) {
+    protected static void add_simple_connection(
+            Map<EventSource, EventSink[]> map,
+            Class <? extends EventI> eventType,
+            String source_uri,
+            String dest_uri) {
+        final EventSource source =
+                new EventSource(source_uri, eventType);
+        final EventSink sink =
+                new EventSink(dest_uri, eventType);
+
+        map.put(source, new EventSink[] { sink });
+    }
+
+    public static void	main(String[] args)  {
+        Time.setPrintPrecision(4);
+        Duration.setPrintPrecision(4);
 
         try {
 
             Map<String, AbstractAtomicModelDescriptor> atomicModelDescriptors =
                     new HashMap<>();
-
-            // the dimmer lamp models simulating its electricity consumption is an
-            // atomic HIOA model hence we use an AtomicHIOA_Descriptor(s)
             atomicModelDescriptors.put(
                     DimmerLampElectricityModel.URI,
-                    AtomicHIOA_Descriptor.create(
+                    RTAtomicHIOA_Descriptor.create(
                             DimmerLampElectricityModel.class,
                             DimmerLampElectricityModel.URI,
                             DimmerLampSimulationConfigurationI.TIME_UNIT,
-                            null));
+                            null,
+                            ACCELERATION_FACTOR));
             // for atomic model, we use an AtomicModelDescriptor
             atomicModelDescriptors.put(
+                    DimmerLampStateModel.URI,
+                    RTAtomicModelDescriptor.create(
+                            DimmerLampStateModel.class,
+                            DimmerLampStateModel.URI,
+                            DimmerLampSimulationConfigurationI.TIME_UNIT,
+                            null,
+                            ACCELERATION_FACTOR));
+            atomicModelDescriptors.put(
                     DimmerLampUnitTesterModel.URI,
-                    AtomicModelDescriptor.create(
+                    RTAtomicModelDescriptor.create(
                             DimmerLampUnitTesterModel.class,
                             DimmerLampUnitTesterModel.URI,
                             DimmerLampSimulationConfigurationI.TIME_UNIT,
-                            null));
+                            null,
+                            ACCELERATION_FACTOR));
 
-            // map that will contain the coupled model descriptors to construct
-            // the simulation architecture
             Map<String, CoupledModelDescriptor> coupledModelDescriptors =
                     new HashMap<>();
 
             // the set of submodels of the coupled model, given by their URIs
             Set<String> submodels = new HashSet<>();
+            submodels.add(DimmerLampStateModel.URI);
             submodels.add(DimmerLampElectricityModel.URI);
             submodels.add(DimmerLampUnitTesterModel.URI);
 
-            // event exchanging connections between exporting and importing
-            // models
             Map<EventSource, EventSink[]> connections =
                     new HashMap<>();
 
-            connections.put(
-                    new EventSource(DimmerLampUnitTesterModel.URI,
-                            SwitchOnLampEvent.class),
-                    new EventSink[] {
-                            new EventSink(DimmerLampElectricityModel.URI,
-                                    SwitchOnLampEvent.class)
-                    }
-            );
-            connections.put(
-                    new EventSource(DimmerLampUnitTesterModel.URI,
-                            SetPowerLampEvent.class),
-                    new EventSink[] {
-                            new EventSink(DimmerLampElectricityModel.URI,
-                                    SetPowerLampEvent.class)
-                    }
-            );
+            add_simple_connection(
+                    connections, SwitchOnLampEvent.class,
+                    DimmerLampStateModel.URI, DimmerLampElectricityModel.URI);
+            add_simple_connection(
+                    connections, SwitchOffLampEvent.class,
+                    DimmerLampStateModel.URI, DimmerLampElectricityModel.URI);
+            add_simple_connection(
+                    connections, SetPowerLampEvent.class,
+                    DimmerLampStateModel.URI, DimmerLampElectricityModel.URI);
 
-            connections.put(
-                    new EventSource(DimmerLampUnitTesterModel.URI,
-                            SwitchOffLampEvent.class),
-                    new EventSink[] {
-                            new EventSink(DimmerLampElectricityModel.URI,
-                                    SwitchOffLampEvent.class)
-                    }
-            );
+            add_simple_connection(
+                    connections, SwitchOnLampEvent.class,
+                    DimmerLampUnitTesterModel.URI, DimmerLampStateModel.URI);
+            add_simple_connection(
+                    connections, SwitchOffLampEvent.class,
+                    DimmerLampUnitTesterModel.URI, DimmerLampStateModel.URI);
+            add_simple_connection(
+                    connections, SetPowerLampEvent.class,
+                    DimmerLampUnitTesterModel.URI, DimmerLampStateModel.URI);
 
             // coupled model descriptor
             coupledModelDescriptors.put(
                     DimmerLampCoupledModel.URI,
-                    new CoupledModelDescriptor(
+                    new RTCoupledModelDescriptor(
                             DimmerLampCoupledModel.class,
                             DimmerLampCoupledModel.URI,
                             submodels,
                             null,
                             null,
                             connections,
-                            null));
+                            null,
+                            ACCELERATION_FACTOR));
 
             // simulation architecture
             ArchitectureI architecture =
-                    new Architecture(
+                    new RTArchitecture(
                             DimmerLampCoupledModel.URI,
                             atomicModelDescriptors,
                             coupledModelDescriptors,
                             DimmerLampSimulationConfigurationI.TIME_UNIT);
-
             // create the simulator from the simulation architecture
             SimulatorI se = architecture.constructSimulator();
             // this add additional time at each simulation step in
@@ -156,25 +176,31 @@ public class RunDimmerLampUnitaryMILSimulation {
             se.setSimulationRunParameters(classicalRunParameters);
             Time startTime = CLASSICAL.getStartTime();
             Duration d = CLASSICAL.getEndTime().subtract(startTime);
-            se.doStandAloneSimulation(startTime.getSimulatedTime(),
-                    d.getSimulatedDuration());
+            long realTimeStart = System.currentTimeMillis() + 200;
+            se.startRTSimulation(realTimeStart, startTime.getSimulatedTime(), d.getSimulatedDuration());
+            long executionDuration =
+                    new Double(
+                            HairDryerSimulationConfigurationI.TIME_UNIT.toMillis(1)
+                                    * (d.getSimulatedDuration()/ACCELERATION_FACTOR)).
+                            longValue();
+            Thread.sleep(executionDuration + 2000L);
             SimulationReportI sr = se.getSimulatedModel().getFinalReport();
             System.out.println(sr);
 
             /** create the simulator from the simulation architecture
-            se = architecture.constructSimulator();
-            // this add additional time at each simulation step in
-            // standard simulations (useful when debugging)
-            SimulationEngine.SIMULATION_STEP_SLEEP_TIME = 0L;
+             se = architecture.constructSimulator();
+             // this add additional time at each simulation step in
+             // standard simulations (useful when debugging)
+             SimulationEngine.SIMULATION_STEP_SLEEP_TIME = 0L;
 
-            // run a PRIORITY test scenario
-            PRIORITY_SCENARIO.setUpSimulator(se);
-            startTime = CLASSICAL.getStartTime();
-            d = CLASSICAL.getEndTime().subtract(startTime);
-            se.doStandAloneSimulation(startTime.getSimulatedTime(),
-                    d.getSimulatedDuration());
-            sr = se.getSimulatedModel().getFinalReport();
-            System.out.println(sr);*/
+             // run a PRIORITY test scenario
+             PRIORITY_SCENARIO.setUpSimulator(se);
+             startTime = PRIORITY_SCENARIO.getStartTime();
+             d = PRIORITY_SCENARIO.getEndTime().subtract(startTime);
+             se.doStandAloneSimulation(startTime.getSimulatedTime(),
+             d.getSimulatedDuration());
+             sr = se.getSimulatedModel().getFinalReport();
+             System.out.println(sr);*/
 
             System.exit(0);
 
@@ -182,14 +208,14 @@ public class RunDimmerLampUnitaryMILSimulation {
             throw new RuntimeException(e);
         }
 
-    }
+}
 
     // -------------------------------------------------------------------------
     // Test scenarios
     // -------------------------------------------------------------------------
 
     /** the start instant used in the test scenarios.						*/
-    protected static Instant	START_INSTANT_CLASSICAL =
+    protected static Instant START_INSTANT_CLASSICAL =
             Instant.parse("2025-10-20T01:00:00.00Z");
     /** the end instant used in the test scenarios.							*/
     protected static Instant	END_INSTANT_CLASSICAL =
@@ -370,10 +396,10 @@ public class RunDimmerLampUnitaryMILSimulation {
      */
     protected final static TestScenarioWithSimulation PRIORITY_SCENARIO =
             new TestScenarioWithSimulation(
-                GHERKIN_SPEC_PRIORITY,
-                END_MESSAGE,
-                "clock_uri",
-                START_INSTANT_PRIORITY,
+                    GHERKIN_SPEC_PRIORITY,
+                    END_MESSAGE,
+                    "clock_uri",
+                    START_INSTANT_PRIORITY,
                     END_INSTANT_PRIORITY,
                     DimmerLampCoupledModel.URI,
                     START_TIME,
@@ -386,4 +412,6 @@ public class RunDimmerLampUnitaryMILSimulation {
                     },
                     testScenariosPriority()
             );
+
+
 }

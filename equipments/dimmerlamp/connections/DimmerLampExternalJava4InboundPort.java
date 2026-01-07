@@ -35,7 +35,7 @@ extends DimmerLampExtenalInboundPort
     }
     @Override
     public void setVariationPowerJava4(double variationPower) throws Exception {
-        this.setVariationPower(new Measure<>(variationPower));
+        this.setPower(new Measure<>(variationPower));
     }
 
     @Override

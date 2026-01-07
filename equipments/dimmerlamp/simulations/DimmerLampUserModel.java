@@ -1,7 +1,11 @@
-package equipments.dimmerlamp.mil;
+package equipments.dimmerlamp.simulations;
 
 import equipments.dimmerlamp.DimmerLamp;
 import equipments.dimmerlamp.mil.events.*;
+import equipments.dimmerlamp.simulations.events.LampPowerValue;
+import equipments.dimmerlamp.simulations.events.SetPowerLampEvent;
+import equipments.dimmerlamp.simulations.events.SwitchOffLampEvent;
+import equipments.dimmerlamp.simulations.events.SwitchOnLampEvent;
 import fr.sorbonne_u.devs_simulation.es.events.ES_EventI;
 import fr.sorbonne_u.devs_simulation.es.models.AtomicES_Model;
 import fr.sorbonne_u.devs_simulation.exceptions.MissingRunParameterException;
@@ -22,7 +26,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The class <code>equipments.dimmerlamp.mil.DimmerLampUserModel</code>.
+ * The class <code>equipments.dimmerlamp.simulations.DimmerLampUserModel</code>.
  *
  * <p><strong>Description</strong></p>
  *

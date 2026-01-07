@@ -27,7 +27,7 @@ public interface DimmerLampExternalI {
     MeasurementUnit TENSION_UNIT = MeasurementUnit.VOLTS;
     Measure<Double> TENSION = new Measure<>(220., TENSION_UNIT);
 
-    void setVariationPower(Measure<Double> variationPower) throws Exception;
+    void setPower(Measure<Double> variationPower) throws Exception;
 
     Measure<Double> getCurrentPowerLevel() throws Exception;
 

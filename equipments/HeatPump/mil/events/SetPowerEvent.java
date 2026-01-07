@@ -2,7 +2,6 @@ package equipments.HeatPump.mil.events;
 
 import equipments.HeatPump.interfaces.HeatPumpUserI;
 import equipments.HeatPump.mil.HeatPumpElectricityModel;
-import equipments.dimmerlamp.mil.events.LampPowerValue;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
 import fr.sorbonne_u.devs_simulation.models.events.EventInformationI;
 import fr.sorbonne_u.devs_simulation.models.interfaces.AtomicModelI;

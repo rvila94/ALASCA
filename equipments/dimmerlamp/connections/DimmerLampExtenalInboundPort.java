@@ -54,10 +54,10 @@ implements DimmerLampExternalCI {
     }
 
     @Override
-    public void setVariationPower(Measure<Double> variationPower) throws Exception {
+    public void setPower(Measure<Double> variationPower) throws Exception {
         this.getOwner().handleRequest(
           owner -> {
-              ((DimmerLamp)owner).setVariationPower(variationPower);
+              ((DimmerLamp)owner).setPower(variationPower);
               return null;
           }
         );

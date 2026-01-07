@@ -1,4 +1,4 @@
-package equipments.dimmerlamp.mil;
+package equipments.dimmerlamp.simulations;
 
 import java.util.concurrent.TimeUnit;
 

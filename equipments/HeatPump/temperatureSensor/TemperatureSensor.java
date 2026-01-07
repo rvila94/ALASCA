@@ -71,8 +71,6 @@ implements TemperatureSensorI {
 
         this.inboundPort = new TemperatureSensorInboundPort(inboundURI, this);
         this.inboundPort.publishPort();
-
-
     }
 
 

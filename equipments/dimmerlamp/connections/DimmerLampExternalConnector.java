@@ -27,8 +27,8 @@ public class DimmerLampExternalConnector
 extends AbstractConnector
 implements DimmerLampExternalCI {
     @Override
-    public void setVariationPower(Measure<Double> variationPower) throws Exception {
-        ((DimmerLampExternalCI)this.offering).setVariationPower(variationPower);
+    public void setPower(Measure<Double> variationPower) throws Exception {
+        ((DimmerLampExternalCI)this.offering).setPower(variationPower);
     }
 
     @Override

@@ -1,8 +1,8 @@
-package equipments.dimmerlamp.mil;
+package equipments.dimmerlamp.simulations;
 
-import equipments.dimmerlamp.mil.events.SetPowerLampEvent;
-import equipments.dimmerlamp.mil.events.SwitchOffLampEvent;
-import equipments.dimmerlamp.mil.events.SwitchOnLampEvent;
+import equipments.dimmerlamp.simulations.events.SetPowerLampEvent;
+import equipments.dimmerlamp.simulations.events.SwitchOffLampEvent;
+import equipments.dimmerlamp.simulations.events.SwitchOnLampEvent;
 import fr.sorbonne_u.components.cyphy.utils.tests.AbstractTestScenarioBasedAtomicModel;
 import fr.sorbonne_u.components.cyphy.utils.tests.TestScenarioWithSimulation;
 import fr.sorbonne_u.devs_simulation.exceptions.MissingRunParameterException;
@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The class <code>equipments.dimmerlamp.mil.DimmerLampUnitTesterModel</code>.
+ * The class <code>equipments.dimmerlamp.simulations.DimmerLampUnitTesterModel</code>.
  *
  * <p><strong>Description</strong></p>
  *

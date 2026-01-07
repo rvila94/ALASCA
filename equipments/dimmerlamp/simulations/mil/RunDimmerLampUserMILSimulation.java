@@ -1,8 +1,12 @@
-package equipments.dimmerlamp.mil;
+package equipments.dimmerlamp.simulations.mil;
 
-import equipments.dimmerlamp.mil.events.SetPowerLampEvent;
-import equipments.dimmerlamp.mil.events.SwitchOffLampEvent;
-import equipments.dimmerlamp.mil.events.SwitchOnLampEvent;
+import equipments.dimmerlamp.simulations.DimmerLampCoupledModel;
+import equipments.dimmerlamp.simulations.DimmerLampElectricityModel;
+import equipments.dimmerlamp.simulations.DimmerLampSimulationConfigurationI;
+import equipments.dimmerlamp.simulations.DimmerLampUserModel;
+import equipments.dimmerlamp.simulations.events.SetPowerLampEvent;
+import equipments.dimmerlamp.simulations.events.SwitchOffLampEvent;
+import equipments.dimmerlamp.simulations.events.SwitchOnLampEvent;
 import fr.sorbonne_u.devs_simulation.architectures.Architecture;
 import fr.sorbonne_u.devs_simulation.architectures.ArchitectureI;
 import fr.sorbonne_u.devs_simulation.hioa.architectures.AtomicHIOA_Descriptor;
@@ -23,7 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * The class <code>equipments.dimmerlamp.mil.RunDimmerLampUserMILSimulation</code>.
+ * The class <code>equipments.dimmerlamp.simulations.mil.RunDimmerLampUserMILSimulation</code>.
  *
  * <p><strong>Description</strong></p>
  *

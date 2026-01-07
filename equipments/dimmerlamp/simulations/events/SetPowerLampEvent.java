@@ -1,7 +1,7 @@
-package equipments.dimmerlamp.mil.events;
+package equipments.dimmerlamp.simulations.events;
 
-import equipments.dimmerlamp.DimmerLamp;
-import equipments.dimmerlamp.mil.DimmerLampElectricityModel;
+import equipments.dimmerlamp.LampState;
+import equipments.dimmerlamp.simulations.DimmerLampSimulationOperationI;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
 import fr.sorbonne_u.devs_simulation.models.events.EventInformationI;
 import fr.sorbonne_u.devs_simulation.models.interfaces.AtomicModelI;
@@ -10,7 +10,7 @@ import fr.sorbonne_u.exceptions.AssertionChecking;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
 /**
- * The class <code>equipments.dimmerlamp.mil.events.SetPowerLampEvent</code>.
+ * The class <code>equipments.dimmerlamp.simulations.events.mil.SetPowerLampEvent</code>.
  *
  * <p><strong>Description</strong></p>
  *
@@ -60,14 +60,14 @@ public class SetPowerLampEvent extends AbstractLampEvent {
 
         boolean result = true;
 
-        result &= AssertionChecking.checkImplementationInvariant(AbstractLampEvent.priorityInvariant(event),
+        result &= AssertionChecking.checkImplementationInvariant(priorityInvariant(event),
                 SetPowerLampEvent.class,
                 event,
                 "priority index is poorly defined");
         result &= AssertionChecking.checkImplementationInvariant(event.powerValue != null,
                 SetPowerLampEvent.class,
                 event,
-                "event.powerValueOven == null");
+                "event.powerValue == null");
 
         return result;
     }
@@ -105,7 +105,7 @@ public class SetPowerLampEvent extends AbstractLampEvent {
     // -------------------------------------------------------------------------
 
     /**
-     * @see equipments.dimmerlamp.mil.events.AbstractLampEvent#priorityIndex
+     * @see AbstractLampEvent#priorityIndex
      */
     @Override
     protected PriorityIndex priorityIndex() {
@@ -113,14 +113,14 @@ public class SetPowerLampEvent extends AbstractLampEvent {
     }
 
     /**
-     * @see equipments.dimmerlamp.mil.events.AbstractLampEvent#executeOn
+     * @see AbstractLampEvent#executeOn
      */
     @Override
     public void executeOn(AtomicModelI model) {
         super.executeOn(model);
 
-        DimmerLampElectricityModel lamp_model = (DimmerLampElectricityModel) model;
-        assert lamp_model.getState() == DimmerLamp.LampState.ON :
+        DimmerLampSimulationOperationI lamp_model = (DimmerLampSimulationOperationI) model;
+        assert lamp_model.getState() == LampState.ON :
                 new NeoSim4JavaException("lamp_model.getCurrentState() != DimmerLamp.LampState.On");
 
         lamp_model.setDimmerLampPower(this.powerValue.getPower(), this.getTimeOfOccurrence());

@@ -1,6 +1,6 @@
-package equipments.dimmerlamp.mil.events;
+package equipments.dimmerlamp.simulations.events;
 
-import equipments.dimmerlamp.mil.DimmerLampElectricityModel;
+import equipments.dimmerlamp.simulations.DimmerLampSimulationOperationI;
 import fr.sorbonne_u.devs_simulation.es.events.ES_Event;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
 import fr.sorbonne_u.devs_simulation.models.events.EventI;
@@ -10,7 +10,7 @@ import fr.sorbonne_u.devs_simulation.models.time.Time;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
 /**
- * The class <code>equipments.dimmerlamp.mil.events.AbstractLampEvent</code>.
+ * The class <code>equipments.dimmerlamp.simulations.events.mil.AbstractLampEvent</code>.
  *
  * <p><strong>Description</strong></p>
  *
@@ -67,10 +67,10 @@ public abstract class AbstractLampEvent extends ES_Event {
     {
         assert model != null :
                 new PreconditionException("model == null");
-        assert model instanceof DimmerLampElectricityModel :
+        assert model instanceof DimmerLampSimulationOperationI :
                 new PreconditionException(
                         "Precondition violation: model instanceof "
-                                + "DimmerLampElectricityModel");
+                                + "DimmerLampSimulationOperationI");
     }
 
     protected enum PriorityIndex {

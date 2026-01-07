@@ -1,11 +1,11 @@
-package equipments.dimmerlamp.mil.events;
+package equipments.dimmerlamp.simulations.events;
 
 import equipments.dimmerlamp.DimmerLamp;
 import fr.sorbonne_u.devs_simulation.models.events.EventInformationI;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
 /**
- * The class <code>equipments.dimmerlamp.mil.events.LampPowerValue</code>.
+ * The class <code>equipments.dimmerlamp.simulations.events.mil.LampPowerValue</code>.
  *
  * <p><strong>Description</strong></p>
  *

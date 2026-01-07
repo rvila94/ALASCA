@@ -1,4 +1,4 @@
-package equipments.dimmerlamp.mil;
+package equipments.dimmerlamp.simulations;
 
 import fr.sorbonne_u.devs_simulation.hioa.models.vars.StaticVariableDescriptor;
 import fr.sorbonne_u.devs_simulation.hioa.models.vars.VariableSink;
@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The class <code>equipments.dimmerlamp.mil.DimmerLampCoupledModel</code>.
+ * The class <code>equipments.dimmerlamp.simulations.DimmerLampCoupledModel</code>.
  *
  * <p><strong>Description</strong></p>
  *
@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class DimmerLampCoupledModel extends CoupledModel {
 
-    public static final String URI = DimmerLampCoupledModel.class.getSimpleName();
+    public static final String URI = "DIMMER_LAMP_COUPLED_MODEL";
 
     public DimmerLampCoupledModel(
             String uri,

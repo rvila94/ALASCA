@@ -36,8 +36,8 @@ implements DimmerLampExternalCI {
     }
 
     @Override
-    public void setVariationPower(Measure<Double> variationPower) throws Exception {
-        ((DimmerLampExternalCI)this.getConnector()).setVariationPower(variationPower);
+    public void setPower(Measure<Double> variationPower) throws Exception {
+        ((DimmerLampExternalCI)this.getConnector()).setPower(variationPower);
     }
 
     @Override

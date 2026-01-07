@@ -1,11 +1,11 @@
-package equipments.dimmerlamp.mil;
+package equipments.dimmerlamp.simulations;
 
 import fr.sorbonne_u.components.hem2025e2.GlobalReportI;
 import fr.sorbonne_u.devs_simulation.simulators.interfaces.SimulationReportI;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
 /**
- * The class <code>equipments.dimmerlamp.mil.DimmerLampElectricityReport</code>.
+ * The class <code>equipments.dimmerlamp.simulations.DimmerLampElectricityReport</code>.
  *
  * <p><strong>Description</strong></p>
  *
