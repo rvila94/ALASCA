@@ -52,6 +52,7 @@ import equipments.fan.mil.FanElectricityModel;
 import equipments.fan.mil.FanSimpleUserModel;
 import equipments.fan.mil.FanUnitTesterModel;
 import equipments.fan.mil.events.*;
+import equipments.oven.Oven.OvenMode;
 import equipments.oven.mil.OvenElectricityModel;
 import equipments.oven.mil.OvenTemperatureModel;
 import equipments.oven.mil.OvenUnitTesterModel;
@@ -942,12 +943,12 @@ public class RunFunctionTestGlobal_RT_Simulation
 									 		  OvenTemperatureModel.URI)
 					 });
 			bindings.put(
-					new VariableSource("targetTemperature",
-					    			Double.class,
+					new VariableSource("currentMode",
+					    			OvenMode.class,
 					    			OvenTemperatureModel.URI),
 					new VariableSink[]{
-							new VariableSink("targetTemperature",
-											Double.class,
+							new VariableSink("currentMode",
+											OvenMode.class,
 											OvenElectricityModel.URI)
 					});
 

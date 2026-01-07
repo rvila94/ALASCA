@@ -2,6 +2,7 @@ package equipments.oven;
 
 import fr.sorbonne_u.components.interfaces.OfferedCI;
 import fr.sorbonne_u.components.interfaces.RequiredCI;
+import fr.sorbonne_u.devs_simulation.models.time.Duration;
 import equipments.oven.Oven.OvenMode;
 import equipments.oven.Oven.OvenState;
 import fr.sorbonne_u.alasca.physical_data.Measure;
@@ -55,12 +56,17 @@ extends		OfferedCI,
 	public void			switchOff() throws Exception;
 	
 	/**
-	 * @see OvenUserI#startCooking(double delayInSeconds)
+	 * @see OvenUserI#startCooking()
 	 */
-	public void 		startCooking(double delayInSeconds) throws Exception;
+	public void 		startCooking() throws Exception;
 	
 	/**
-	 * @see OvenUserI#stopCooking
+	 * @see OvenUserI#startDelayedCooking(fr.sorbonne_u.devs_simulation.models.time.Duration)
+	 */
+	public void startDelayedCooking(Duration delay) throws Exception;
+	
+	/**
+	 * @see OvenUserI#stopCooking()
 	 */
 	public void stopCooking() throws Exception;
 
@@ -113,4 +119,22 @@ extends		OfferedCI,
 	 */
 	@Override
 	public OvenMode getMode() throws Exception;
+	
+	/**
+	 * @see OvenUserI#openDoor()
+	 */
+	@Override
+	public void openDoor() throws Exception;
+	
+	/**
+	 * @see OvenUserI#closeDoor()
+	 */
+	@Override
+	public void closeDoor() throws Exception;
+	
+	/**
+	 * @see OvenUserI#isDoorOpen()
+	 */
+	@Override
+	public boolean isDoorOpen() throws Exception;
 }

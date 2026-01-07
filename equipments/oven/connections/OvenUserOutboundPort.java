@@ -6,6 +6,7 @@ import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.alasca.physical_data.SignalData;
 import fr.sorbonne_u.components.ComponentI;
 import fr.sorbonne_u.components.ports.AbstractOutboundPort;
+import fr.sorbonne_u.devs_simulation.models.time.Duration;
 
 /**
  * The class <code>OvenUserOutboundPort</code> implements an outbound port for
@@ -108,16 +109,6 @@ implements OvenUserCI
 	}
 
 	@Override
-	public void startCooking(double delayInSeconds) throws Exception {
-		((OvenUserCI) this.getConnector()).startCooking(delayInSeconds);
-	}
-
-	@Override
-	public void stopCooking() throws Exception {
-		((OvenUserCI) this.getConnector()).stopCooking();
-	}
-
-	@Override
 	public Measure<Double> getTargetTemperature() throws Exception {
 		return ((OvenUserCI) this.getConnector()).getTargetTemperature();
 	}
@@ -150,5 +141,40 @@ implements OvenUserCI
 	@Override
 	public Oven.OvenMode getMode() throws Exception {
 		return ((OvenUserCI) this.getConnector()).getMode();
+	}
+
+	@Override
+	public void openDoor() throws Exception {
+		((OvenUserCI) this.getConnector()).openDoor();
+		
+	}
+
+	@Override
+	public void closeDoor() throws Exception {
+		((OvenUserCI) this.getConnector()).closeDoor();
+		
+	}
+
+	@Override
+	public boolean isDoorOpen() throws Exception {
+		return ((OvenUserCI) this.getConnector()).isDoorOpen();
+	}
+
+	@Override
+	public void startCooking() throws Exception {
+		((OvenUserCI) this.getConnector()).startCooking();
+		
+	}
+
+	@Override
+	public void startDelayedCooking(Duration delay) throws Exception {
+		((OvenUserCI) this.getConnector()).startDelayedCooking(delay);
+		
+	}
+
+	@Override
+	public void stopCooking() throws Exception {
+		((OvenUserCI) this.getConnector()).stopCooking();
+		
 	}	
 }

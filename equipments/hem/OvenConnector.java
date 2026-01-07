@@ -48,9 +48,8 @@ implements	AdjustableCI
 	// -------------------------------------------------------------------------
 	
 	public static final int		MAX_MODE = 3;
-	public static final double DEFROST_TEMPERATURE = 80.0;
-    public static final double GRILL_TEMPERATURE = 220.0;
-    public static final double MAX_CUSTOM_TEMPERATURE = 300.0;
+	
+	public static final double DEFROST_POWER_LEVEL = 500.0;
 	
 	public static final double	MIN_ADMISSIBLE_TEMP = 20.0;
 	public static final double	MAX_ADMISSIBLE_DELTA = 50.0;
@@ -105,22 +104,16 @@ implements	AdjustableCI
 	{
 		assert	mode > 0 && mode <= MAX_MODE :
 				new PreconditionException("mode > 0 && mode <= MAX_MODE");
+		
+		double power;
+		if (mode == 1) { // DEFROST
+	        power = DEFROST_POWER_LEVEL;
 
-		double temperature;
-        if (mode == 1) {
-            temperature = DEFROST_TEMPERATURE;
-        } else if (mode == 3) {
-            temperature = GRILL_TEMPERATURE;
-        } else {
-            // CUSTOM mode => use the current target temperature
-            temperature = ((OvenExternalControlJava4CI)this.offering).
-            										getTargetTemperatureJava4();
-													
-        }
+	    } else {
+	        power = ((OvenExternalControlJava4CI) this.offering)
+	                    .getMaxPowerLevelJava4();
+	    }
 
-        // FIXME : proportional conversion: 1°C -> 10W (to change)
-        double power = temperature * 10.0;
-        
         return power;
 	}
 

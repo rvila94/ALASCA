@@ -7,8 +7,7 @@
 
   <instance-var modifiers="protected static" type="int" name="MAX_MODE" static-init="3"/>
   <instance-var modifiers="protected static" type="double" name="DEFROST_TEMPERATURE" static-init="80.0"/>
-  <instance-var modifiers="protected static" type="double" name="GRILL_TEMPERATURE" static-init="220.0"/>
-  <instance-var modifiers="protected static" type="double" name="MAX_CUSTOM_TEMPERATURE" static-init="300.0"/>
+  <instance-var modifiers="protected static" type="double" name="DEFROST_POWER_LEVEL" static-init="500.0"/>
   <instance-var modifiers="protected static" type="double" name="MIN_ADMISSIBLE_TEMP" static-init="20.0"/>
   <instance-var modifiers="protected static" type="double" name="MAX_ADMISSIBLE_DELTA" static-init="50.0"/>
   <instance-var modifiers="protected" type="int" name="currentMode" static-init="2"/>
@@ -22,15 +21,14 @@
       if (mode &lt;= 0 || mode &gt; MAX_MODE) {
         throw new fr.sorbonne_u.exceptions.PreconditionException("mode &gt; 0 &amp;&amp; mode &lt;= MAX_MODE");
       }
-      double temperature;
-      if (mode == 1) {
-        temperature = DEFROST_TEMPERATURE;
-      } else if (mode == 3) {
-        temperature = GRILL_TEMPERATURE;
+      double power;
+	  if (mode == 1) { // DEFROST
+        power = DEFROST_POWER_LEVEL;
+
       } else {
-        temperature = oven.getTargetTemperatureJava4();
+        power = oven.getMaxPowerLevelJava4();
       }
-      double power = temperature * 10.0;
+
       return power;
     </body>
   </internal>

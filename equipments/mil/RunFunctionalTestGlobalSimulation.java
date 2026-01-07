@@ -942,12 +942,12 @@ public class			RunFunctionalTestGlobalSimulation
 									 		  OvenTemperatureModel.URI)
 					 });
 			bindings.put(
-					new VariableSource("targetTemperature",
-					    			Double.class,
+					new VariableSource("currentMode",
+					    			OvenMode.class,
 					    			OvenTemperatureModel.URI),
 					new VariableSink[]{
-							new VariableSink("targetTemperature",
-											Double.class,
+							new VariableSink("currentMode",
+											OvenMode.class,
 											OvenElectricityModel.URI)
 					});
 

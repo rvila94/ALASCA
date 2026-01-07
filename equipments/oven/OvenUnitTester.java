@@ -6,6 +6,7 @@ import fr.sorbonne_u.components.exceptions.BCMException;
 import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.components.utils.tests.TestsStatistics;
+import fr.sorbonne_u.devs_simulation.models.time.Duration;
 import fr.sorbonne_u.components.hem2025e1.CVMIntegrationTest;
 import equipments.oven.connections.OvenExternalControlConnector;
 import equipments.oven.connections.OvenExternalControlOutboundPort;
@@ -498,7 +499,7 @@ extends AbstractComponent
      *     And the current mode is CUSTOM
      *     When I change the mode to DEFROST
      *     Then the oven mode becomes DEFROST
-     *     And the target temperature is automatically set to 80°C
+     *     And the target temperature is automatically set to 50°C
      * 
      *   Scenario: changing the mode to GRILL when the oven is on
      *     Given the oven is switched on
@@ -581,9 +582,9 @@ extends AbstractComponent
     		Oven.OvenMode mode = this.oop.getMode();
     		Measure<Double> temp = this.oop.getTargetTemperature();
     		if (mode == Oven.OvenMode.DEFROST &&
-    			temp.getData() == 80.0) {
+    			temp.getData() == 50.0) {
     			this.logMessage("    Then the oven mode becomes DEFROST");
-    			this.logMessage("    And the target temperature is automatically set to 80°C");
+    			this.logMessage("    And the target temperature is automatically set to 50°C");
     		} else {
     			this.logMessage("     but mode or temperature were incorrect: " + mode + ", " + temp);
     			this.statistics.incorrectResult();
@@ -1200,7 +1201,7 @@ extends AbstractComponent
      * 
      *   Scenario: starting cooking immediately when the oven is on
      *     Given the oven is switched on
-     *     When I start cooking with delay 0
+     *     When I start cooking
      *     Then the oven state becomes HEATING
      * 
      *   Scenario: starting cooking with a delay when already heating
@@ -1216,13 +1217,13 @@ extends AbstractComponent
      * 
      *   Scenario: starting cooking with an invalid delay
      *     Given the oven is on
-     *     When I start cooking with delay of -1 seconds
+     *     When I start cooking with delay of 0 seconds
      *     Then a PreconditionException is raised 
      *
      *   Scenario: starting cooking with a delay
      *     Given the oven is switched on
      *     And the oven is not heating
-     *     When I start cooking with delay of 10 seconds
+     *     When I start cooking with delay of 5 minutes
      *     Then the oven state becomes WAITING
      * 
      *   Scenario: stopping a programmed cooking
@@ -1261,7 +1262,7 @@ extends AbstractComponent
         boolean old = BCMException.VERBOSE;
         try {
         	BCMException.VERBOSE = false;
-            this.oop.startCooking(0);
+            this.oop.startCooking();
             this.statistics.incorrectResult();
             this.logMessage("     but no exception was raised");
         } catch (Throwable e) {
@@ -1278,7 +1279,7 @@ extends AbstractComponent
         old = BCMException.VERBOSE;
         try {
         	BCMException.VERBOSE = false;
-            this.oop.startCooking(10);
+            this.oop.startDelayedCooking(new Duration(10, TimeUnit.SECONDS));
             this.statistics.incorrectResult();
             this.logMessage("     but no exception was raised");
         } catch (Throwable e) {
@@ -1288,13 +1289,13 @@ extends AbstractComponent
         }
         this.statistics.updateStatistics();
 
-        this.logMessage("  Scenario: starting cooking immediately when the oven is on");
+        this.logMessage("  Scenario: starting cooking when the oven is on");
         this.logMessage("    Given the oven is initialised and on");
-        this.logMessage("    When I try to start cooking with delay");
+        this.logMessage("    When I try to start cooking");
         this.logMessage("    Then the oven state becomes HEATING");
         try {
             this.oop.switchOn();
-            this.oop.startCooking(0);
+            this.oop.startCooking();
             Oven.OvenState s = this.oop.getState();
             if (s != Oven.OvenState.HEATING) {
                 this.logMessage("     but was: " + s);
@@ -1313,7 +1314,7 @@ extends AbstractComponent
         old = BCMException.VERBOSE;
         BCMException.VERBOSE = false;
         try {
-            this.oop.startCooking(0);
+            this.oop.startCooking();
             this.logMessage("     but no exception was raised");
             this.statistics.incorrectResult();
         } catch (Throwable e) {
@@ -1342,12 +1343,12 @@ extends AbstractComponent
 
         this.logMessage("  Scenario: starting cooking with an invalid delay");
         this.logMessage("    Given the oven is initialised and on");
-        this.logMessage("    When I try to start the cooking with -1sec delay");
+        this.logMessage("    When I try to start the cooking with 0sec delay");
         this.logMessage("    Then a precondition exception is raised");
         old = BCMException.VERBOSE;
         BCMException.VERBOSE = false;
         try {
-            this.oop.startCooking(-1);
+            this.oop.startDelayedCooking(new Duration(0, TimeUnit.SECONDS));
             this.statistics.incorrectResult();
             this.logMessage("     but no exception was raised");
         } catch (Throwable e) {
@@ -1359,10 +1360,10 @@ extends AbstractComponent
 
         this.logMessage("  Scenario: starting cooking with a delay");
         this.logMessage("    Given the oven is initialised and on");
-        this.logMessage("    When I try to start the cooking with 10sec delay");
+        this.logMessage("    When I try to start the cooking with 5min delay");
         this.logMessage("    Then the oven state becomes WAITING");
         try {
-            this.oop.startCooking(10);
+            this.oop.startDelayedCooking(new Duration(5, TimeUnit.MINUTES));
             Oven.OvenState s = this.oop.getState();
             if (s != Oven.OvenState.WAITING) {
             	this.logMessage("     but was: " + s);
@@ -1410,7 +1411,7 @@ extends AbstractComponent
 
         this.logMessage("  Scenario: switch off when a cooking is programmed");
         try {
-            this.oop.startCooking(5);
+            this.oop.startDelayedCooking(new Duration(5, TimeUnit.SECONDS));
             this.logMessage("    Given the oven is initialised and waiting");
             this.logMessage("    When I try to turn off the oven");
             this.logMessage("    Then the oven state is OFF");
@@ -1426,11 +1427,10 @@ extends AbstractComponent
         }
         this.statistics.updateStatistics();
 
-        // Scenario 12: heating followed by switch off
         this.logMessage("  Scenario: switch off when a cooking is ongoing");
         try {
             this.oop.switchOn();
-            this.oop.startCooking(0);
+            this.oop.startCooking();
             this.logMessage("    Given the oven is initialised and waiting");
             this.logMessage("    When I try to turn off the oven");
             this.logMessage("    Then the oven stops heating and its state becomes OFF");
@@ -1446,6 +1446,126 @@ extends AbstractComponent
         }
         this.statistics.updateStatistics();
     }
+    
+    /**
+     * Test opening and closing the oven door.
+     * 
+     * <p><strong>Description</strong></p>
+     * 
+     * <p>Gherkin specification</p>
+     * <pre>
+     * Feature: opening and closing the oven door
+     * 
+     *   Scenario: opening the oven door when closed
+     *     Given the oven is initialised
+     *     And the oven door is closed
+     *     When I open the oven door
+     *     Then the oven door is open
+     * 
+     *   Scenario: closing the oven door when open
+     *     Given the oven door is open
+     *     When I close the oven door
+     *     Then the oven door is closed
+     * 
+     *   Scenario: closing an already closed oven door
+     *     Given the oven door is closed
+     *     When I try to close the oven door
+     *     Then an exception is raised
+     * 
+     *   Scenario: opening an already open oven door
+     *     Given the oven door is open
+     *     When I try to open the oven door
+     *     Then an exception is raised
+     * </pre>
+     * 
+     * <p><strong>Contract</strong></p>
+     * 
+     * <pre>
+     * pre  {@code true}  // no precondition.
+     * post {@code true}  // no postcondition.
+     * </pre>
+     */
+    protected void testOpenCloseDoor() {
+    	this.logMessage("Feature: opening and closing the oven door");
+
+    	try {
+    		this.logMessage("  Scenario: opening the oven door when closed");
+    		this.logMessage("    Given the oven is initialised");
+    		this.logMessage("    And the oven door is closed");
+
+    		boolean doorOpen = this.oop.isDoorOpen();
+    		if (doorOpen) {
+    			this.statistics.incorrectResult();
+    			this.logMessage("     but the door was already open");
+    		}
+
+    		this.logMessage("    When I open the oven door");
+    		this.oop.openDoor();
+
+    		doorOpen = this.oop.isDoorOpen();
+    		if (doorOpen) {
+    			this.logMessage("    Then the oven door is open");
+    		} else {
+    			this.statistics.incorrectResult();
+    			this.logMessage("     but the door is still closed");
+    		}
+
+    		this.statistics.updateStatistics();
+
+    		this.logMessage("  Scenario: closing the oven door when open");
+    		this.logMessage("    Given the oven door is open");
+
+    		this.logMessage("    When I close the oven door");
+    		this.oop.closeDoor();
+
+    		doorOpen = this.oop.isDoorOpen();
+    		if (!doorOpen) {
+    			this.logMessage("    Then the oven door is closed");
+    		} else {
+    			this.statistics.incorrectResult();
+    			this.logMessage("     but the door is still open");
+    		}
+
+    		this.statistics.updateStatistics();
+    		
+    		this.logMessage("  Scenario: closing an already closed oven door");
+    		this.logMessage("    Given the oven door is closed");
+
+    		this.logMessage("    When I try to close the oven door");
+    		try {
+    			this.oop.closeDoor();
+    			this.statistics.incorrectResult();
+    			this.logMessage("     but no exception was raised");
+    		} catch (Exception e) {
+    			this.logMessage("    Then an exception is raised as expected");
+    		}
+
+    		this.statistics.updateStatistics();
+    		
+    		this.logMessage("  Scenario: opening an already open oven door");
+    		this.logMessage("    Given the oven door is open");
+
+    		this.oop.openDoor();
+
+    		this.logMessage("    When I try to open the oven door");
+    		try {
+    			this.oop.openDoor();
+    			this.statistics.incorrectResult();
+    			this.logMessage("     but no exception was raised");
+    		} catch (Exception e) {
+    			this.logMessage("    Then an exception is raised as expected");
+    		}
+
+    		this.statistics.updateStatistics();
+
+    	} catch (Throwable e) {
+    		this.statistics.incorrectResult();
+    		this.logMessage("     but the exception " + e + " has been raised");
+    	}
+
+    	this.statistics.updateStatistics();
+    }
+
 
     protected void runAllUnitTests()
     {
@@ -1456,6 +1576,7 @@ extends AbstractComponent
         this.testCurrentTemperature();
         this.testPowerLevel();
         this.testCookingCycle();
+        this.testOpenCloseDoor();
 
         this.statistics.statisticsReport(this);
     }
