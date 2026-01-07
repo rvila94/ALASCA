@@ -1,6 +1,7 @@
 package equipments.oven;
 
 import fr.sorbonne_u.alasca.physical_data.Measure;
+import fr.sorbonne_u.devs_simulation.models.time.Duration;
 
 /**
  * The interface <code>OvenUserI</code> declares the signatures of the oven
@@ -139,55 +140,80 @@ extends		OvenExternalControlI
 	public void setMode(Oven.OvenMode mode) throws Exception;
 	
 	/**
-	 * Start the oven cooking cycle, immediately or after a specified delay.
-	 * 
+	 * Start the oven cooking cycle immediately.
+	 *
 	 * <p><strong>Description</strong></p>
-	 * 
-	 * If {@code delayInSeconds == 0}, the oven starts heating immediately.
-	 * Otherwise, it transitions to the {@code WAITING} state and will start
-	 * heating after the given delay.
+	 *
+	 * This method starts the cooking cycle right away by activating the heating
+	 * process. The oven must be switched on and must not already be heating.
 	 *
 	 * <p><strong>Contract</strong></p>
-	 * 
+	 *
+	 * <pre>
+	 * pre  {@code on()}
+	 * pre  {@code getCurrentState() != OvenState.HEATING}
+	 * post {@code getCurrentState() == OvenState.HEATING}
+	 * </pre>
+	 *
+	 * @throws Exception if a precondition is violated or an error occurs while
+	 *                   starting the heating process.
+	 */
+	public void startCooking() throws Exception;
+	
+	/**
+	 * Start the oven cooking cycle after a specified delay.
+	 *
+	 * <p><strong>Description</strong></p>
+	 *
+	 * This method schedules the cooking cycle to start after the given delay.
+	 * During the delay period, the oven enters the {@code WAITING} state.
+	 * Once the delay has elapsed, the cooking cycle is started automatically
+	 * as if {@link #startCooking()} had been called.
+	 *
+	 * The delay is expressed as a simulation {@link Duration}
+	 *
+	 * <p><strong>Contract</strong></p>
+	 *
 	 * <pre>
 	 * pre  {@code on()}
 	 * pre  {@code getCurrentState() != OvenState.HEATING}
 	 * pre  {@code getCurrentState() != OvenState.WAITING}
-	 * pre  {@code delayInSeconds >= 0}
-	 * post {@code delayInSeconds == 0 ⇒ getCurrentState() == OvenState.HEATING}
-	 * post {@code delayInSeconds > 0 ⇒ getCurrentState() == OvenState.WAITING}
+	 * pre  {@code delay != null}
+	 * pre  {@code delay >= Duration.ZERO}
+	 * post {@code getCurrentState() == OvenState.WAITING}
 	 * </pre>
 	 *
-	 * @param delayInSeconds  delay before cooking starts (0 for immediate start).
-	 * @throws Exception      if preconditions are violated or an error occurs.
+	 * @param delay the delay after which cooking should start.
+	 * @throws Exception if a precondition is violated or an error occurs while
+	 *                   scheduling the delayed start.
 	 */
-	public void startCooking(double delayInSeconds) throws Exception;
+	public void startDelayedCooking(Duration delay) throws Exception;
 
+	
 	/**
-	 * Stops a previously scheduled or active cooking
+	 * Stops a previously scheduled or active cooking cycle.
 	 *
 	 * <p><strong>Description</strong></p>
-	 * 
-	 * This method is used to cancel a delayed or ongoing cooking cycle initiated by the user.
+	 *
+	 * This method cancels a delayed or ongoing cooking cycle:
 	 * <ul>
-	 *   <li>If the oven is currently in the {@code WAITING} state (a delayed start is pending),
-	 *       the scheduled heating is cancelled, and the oven returns to the {@code ON} state.</li>
-	 *   <li>If the oven has already started heating (state {@code HEATING}), the heating process
-	 *       is stopped, and the oven also returns to the {@code ON} state.</li>
+	 *   <li>If the oven is in the {@code WAITING} state, the delayed start is cancelled.</li>
+	 *   <li>If the oven is in the {@code HEATING} state, heating is stopped.</li>
 	 * </ul>
-	 * 
-	 * In both cases, this method ensures that any active timer or scheduled task is properly cancelled.
-	 * 
+	 * In both cases, the oven returns to the {@code ON} state.
+	 *
 	 * <p><strong>Contract</strong></p>
-	 * 
+	 *
 	 * <pre>
-	 * pre  {@code getCurrentState() == OvenState.WAITING || getCurrentState() == OvenState.HEATING}
+	 * pre  {@code getCurrentState() == OvenState.WAITING ||
+	 *      getCurrentState() == OvenState.HEATING}
 	 * post {@code getCurrentState() == OvenState.ON}
 	 * </pre>
 	 *
-	 * @throws Exception if an error occurs while cancelling the delayed or active heating cycle.
+	 * @throws if a precondition is violated or an error occurs during the canceling.
 	 */
 	public void stopCooking() throws Exception;
+
 
 	
 	/**

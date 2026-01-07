@@ -3,6 +3,10 @@ package equipments.oven;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import equipments.oven.connections.OvenExternalControlJava4InboundPort;
 import equipments.oven.connections.OvenUserJava4InboundPort;
@@ -14,6 +18,7 @@ import fr.sorbonne_u.components.annotations.RequiredInterfaces;
 import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.components.hem2025.bases.RegistrationCI;
+import fr.sorbonne_u.devs_simulation.models.time.Duration;
 import equipments.hem.RegistrationOutboundPort;
 import equipments.oven.connections.OvenInternalControlInboundPort;
 import fr.sorbonne_u.exceptions.AssertionChecking;
@@ -163,7 +168,12 @@ implements	OvenUserI,
 	/** Fake temperature when not connected to a simulator. */
 	public static final SignalData<Double> FAKE_CURRENT_TEMPERATURE =
 		new SignalData<>(new Measure<>(100.0, TEMPERATURE_UNIT));
-
+	
+	// For delayed cooking
+	protected ScheduledFuture<?> delayedStartTask;
+	protected ScheduledExecutorService scheduler =
+	        Executors.newSingleThreadScheduledExecutor();
+	
 	/** Oven state and parameters. */
 	protected OvenState currentState;
 	protected OvenMode currentMode;
@@ -682,52 +692,96 @@ implements	OvenUserI,
 	}
 	
 	@Override
-	public void startCooking(double delayInSeconds) throws Exception {
+	public void startCooking() throws Exception {
+	    assert this.on() :
+	        new PreconditionException("on()");
+	    assert this.getState() != OvenState.HEATING :
+	        new PreconditionException("getCurrentState() != HEATING");
+
+	    if (Oven.VERBOSE) {
+	        this.traceMessage("Oven starts cooking immediately.\n");
+	    }
+
+	    // If a delayed start was pending, we cancel it
+	    if (this.currentState == OvenState.WAITING && this.delayedStartTask != null) {
+	        this.delayedStartTask.cancel(false);
+	        this.delayedStartTask = null;
+	    }
+
+	    this.startHeating();
+
+	    assert this.getState() == OvenState.HEATING :
+	        new PostconditionException("getCurrentState() == HEATING");
+	}
+	
+	@Override
+	public void startDelayedCooking(Duration delay) throws Exception {
 	    assert this.on() :
 	        new PreconditionException("on()");
 	    assert this.getState() != OvenState.HEATING :
 	        new PreconditionException("getCurrentState() != HEATING");
 	    assert this.getState() != OvenState.WAITING :
 	        new PreconditionException("getCurrentState() != WAITING");
-	    assert delayInSeconds >= 0 :
-	        new PreconditionException("delayInSeconds >= 0");
-
-	    if (Oven.VERBOSE)
-	        this.traceMessage("Oven starts cooking with delay " + delayInSeconds + "s.\n");
-
-	    if (delayInSeconds == 0) {
-	        this.startHeating();
-	        
-	        assert this.getState() == OvenState.HEATING :
-	            new PostconditionException("getCurrentState() == HEATING");
-	    } else {
-	        this.currentState = OvenState.WAITING;
-
-	        assert this.getState() == OvenState.WAITING :
-	            new PostconditionException("getCurrentState() == WAITING");
-	    }
-	}
-
-	@Override
-	public void stopCooking() throws Exception {
-	    assert this.getState() == OvenState.WAITING || this.getState() == OvenState.HEATING
-	        : new PreconditionException("getCurrentState() == WAITING || getCurrentState() == HEATING");
+	    assert delay != null :
+	        new PreconditionException("delay != null");
+	    assert delay.getSimulatedDuration() > 0.0 :
+	        new PreconditionException("delay > 0");
 
 	    if (Oven.VERBOSE) {
-	        this.traceMessage("Oven cancels delayed or ongoing start.\n");
+	        this.traceMessage(
+	            "Oven schedules delayed cooking after " + delay + ".\n");
 	    }
 
+	    this.currentState = OvenState.WAITING;
+
+	    long delayMillis =
+	        (long) (delay.getSimulatedDuration() * 1000.0);
+
+	    this.delayedStartTask =
+	        this.scheduler.schedule(() -> {
+	            try {
+	                synchronized (this) {
+	                    if (this.currentState == OvenState.WAITING) {
+	                        this.startCooking();
+	                    }
+	                }
+	            } catch (Exception e) {
+	                e.printStackTrace();
+	            }
+	        }, delayMillis, TimeUnit.MILLISECONDS);
+
+	    assert this.getState() == OvenState.WAITING :
+	        new PostconditionException("getCurrentState() == WAITING");
+	}
+	
+	@Override
+	public void stopCooking() throws Exception {
+	    assert this.getState() == OvenState.WAITING ||
+	           this.getState() == OvenState.HEATING :
+	        new PreconditionException(
+	            "getCurrentState() == WAITING || HEATING");
+
 	    if (this.getState() == OvenState.WAITING) {
-		    this.currentState = OvenState.ON;
-	    } else if (this.getState() == OvenState.HEATING) {
+	    	if (Oven.VERBOSE) {
+		        this.traceMessage("Oven cancels delayed start.\n");
+		    }
+	        if (this.delayedStartTask != null) {
+	            this.delayedStartTask.cancel(false);
+	            this.delayedStartTask = null;
+	        }
+	        this.currentState = OvenState.ON;
+	        
+	    } else { // HEATING
+	    	if (Oven.VERBOSE) {
+		        this.traceMessage("Oven stops cooking.\n");
+		    }
 	        this.stopHeating();
 	    }
 
-	    assert this.getState() == OvenState.ON
-	        : new PostconditionException("getCurrentState() == ON");
+	    assert this.getState() == OvenState.ON :
+	        new PostconditionException("getCurrentState() == ON");
 	}
-
-
+ 
 	@Override
 	public Measure<Double> getMaxPowerLevel() throws Exception {
 		if (Oven.VERBOSE) {

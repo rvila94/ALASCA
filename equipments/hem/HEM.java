@@ -1174,7 +1174,7 @@ public class			HEM
 			this.logMessage("  Scenario: getting the power consumption of the first mode (defrost)");
 			this.logMessage("    Given the oven is turned on");
 			this.logMessage("    When I get the power consumption of the defrost mode");
-			double dResult = ovenop.getModeConsumption(maxMode);
+			double dResult = ovenop.getModeConsumption(1);
 			this.logMessage("    Then the result is the power consumption of the oven in defrost mode");
 
 			statistics.updateStatistics();

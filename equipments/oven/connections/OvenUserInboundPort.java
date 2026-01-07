@@ -5,6 +5,7 @@ import equipments.oven.OvenUserCI;
 import fr.sorbonne_u.components.ComponentI;
 import fr.sorbonne_u.components.interfaces.OfferedCI;
 import fr.sorbonne_u.components.ports.AbstractInboundPort;
+import fr.sorbonne_u.devs_simulation.models.time.Duration;
 import fr.sorbonne_u.exceptions.PreconditionException;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.alasca.physical_data.SignalData;
@@ -183,22 +184,6 @@ implements OvenUserCI
 		this.getOwner().handleRequest(o -> { ((OvenUserI)o).setMode(mode); return null; });
 	}
 	
-	/**
-	 * @see OvenUserCI#startCooking(double)
-	 */
-	@Override
-	public void startCooking(double delayInSeconds) throws Exception {
-		this.getOwner().handleRequest(o -> { ((OvenUserI)o).startCooking(delayInSeconds); return null; });
-	}
-	
-	/**
-	 * @see OvenUserCI#stopCooking()
-	 */
-	@Override
-	public void stopCooking() throws Exception {
-		this.getOwner().handleRequest(o -> { ((OvenUserI)o).stopCooking(); return null; });
-	}
-	
 	@Override
 	public Measure<Double> getMaxPowerLevel() throws Exception {
 		return this.getOwner().handleRequest(o -> ((OvenExternalControlI)o).getMaxPowerLevel());
@@ -249,5 +234,23 @@ implements OvenUserCI
 	@Override
 	public boolean isDoorOpen() throws Exception {
 		return this.getOwner().handleRequest(o -> ((OvenUserI)o).isDoorOpen());
+	}
+
+	@Override
+	public void startCooking() throws Exception {
+		this.getOwner().handleRequest(o -> { ((OvenUserI)o).startCooking(); return null; });
+		
+	}
+
+	@Override
+	public void startDelayedCooking(Duration delay) throws Exception {
+		this.getOwner().handleRequest(o -> { ((OvenUserI)o).startDelayedCooking(delay); return null; });
+		
+	}
+
+	@Override
+	public void stopCooking() throws Exception {
+		this.getOwner().handleRequest(o -> { ((OvenUserI)o).stopCooking(); return null; });
+		
 	}
 }

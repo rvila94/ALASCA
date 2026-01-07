@@ -5,6 +5,7 @@ import equipments.oven.OvenUserCI;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.alasca.physical_data.SignalData;
 import fr.sorbonne_u.components.connectors.AbstractConnector;
+import fr.sorbonne_u.devs_simulation.models.time.Duration;
 
 /**
  * The class <code>OvenUserConnector</code> implements a connector for the
@@ -84,16 +85,6 @@ implements OvenUserCI
 		((OvenUserCI)this.offering).setMode(mode);
 	}
 
-	@Override
-	public void startCooking(double delayInSeconds) throws Exception {
-		((OvenUserCI)this.offering).startCooking(delayInSeconds);
-	}
-
-	@Override
-	public void stopCooking() throws Exception {
-		((OvenUserCI)this.offering).stopCooking();
-	}
-
 	public Measure<Double>	getTargetTemperature() throws Exception
 	{
 		return ((OvenUserCI)this.offering).getTargetTemperature();
@@ -149,5 +140,23 @@ implements OvenUserCI
 	@Override
 	public boolean isDoorOpen() throws Exception {
 		return ((OvenUserCI)this.offering).isDoorOpen();
+	}
+
+	@Override
+	public void startCooking() throws Exception {
+		((OvenUserCI)this.offering).startCooking();
+		
+	}
+
+	@Override
+	public void startDelayedCooking(Duration delay) throws Exception {
+		((OvenUserCI)this.offering).startDelayedCooking(delay);
+		
+	}
+
+	@Override
+	public void stopCooking() throws Exception {
+		((OvenUserCI)this.offering).stopCooking();
+		
 	}
 }

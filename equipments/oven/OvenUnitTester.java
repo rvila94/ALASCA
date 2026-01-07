@@ -6,6 +6,7 @@ import fr.sorbonne_u.components.exceptions.BCMException;
 import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.components.utils.tests.TestsStatistics;
+import fr.sorbonne_u.devs_simulation.models.time.Duration;
 import fr.sorbonne_u.components.hem2025e1.CVMIntegrationTest;
 import equipments.oven.connections.OvenExternalControlConnector;
 import equipments.oven.connections.OvenExternalControlOutboundPort;
@@ -1200,7 +1201,7 @@ extends AbstractComponent
      * 
      *   Scenario: starting cooking immediately when the oven is on
      *     Given the oven is switched on
-     *     When I start cooking with delay 0
+     *     When I start cooking
      *     Then the oven state becomes HEATING
      * 
      *   Scenario: starting cooking with a delay when already heating
@@ -1216,13 +1217,13 @@ extends AbstractComponent
      * 
      *   Scenario: starting cooking with an invalid delay
      *     Given the oven is on
-     *     When I start cooking with delay of -1 seconds
+     *     When I start cooking with delay of 0 seconds
      *     Then a PreconditionException is raised 
      *
      *   Scenario: starting cooking with a delay
      *     Given the oven is switched on
      *     And the oven is not heating
-     *     When I start cooking with delay of 10 seconds
+     *     When I start cooking with delay of 5 minutes
      *     Then the oven state becomes WAITING
      * 
      *   Scenario: stopping a programmed cooking
@@ -1261,7 +1262,7 @@ extends AbstractComponent
         boolean old = BCMException.VERBOSE;
         try {
         	BCMException.VERBOSE = false;
-            this.oop.startCooking(0);
+            this.oop.startCooking();
             this.statistics.incorrectResult();
             this.logMessage("     but no exception was raised");
         } catch (Throwable e) {
@@ -1278,7 +1279,7 @@ extends AbstractComponent
         old = BCMException.VERBOSE;
         try {
         	BCMException.VERBOSE = false;
-            this.oop.startCooking(10);
+            this.oop.startDelayedCooking(new Duration(10, TimeUnit.SECONDS));
             this.statistics.incorrectResult();
             this.logMessage("     but no exception was raised");
         } catch (Throwable e) {
@@ -1288,13 +1289,13 @@ extends AbstractComponent
         }
         this.statistics.updateStatistics();
 
-        this.logMessage("  Scenario: starting cooking immediately when the oven is on");
+        this.logMessage("  Scenario: starting cooking when the oven is on");
         this.logMessage("    Given the oven is initialised and on");
-        this.logMessage("    When I try to start cooking with delay");
+        this.logMessage("    When I try to start cooking");
         this.logMessage("    Then the oven state becomes HEATING");
         try {
             this.oop.switchOn();
-            this.oop.startCooking(0);
+            this.oop.startCooking();
             Oven.OvenState s = this.oop.getState();
             if (s != Oven.OvenState.HEATING) {
                 this.logMessage("     but was: " + s);
@@ -1313,7 +1314,7 @@ extends AbstractComponent
         old = BCMException.VERBOSE;
         BCMException.VERBOSE = false;
         try {
-            this.oop.startCooking(0);
+            this.oop.startCooking();
             this.logMessage("     but no exception was raised");
             this.statistics.incorrectResult();
         } catch (Throwable e) {
@@ -1342,12 +1343,12 @@ extends AbstractComponent
 
         this.logMessage("  Scenario: starting cooking with an invalid delay");
         this.logMessage("    Given the oven is initialised and on");
-        this.logMessage("    When I try to start the cooking with -1sec delay");
+        this.logMessage("    When I try to start the cooking with 0sec delay");
         this.logMessage("    Then a precondition exception is raised");
         old = BCMException.VERBOSE;
         BCMException.VERBOSE = false;
         try {
-            this.oop.startCooking(-1);
+            this.oop.startDelayedCooking(new Duration(0, TimeUnit.SECONDS));
             this.statistics.incorrectResult();
             this.logMessage("     but no exception was raised");
         } catch (Throwable e) {
@@ -1359,10 +1360,10 @@ extends AbstractComponent
 
         this.logMessage("  Scenario: starting cooking with a delay");
         this.logMessage("    Given the oven is initialised and on");
-        this.logMessage("    When I try to start the cooking with 10sec delay");
+        this.logMessage("    When I try to start the cooking with 5min delay");
         this.logMessage("    Then the oven state becomes WAITING");
         try {
-            this.oop.startCooking(10);
+            this.oop.startDelayedCooking(new Duration(5, TimeUnit.MINUTES));
             Oven.OvenState s = this.oop.getState();
             if (s != Oven.OvenState.WAITING) {
             	this.logMessage("     but was: " + s);
@@ -1410,7 +1411,7 @@ extends AbstractComponent
 
         this.logMessage("  Scenario: switch off when a cooking is programmed");
         try {
-            this.oop.startCooking(5);
+            this.oop.startDelayedCooking(new Duration(5, TimeUnit.SECONDS));
             this.logMessage("    Given the oven is initialised and waiting");
             this.logMessage("    When I try to turn off the oven");
             this.logMessage("    Then the oven state is OFF");
@@ -1426,11 +1427,10 @@ extends AbstractComponent
         }
         this.statistics.updateStatistics();
 
-        // Scenario 12: heating followed by switch off
         this.logMessage("  Scenario: switch off when a cooking is ongoing");
         try {
             this.oop.switchOn();
-            this.oop.startCooking(0);
+            this.oop.startCooking();
             this.logMessage("    Given the oven is initialised and waiting");
             this.logMessage("    When I try to turn off the oven");
             this.logMessage("    Then the oven stops heating and its state becomes OFF");
