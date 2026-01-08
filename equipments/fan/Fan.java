@@ -22,7 +22,7 @@ import fr.sorbonne_u.alasca.physical_data.Measure;
  * to the electric panel to take its (simulated) electricity consumption into account.
  * </p>
  *
- * <p><strong>Invariants</strong></p>
+ * <p><strong>Implementation Invariants</strong></p>
  * 
  * <pre>
  * invariant	{@code INITIAL_STATE != null}
@@ -36,6 +36,11 @@ import fr.sorbonne_u.alasca.physical_data.Measure;
  * <pre>
  * invariant	{@code REFLECTION_INBOUND_PORT_URI != null && !REFLECTION_INBOUND_PORT_URI.isEmpty()}
  * invariant	{@code INBOUND_PORT_URI != null && !INBOUND_PORT_URI.isEmpty()}
+ * invariant	{@code HIGH_POWER != null && HIGH_POWER.getData() > 0.0 && HIGH_POWER.getMeasurementUnit().equals(POWER_UNIT)}
+ * invariant	{@code MEDIUM_POWER != null && MEDIUM_POWER.getData() > 0.0 && MEDIUM_POWER.getMeasurementUnit().equals(POWER_UNIT)}
+ * invariant	{@code LOW_POWER != null && LOW_POWER.getData() > 0.0 && LOW_POWER.getMeasurementUnit().equals(POWER_UNIT)}
+ * invariant	{@code TENSION != null && (TENSION.getData() == 110.0 || TENSION.getData() == 220.0) && TENSION.getMeasurementUnit().equals(TENSION_UNIT)}
+ * invariant	{@code INITIAL_STATE != null && INITIAL_MODE != null}
  * invariant	{@code X_RELATIVE_POSITION >= 0}
  * invariant	{@code Y_RELATIVE_POSITION >= 0}
  * </pre>
@@ -182,16 +187,24 @@ implements FanImplementationI
 					HIGH_POWER.getData() > 0.0 &&
 					HIGH_POWER.getMeasurementUnit().equals(POWER_UNIT),
 				HairDryer.class,
-				"HIGH_POWER_IN_WATTS != null && HIGH_POWER_IN_WATTS.getData()"
-				+ " > 0.0 && HIGH_POWER_IN_WATTS.getMeasurementUnit().equals("
+				"HIGH_POWER != null && HIGH_POWER.getData()"
+				+ " > 0.0 && HIGH_POWER.getMeasurementUnit().equals("
+				+ "POWER_UNIT)");
+		ret &= AssertionChecking.checkStaticInvariant(
+				MEDIUM_POWER != null &&
+					MEDIUM_POWER.getData() > 0.0 &&
+					MEDIUM_POWER.getMeasurementUnit().equals(POWER_UNIT),
+				HairDryer.class,
+				"MEDIUM_POWER != null && MEDIUM_POWER.getData()"
+				+ " > 0.0 && MEDIUM_POWER.getMeasurementUnit().equals("
 				+ "POWER_UNIT)");
 		ret &= AssertionChecking.checkStaticInvariant(
 				LOW_POWER != null &&
 					LOW_POWER.getData() > 0.0 &&
 					LOW_POWER.getMeasurementUnit().equals(POWER_UNIT),
 				HairDryer.class,
-				"LOW_POWER_IN_WATTS != null && LOW_POWER_IN_WATTS.getData() >"
-				+ " 0.0 && LOW_POWER_IN_WATTS.getMeasurementUnit().equals("
+				"LOW_POWER != null && LOW_POWER.getData() >"
+				+ " 0.0 && LOW_POWER.getMeasurementUnit().equals("
 				+ "POWER_UNIT)");
 		ret &= AssertionChecking.checkStaticInvariant(
 				TENSION != null &&
