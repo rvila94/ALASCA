@@ -17,6 +17,7 @@ import fr.sorbonne_u.alasca.physical_data.SignalData;
 import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.annotations.OfferedInterfaces;
 import fr.sorbonne_u.components.annotations.RequiredInterfaces;
+import fr.sorbonne_u.components.cyphy.AbstractCyPhyComponent;
 import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.components.hem2025.bases.RegistrationCI;
@@ -55,10 +56,10 @@ import java.io.File;
         HeatPumpInternalControlCI.class,
         HeatPumpExternalJava4InboundPort.class})
 public class HeatPump
-extends AbstractComponent
+extends AbstractCyPhyComponent
 implements HeatPumpUserI,
         HeatPumpInternalControlI,
-        HeatPumpExternalControlI {
+        HeatPumpExternalControlI{
 
     public static boolean VERBOSE = false;
 

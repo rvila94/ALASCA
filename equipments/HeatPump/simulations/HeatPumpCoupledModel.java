@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class HeatPumpCoupledModel extends CoupledModel {
 
-    public static String URI = HeatPumpCoupledModel.class.getSimpleName();
+    public static String URI = "HEAT_PUMP_COUPLED_MODEL";
 
     public HeatPumpCoupledModel(String uri,
                                 TimeUnit simulatedTimeUnit,

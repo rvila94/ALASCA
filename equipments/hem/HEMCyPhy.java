@@ -34,45 +34,38 @@ package equipments.hem;
 
 import connectorGenerator.ConnectorConfigurationParser;
 import equipments.CVMIntegrationTest;
-import equipments.HeatPump.HeatPump;
-import equipments.HeatPump.Test.HeatPumpTester;
 import equipments.dimmerlamp.DimmerLamp;
 import equipments.dimmerlamp.test.DimmerLampTester;
-import equipments.oven.Oven;
-import equipments.oven.OvenUnitTester;
 import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.annotations.OfferedInterfaces;
 import fr.sorbonne_u.components.annotations.RequiredInterfaces;
+import fr.sorbonne_u.components.cyphy.ExecutionMode;
+import fr.sorbonne_u.components.cyphy.utils.aclocks.ClocksServerWithSimulation;
 import fr.sorbonne_u.components.exceptions.BCMException;
 import fr.sorbonne_u.components.exceptions.BCMRuntimeException;
 import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.components.hem2025.bases.AdjustableCI;
 import fr.sorbonne_u.components.hem2025.bases.RegistrationCI;
-import fr.sorbonne_u.components.utils.tests.TestsStatistics;
-import fr.sorbonne_u.components.hem2025e1.equipments.batteries.Batteries;
 import fr.sorbonne_u.components.hem2025e1.equipments.batteries.BatteriesCI;
 import fr.sorbonne_u.components.hem2025e1.equipments.batteries.BatteriesUnitTester;
-import fr.sorbonne_u.components.hem2025e1.equipments.batteries.connections.BatteriesConnector;
 import fr.sorbonne_u.components.hem2025e1.equipments.batteries.connections.BatteriesOutboundPort;
-import fr.sorbonne_u.components.hem2025e1.equipments.generator.Generator;
 import fr.sorbonne_u.components.hem2025e1.equipments.generator.GeneratorCI;
 import fr.sorbonne_u.components.hem2025e1.equipments.generator.GeneratorUnitTester;
-import fr.sorbonne_u.components.hem2025e1.equipments.generator.connections.GeneratorConnector;
 import fr.sorbonne_u.components.hem2025e1.equipments.generator.connections.GeneratorOutboundPort;
 import fr.sorbonne_u.components.hem2025e1.equipments.heater.Heater;
-import fr.sorbonne_u.components.hem2025e1.equipments.heater.HeaterUnitTester;
 import fr.sorbonne_u.components.hem2025e1.equipments.hem.AdjustableOutboundPort;
-import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeter;
+import fr.sorbonne_u.components.hem2025e1.equipments.hem.HeaterConnector;
 import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeterCI;
+import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeterUnitTester;
 import fr.sorbonne_u.components.hem2025e1.equipments.meter.connections.ElectricMeterConnector;
 import fr.sorbonne_u.components.hem2025e1.equipments.meter.connections.ElectricMeterOutboundPort;
-import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeterUnitTester;
-import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.SolarPanel;
 import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.SolarPanelCI;
 import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.SolarPanelUnitTester;
-import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.connections.SolarPanelConnector;
 import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.connections.SolarPanelOutboundPort;
+import fr.sorbonne_u.components.hem2025e3.equipments.meter.ElectricMeterCyPhy;
+import fr.sorbonne_u.components.utils.tests.TestScenario;
+import fr.sorbonne_u.components.utils.tests.TestsStatistics;
 import fr.sorbonne_u.exceptions.*;
 import fr.sorbonne_u.utils.aclocks.*;
 
@@ -81,6 +74,7 @@ import java.util.Hashtable;
 import java.util.concurrent.TimeUnit;
 
 // -----------------------------------------------------------------------------
+
 /**
  * The class <code>HEM</code> implements the basis for a household energy
  * management component.
@@ -112,15 +106,15 @@ import java.util.concurrent.TimeUnit;
  * 
  * @author	<a href="mailto:Jacques.Malenfant@lip6.fr">Jacques Malenfant</a>
  */
-@RequiredInterfaces(required = {ClocksServerCI.class,
-		AdjustableCI.class,
-		ElectricMeterCI.class,
-		BatteriesCI.class,
-		SolarPanelCI.class,
-		GeneratorCI.class})
+@RequiredInterfaces(required = {
+								AdjustableCI.class,
+								ElectricMeterCI.class,
+								BatteriesCI.class,
+								SolarPanelCI.class,
+								GeneratorCI.class})
 @OfferedInterfaces(offered = {RegistrationCI.class})
-public class			HEM
-		extends		AbstractComponent
+public class HEMCyPhy
+extends		AbstractComponent
 {
 	// -------------------------------------------------------------------------
 	// Constants and variables
@@ -128,44 +122,82 @@ public class			HEM
 
 	/** when true, methods trace their actions.								*/
 	public static boolean					VERBOSE = false;
+	/** when true, methods trace their actions.								*/
+	public static boolean					DEBUG = false;
 	/** when tracing, x coordinate of the window relative position.			*/
 	public static int						X_RELATIVE_POSITION = 0;
 	/** when tracing, y coordinate of the window relative position.			*/
 	public static int						Y_RELATIVE_POSITION = 0;
+	/** standard reflection, inbound port URI for the {@code HEMCyPhy}
+	 *  component.															*/
+	public static final String				REFLECTION_INBOUND_PORT_URI =
+																"hem-RIP-URI";
 
 	/** port to connect to the electric meter.								*/
-	protected ElectricMeterOutboundPort meterop;
+	protected ElectricMeterOutboundPort		meterop;
 
 	/** port to connect to the batteries.									*/
-	protected BatteriesOutboundPort batteriesop;
+	protected BatteriesOutboundPort			batteriesop;
 	/** port to connect to the solar panel.									*/
-	protected SolarPanelOutboundPort solarPanelop;
+	protected SolarPanelOutboundPort		solarPanelop;
 	/** port to connect to the generator.									*/
-	protected GeneratorOutboundPort generatorop;
+	protected GeneratorOutboundPort			generatorop;
 
 	/** when true, manage the heater in a customised way, otherwise let
 	 *  it register itself as an adjustable appliance.						*/
 	protected boolean						isPreFirstStep;
 	/** port to connect to the heater when managed in a customised way.		*/
-	protected AdjustableOutboundPort heaterop;	
+	protected AdjustableOutboundPort		heaterop;
 
-	/** when true, this implementation of the HEM performs the tests
-	 *  that are planned in the method execute.								*/
-	protected boolean						performTest;
+	// Execution/Simulation
+
+	/** one thread for the method execute.									*/
+	protected static int					NUMBER_OF_STANDARD_THREADS = 1;
+	/** one thread to schedule this component test actions.					*/
+	protected static int					NUMBER_OF_SCHEDULABLE_THREADS = 1;
+
+	protected ExecutionMode					executionMode;
+	protected TestScenario					testScenario;
+
 	/** accelerated clock used for the tests.								*/
-	protected AcceleratedClock				ac;
-
-	/** Inbound Port used by the components to register into the hem */
+	protected AcceleratedClock ac;
+	private boolean performTest;
 
 	// -------------------------------------------------------------------------
 	// Invariants
 	// -------------------------------------------------------------------------
 
 	/**
-	 * return true if the implementation invariants are observed, false otherwise.
-	 *
+	 * return true if the static implementation invariants are observed, false
+	 * otherwise.
+	 * 
 	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * post	{@code true}	// no postcondition.
+	 * </pre>
 	 *
+	 * @return	true if the static invariants are observed, false otherwise.
+	 */
+	public static boolean	staticImplementationInvariants()
+	{
+		boolean ret = true;
+		ret &= AssertionChecking.checkStaticImplementationInvariant(
+				NUMBER_OF_STANDARD_THREADS >= 0,
+				HEMCyPhy.class,
+				"NUMBER_OF_STANDARD_THREADS >= 0");
+		ret &= AssertionChecking.checkStaticImplementationInvariant(
+				NUMBER_OF_SCHEDULABLE_THREADS >= 0,
+				HEMCyPhy.class,
+				"NUMBER_OF_SCHEDULABLE_THREADS");
+		return ret;
+	}
+
+	/**
+	 * return true if the implementation invariants are observed, false otherwise.
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
 	 * <pre>
 	 * pre	{@code hem != null}
 	 * post	{@code true}	// no postcondition.
@@ -174,19 +206,45 @@ public class			HEM
 	 * @param hem	instance to be tested.
 	 * @return		true if the implementation invariants are observed, false otherwise.
 	 */
-	protected static boolean	implementationInvariants(HEM hem)
+	protected static boolean	implementationInvariants(HEMCyPhy hem)
 	{
 		assert	hem != null : new PreconditionException("hem != null");
 
 		boolean ret = true;
+		ret &= staticImplementationInvariants();
+		return ret;
+	}
+
+	/**
+	 * return true if the static invariants are observed, false otherwise.
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * post	{@code true}	// no postcondition.
+	 * </pre>
+	 *
+	 * @return	true if the static invariants are observed, false otherwise.
+	 */
+	public static boolean	staticInvariants()
+	{
+		boolean ret = true;
+		ret &= AssertionChecking.checkStaticInvariant(
+				X_RELATIVE_POSITION >= 0,
+				HEMCyPhy.class,
+				"X_RELATIVE_POSITION >= 0");
+		ret &= AssertionChecking.checkStaticInvariant(
+				Y_RELATIVE_POSITION >= 0,
+				HEMCyPhy.class,
+				"Y_RELATIVE_POSITION >= 0");
 		return ret;
 	}
 
 	/**
 	 * return true if the invariants are observed, false otherwise.
-	 *
+	 * 
 	 * <p><strong>Contract</strong></p>
-	 *
+	 * 
 	 * <pre>
 	 * pre	{@code hem != null}
 	 * post	{@code true}	// no postcondition.
@@ -195,19 +253,12 @@ public class			HEM
 	 * @param hem	instance to be tested.
 	 * @return		true if the invariants are observed, false otherwise.
 	 */
-	protected static boolean	invariants(HEM hem)
+	protected static boolean	invariants(HEMCyPhy hem)
 	{
 		assert	hem != null : new PreconditionException("hem != null");
 
 		boolean ret = true;
-		ret &= AssertionChecking.checkImplementationInvariant(
-				X_RELATIVE_POSITION >= 0,
-				HEM.class, hem,
-				"X_RELATIVE_POSITION >= 0");
-		ret &= AssertionChecking.checkImplementationInvariant(
-				Y_RELATIVE_POSITION >= 0,
-				HEM.class, hem,
-				"Y_RELATIVE_POSITION >= 0");
+		ret &= staticInvariants();
 		return ret;
 	}
 
@@ -215,20 +266,10 @@ public class			HEM
 	// Constructors
 	// -------------------------------------------------------------------------
 
-	/**
-	 * create a household energy manager component.
-	 * 
-	 * <p><strong>Contract</strong></p>
-	 * 
-	 * <pre>
-	 * pre	{@code true}	// no precondition.
-	 * post	{@code true}	// no postcondition.
-	 * </pre>
-	 *
-	 */
-	protected 			HEM() throws Exception
-	{
-		// by default, perform the tests planned in the method execute.
+	// Standard execution for manual tests (no test scenario and no simulation)
+
+
+	protected HEMCyPhy() throws Exception {
 		this(true);
 	}
 
@@ -238,18 +279,80 @@ public class			HEM
 	 * <p><strong>Contract</strong></p>
 	 * 
 	 * <pre>
-	 * pre	{@code true}	// no precondition.
-	 * post	{@code true}	// no postcondition.
+	 * pre	{@code !(this instanceof ComponentInterface)}
+	 * post	{@code getCurrentExecutionMode().isStandard()}
 	 * </pre>
 	 *
-	 * @param performTest	if {@code true}, the HEM performs the planned tests, otherwise not.
 	 */
-	protected 			HEM(boolean performTest) throws Exception {
+	protected HEMCyPhy(boolean performTest) throws Exception {
 		// 1 standard thread to execute the method execute and 1 schedulable
 		// thread that is used to perform the tests
-		super(1, 1);
+		super(NUMBER_OF_STANDARD_THREADS, NUMBER_OF_SCHEDULABLE_THREADS);
 
 		this.performTest = performTest;
+
+		// by default, consider this execution as one in the pre-first step
+		// and manage the heater in a customised way.
+		this.isPreFirstStep = true;
+
+		this.executionMode = ExecutionMode.STANDARD;
+		this.testScenario = null;
+
+		this.registrationTable = new Hashtable<>();
+		this.registrationInboundPort = new RegistrationInboundPort(RegistrationHEMURI, this);
+		this.registrationInboundPort.publishPort();
+
+		assert	HEMCyPhy.implementationInvariants(this) :
+				new ImplementationInvariantException(
+						"HEMCyPhy.implementationInvariants(this)");
+		assert	HEMCyPhy.invariants(this) :
+				new InvariantException("HEMCyPhy.invariants(this)");
+	}
+
+	// Test execution with test scenario 
+
+	/**
+	 * create a household energy manager component.
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * pre	{@code !(this instanceof ComponentInterface)}
+	 * pre	{@code executionMode != null && (executionMode.isIntegrationTest() || executionMode.isSILIntegrationTest())}
+	 * pre	{@code testScenario != null}
+	 * post	{@code getCurrentExecutionMode().equals(executionMode)}
+	 * </pre>
+	 *
+	 * @param executionMode	execution mode for the next run.
+	 * @param testScenario	test scenario to be executed.
+	 * @throws Exception	<i>to do</i>.
+	 */
+	protected HEMCyPhy(
+			ExecutionMode executionMode,
+			TestScenario testScenario
+		) throws Exception
+	{
+		// 1 standard thread to execute the method execute and 1 schedulable
+		// thread that is used to perform the tests
+		super(REFLECTION_INBOUND_PORT_URI,
+			  NUMBER_OF_STANDARD_THREADS,
+			  NUMBER_OF_SCHEDULABLE_THREADS
+			  );
+
+		assert	executionMode != null &&
+					(executionMode.isIntegrationTest() ||
+										executionMode.isSILIntegrationTest()) :
+				new PreconditionException(
+						"executionMode != null && (executionMode."
+						+ "isIntegrationTest() || "
+						+ "executionMode.isSILIntegrationTest())");
+		assert	testScenario != null :
+				new PreconditionException("testScenario != null");
+
+		this.performTest = true;
+
+		this.executionMode = executionMode;
+		this.testScenario = testScenario;
 
 		// by default, consider this execution as one in the pre-first step
 		// and manage the heater in a customised way.
@@ -266,11 +369,11 @@ public class			HEM
 			this.toggleTracing();
 		}
 
-		assert	HEM.implementationInvariants(this) :
+		assert	HEMCyPhy.implementationInvariants(this) :
 				new ImplementationInvariantException(
-						"HEM.implementationInvariants(this)");
-		assert	HEM.invariants(this) :
-				new InvariantException("HEM.invariants(this)");
+						"HEMCyPhy.implementationInvariants(this)");
+		assert	HEMCyPhy.invariants(this) :
+				new InvariantException("HEMCyPhy.invariants(this)");
 	}
 
 	// -------------------------------------------------------------------------
@@ -290,26 +393,26 @@ public class			HEM
 			this.meterop.publishPort();
 			this.doPortConnection(
 					this.meterop.getPortURI(),
-					ElectricMeter.ELECTRIC_METER_INBOUND_PORT_URI,
+					ElectricMeterCyPhy.ELECTRIC_METER_INBOUND_PORT_URI,
 					ElectricMeterConnector.class.getCanonicalName());
-			this.batteriesop = new BatteriesOutboundPort(this);
-			this.batteriesop.publishPort();
-			this.doPortConnection(
-					batteriesop.getPortURI(),
-					Batteries.STANDARD_INBOUND_PORT_URI,
-					BatteriesConnector.class.getCanonicalName());
-			this.solarPanelop = new SolarPanelOutboundPort(this);
-			this.solarPanelop.publishPort();
-			this.doPortConnection(
-					this.solarPanelop.getPortURI(),
-					SolarPanel.STANDARD_INBOUND_PORT_URI,
-					SolarPanelConnector.class.getCanonicalName());
-			this.generatorop = new GeneratorOutboundPort(this);
-			this.generatorop.publishPort();
-			this.doPortConnection(
-					this.generatorop.getPortURI(),
-					Generator.STANDARD_INBOUND_PORT_URI,
-					GeneratorConnector.class.getCanonicalName());
+//			this.batteriesop = new BatteriesOutboundPort(this);
+//			this.batteriesop.publishPort();
+//			this.doPortConnection(
+//					batteriesop.getPortURI(),
+//					Batteries.STANDARD_INBOUND_PORT_URI,
+//					BatteriesConnector.class.getCanonicalName());
+//			this.solarPanelop = new SolarPanelOutboundPort(this);
+//			this.solarPanelop.publishPort();
+//			this.doPortConnection(
+//					this.solarPanelop.getPortURI(),
+//					SolarPanel.STANDARD_INBOUND_PORT_URI,
+//					SolarPanelConnector.class.getCanonicalName());
+//			this.generatorop = new GeneratorOutboundPort(this);
+//			this.generatorop.publishPort();
+//			this.doPortConnection(
+//					this.generatorop.getPortURI(),
+//					Generator.STANDARD_INBOUND_PORT_URI,
+//					GeneratorConnector.class.getCanonicalName());
 
 			if (this.isPreFirstStep) {
 				// in this case, connect using the statically customised
@@ -322,7 +425,7 @@ public class			HEM
 						Heater.EXTERNAL_CONTROL_INBOUND_PORT_URI,
 						HeaterConnector.class.getCanonicalName());
 			}
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			throw new ComponentStartException(e) ;
 		}
 	}
@@ -333,44 +436,49 @@ public class			HEM
 	@Override
 	public synchronized void	execute() throws Exception
 	{
-		// First, get the clock and wait until the start time that it specifies.
+		this.traceMessage("HEM begins execution.\n");
 
-		this.ac = null;
-		ClocksServerOutboundPort clocksServerOutboundPort =
-											new ClocksServerOutboundPort(this);
-		clocksServerOutboundPort.publishPort();
-		this.doPortConnection(
-					clocksServerOutboundPort.getPortURI(),
+		switch (this.executionMode) {
+		case STANDARD:
+		case UNIT_TEST:
+		case UNIT_TEST_WITH_SIL_SIMULATION:
+			throw new BCMException("No unit test for HEM!");
+		case INTEGRATION_TEST:
+			this.initialiseClock(
 					ClocksServer.STANDARD_INBOUNDPORT_URI,
-					ClocksServerConnector.class.getCanonicalName());
-		this.traceMessage("HEM gets the clock.\n");
-		this.ac = clocksServerOutboundPort.getClock(CVMIntegrationTest.CLOCK_URI);
-		this.doPortDisconnection(clocksServerOutboundPort.getPortURI());
-		clocksServerOutboundPort.unpublishPort();
-		this.traceMessage("HEM waits until start time.\n");
-		this.ac.waitUntilStart();
-		this.traceMessage("HEM starts.\n");
-
-		if (this.performTest) {
-			this.logMessage("Electric meter tests start.");
-			this.testMeter();
-			this.logMessage("Electric meter tests end.");
-			this.logMessage("Batteries tests start.");
-			this.testBatteries();
-			this.logMessage("Batteries tests end.");
-			this.logMessage("Solar Panel tests start.");
-			this.testSolarPanel();
-			this.logMessage("Solar Panel tests end.");
-			this.logMessage("Generator tests start.");
-			this.testGenerator();
-			this.logMessage("Generator tests end.");
-			if (this.isPreFirstStep) {
-				this.scheduleTestHeater();
-				this.scheduleTestDimmerLamp();
-				this.scheduleTestHeatPump();
-				this.scheduleTestOven();
-			}
+					this.testScenario.getClockURI());
+			this.executeTestScenario(this.testScenario);
+			break;
+		case INTEGRATION_TEST_WITH_SIL_SIMULATION:
+			this.initialiseClock(
+					ClocksServerWithSimulation.STANDARD_INBOUNDPORT_URI,
+					this.testScenario.getClockURI());
+//			this.executeTestScenario(this.testScenario);
+			break;
+		case UNIT_TEST_WITH_HIL_SIMULATION:
+		case INTEGRATION_TEST_WITH_HIL_SIMULATION:
+			throw new BCMException("HIL simulation not implemented yet!");
+		default:
 		}
+		this.traceMessage("HEM ends execution.\n");
+
+//		if (this.performTest) {
+//			this.logMessage("Electric meter tests start.");
+//			this.testMeter();
+//			this.logMessage("Electric meter tests end.");
+//			this.logMessage("Batteries tests start.");
+//			this.testBatteries();
+//			this.logMessage("Batteries tests end.");
+//			this.logMessage("Solar Panel tests start.");
+//			this.testSolarPanel();
+//			this.logMessage("Solar Panel tests end.");
+//			this.logMessage("Generator tests start.");
+//			this.testGenerator();
+//			this.logMessage("Generator tests end.");
+//			if (this.isPreFirstStep) {
+//				this.scheduleTestHeater();
+//			}
+//		}
 
 	}
 
@@ -381,9 +489,9 @@ public class			HEM
 	public synchronized void	finalise() throws Exception
 	{
 		this.doPortDisconnection(this.meterop.getPortURI());
-		this.doPortDisconnection(this.batteriesop.getPortURI());
-		this.doPortDisconnection(this.solarPanelop.getPortURI());
-		this.doPortDisconnection(this.generatorop.getPortURI());
+//		this.doPortDisconnection(this.batteriesop.getPortURI());
+//		this.doPortDisconnection(this.solarPanelop.getPortURI());
+//		this.doPortDisconnection(this.generatorop.getPortURI());
 		if (this.isPreFirstStep) {
 			this.doPortDisconnection(this.heaterop.getPortURI());
 		}
@@ -403,9 +511,9 @@ public class			HEM
 	{
 		try {
 			this.meterop.unpublishPort();
-			this.batteriesop.unpublishPort();
-			this.solarPanelop.unpublishPort();
-			this.generatorop.unpublishPort();
+//			this.batteriesop.unpublishPort();
+//			this.solarPanelop.unpublishPort();
+//			this.generatorop.unpublishPort();
 			if (this.isPreFirstStep) {
 				this.heaterop.unpublishPort();
 			}
@@ -417,7 +525,7 @@ public class			HEM
 
 			this.registrationInboundPort.unpublishPort();
 
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			throw new ComponentShutdownException(e) ;
 		}
 		super.shutdown();
@@ -463,7 +571,7 @@ public class			HEM
 					uid
 			);
 			this.registrationTable.put(uid, newOutboundPort);
-			
+
 
 
 			res = true;
@@ -499,15 +607,15 @@ public class			HEM
 
 	/**
 	 * test the {@code ElectricMeter} component.
-	 *
+	 * 
 	 * <p><strong>Description</strong></p>
-	 *
+	 * 
 	 * <p>
 	 * Calls the test methods defined in {@code ElectricMeterUnitTester}.
 	 * </p>
-	 *
+	 * 
 	 * <p><strong>Contract</strong></p>
-	 *
+	 * 
 	 * <pre>
 	 * pre	{@code true}	// no precondition.
 	 * post	{@code true}	// no postcondition.
@@ -515,17 +623,17 @@ public class			HEM
 	 *
 	 * @throws Exception	<i>to do</i>.
 	 */
-	protected void		testMeter() throws Exception
+	public void			testMeter() throws Exception
 	{
 		ElectricMeterUnitTester.runAllTests(this, this.meterop,
-				new TestsStatistics());
+											new TestsStatistics());
 	}
 
 	/**
 	 * test the {@code Batteries} component.
-	 *
+	 * 
 	 * <p><strong>Contract</strong></p>
-	 *
+	 * 
 	 * <pre>
 	 * pre	{@code true}	// no precondition.
 	 * post	{@code true}	// no postcondition.
@@ -533,17 +641,17 @@ public class			HEM
 	 * @throws Exception	<i>to do</i>.
 	 *
 	 */
-	protected void		testBatteries() throws Exception
+	public void			testBatteries() throws Exception
 	{
 		BatteriesUnitTester.runAllTests(this, this.batteriesop,
-				new TestsStatistics());
+										new TestsStatistics());
 	}
 
 	/**
 	 * test the {@code SolarPanel} component.
-	 *
+	 * 
 	 * <p><strong>Contract</strong></p>
-	 *
+	 * 
 	 * <pre>
 	 * pre	{@code true}	// no precondition.
 	 * post	{@code true}	// no postcondition.
@@ -551,17 +659,17 @@ public class			HEM
 	 * @throws Exception	<i>to do</i>.
 	 *
 	 */
-	protected void		testSolarPanel() throws Exception
+	public void			testSolarPanel() throws Exception
 	{
 		SolarPanelUnitTester.runAllTests(this, this.solarPanelop,
-				new TestsStatistics());
+										 new TestsStatistics());
 	}
 
 	/**
 	 * test the {@code Generator} component.
-	 *
+	 * 
 	 * <p><strong>Contract</strong></p>
-	 *
+	 * 
 	 * <pre>
 	 * pre	{@code true}	// no precondition.
 	 * post	{@code true}	// no postcondition.
@@ -569,17 +677,17 @@ public class			HEM
 	 * @throws Exception	<i>to do</i>.
 	 *
 	 */
-	protected void		testGenerator() throws Exception
+	public void			testGenerator() throws Exception
 	{
 		GeneratorUnitTester.runAllTests(this, this.generatorop,
-				new TestsStatistics());
+										 new TestsStatistics());
 	}
 
 	/**
 	 * test the heater.
-	 *
+	 * 
 	 * <p><strong>Gherkin specification</strong></p>
-	 *
+	 * 
 	 * <pre>
 	 * Feature: adjustable appliance mode management
 	 *   Scenario: getting the max mode index
@@ -657,9 +765,9 @@ public class			HEM
 	 *     Then the method returns true
 	 *     And the heater is not suspended
 	 * </pre>
-	 *
+	 * 
 	 * <p><strong>Contract</strong></p>
-	 *
+	 * 
 	 * <pre>
 	 * pre	{@code true}	// no precondition.
 	 * post	{@code true}	// no postcondition.
@@ -667,7 +775,7 @@ public class			HEM
 	 *
 	 * @throws Exception	<i>to do</i>.
 	 */
-	protected void		testHeater() throws Exception
+	public void		testHeater() throws Exception
 	{
 		this.logMessage("Heater tests start.");
 		TestsStatistics statistics = new TestsStatistics();
@@ -956,703 +1064,6 @@ public class			HEM
 		statistics.statisticsReport(this);
 
 		this.logMessage("Heater tests end.");
-	}
-
-	/**
-	 * test the {@code Heater} component, in cooperation with the
-	 * {@code HeaterTester} component.
-	 *
-	 * <p><strong>Contract</strong></p>
-	 *
-	 * <pre>
-	 * pre	{@code true}	// no precondition.
-	 * post	{@code true}	// no postcondition.
-	 * </pre>
-	 *
-	 */
-	protected void		scheduleTestHeater()
-	{
-		// Test for the heater
-		Instant heaterTestStart =
-				this.ac.getStartInstant().plusSeconds(
-						(HeaterUnitTester.SWITCH_ON_DELAY +
-								HeaterUnitTester.SWITCH_OFF_DELAY)/2);
-		this.traceMessage("HEM schedules the heater test.\n");
-		long delay = this.ac.nanoDelayUntilInstant(heaterTestStart);
-
-		// schedule the switch on heater in one second
-		this.scheduleTaskOnComponent(
-				new AbstractComponent.AbstractTask() {
-					@Override
-					public void run() {
-						try {
-							testHeater();
-						} catch (Throwable e) {
-							throw new BCMRuntimeException(e) ;
-						}
-					}
-				}, delay, TimeUnit.NANOSECONDS);
-	}
-	
-	/**
-	 * test the oven.
-	 * 
-	 * <p><strong>Gherkin specification</strong></p>
-	 * 
-	 * <pre>
-	 * Feature: adjustable appliance mode management
-	 *   Scenario: getting the max mode index
-	 *     Given the oven has just been turned on
-	 *     When I call maxMode()
-	 *     Then the result is its max mode index
-	 *   Scenario: getting the current mode index
-	 *     Given the oven has just been turned on
-	 *     When I call currentMode()
-	 *     Then the current mode is 2 (custom)
-	 *   Scenario: going down one mode index
-	 *     Given the oven is turned on
-	 *     And the current mode index is the second mode index
-	 *     When I call downMode()
-	 *     Then the method returns true
-	 *     And the current mode is the first mode index
-	 *   Scenario: going up one mode index
-	 *     Given the oven is turned on
-	 *     And the current mode index is first mode index
-	 *     When I call upMode()
-	 *     Then the method returns true
-	 *     And the current mode is the second mode index
-	 *   Scenario: setting the mode index
-	 *     Given the oven is turned on
-	 *     And the mode index 1 is legitimate
-	 *     When I call setMode(1)
-	 *     Then the method returns true
-	 *     And the current mode is 1
-	 * Feature: Getting the power consumption given a mode
-	 *   Scenario: getting the power consumption of the defrost mode
-	 *     Given the oven is turned on
-	 *     When I get the power consumption of the first mode (defrost)
-	 *     Then the result is the power consumption of the ovenor the defrost mode
-	 * Feature: suspending and resuming
-	 *   Scenario: checking if suspended when not
-	 *     Given the oven is turned on
-	 *     And it has not been suspended yet
-	 *     When I check if suspended
-	 *     Then it is not
-	 *   Scenario: suspending
-	 *     Given the oven is turned on
-	 *     And it is not suspended
-	 *     When I call suspend()
-	 *     Then the method returns true
-	 *     And the oven is suspended
-	 *   Scenario: checking the emergency
-	 *     Given the oven is turned on
-	 *     And it has just been suspended
-	 *     When I call emergency()
-	 *     Then the emergency is between 0.0 and 1.0
-	 *   Scenario: resuming
-	 *     Given the oven is turned on
-	 *     And it is suspended
-	 *     When I call resume()
-	 *     Then the method returns true
-	 *     And the oven is not suspended
-	 * </pre>
-	 * 
-	 * <p><strong>Contract</strong></p>
-	 * 
-	 * <pre>
-	 * pre	{@code true}	// no precondition.
-	 * post	{@code true}	// no postcondition.
-	 * </pre>
-	 *
-	 * @throws Exception	<i>to do</i>.
-	 */
-	protected void		testOven() throws Exception
-	{
-		AdjustableOutboundPort ovenop = this.registrationTable.get(Oven.EQUIPMENT_UID);
-		
-		this.logMessage("Oven tests start.");
-		TestsStatistics statistics = new TestsStatistics();
-		try {
-			this.logMessage("Feature: adjustable appliance mode management");
-			this.logMessage("  Scenario: getting the max mode index");
-			this.logMessage("    Given the Oven has just been turned on");
-			this.logMessage("    When I call maxMode()");
-			this.logMessage("    Then the result is its max mode index");
-			final int maxMode = ovenop.maxMode();
-			if (maxMode != 3) {
-				this.logMessage("      but was: " + maxMode + " instead of 3");
-				statistics.incorrectResult();
-			}
-
-			statistics.updateStatistics();
-
-			this.logMessage("  Scenario: getting the current mode index");
-			this.logMessage("    Given the oven has just been turned on");
-			this.logMessage("    When I call currentMode()");
-			this.logMessage("    Then the current mode is its mode 2 (custom)");
-			int result = ovenop.currentMode();
-			if (result != 2) {
-				this.logMessage("      but was: " + result);
-				statistics.incorrectResult();
-			}
-
-			statistics.updateStatistics();
-
-			this.logMessage("  Scenario: going down one mode index");
-			this.logMessage("    Given the oven is turned on");
-			this.logMessage("    And the current mode index is the second mode index");
-			result = ovenop.currentMode();
-			if (result != 2) {
-				this.logMessage("      but was: " + result);
-				statistics.failedCondition();
-			}
-			this.logMessage("    When I call downMode()");
-			this.logMessage("    Then the method returns true");
-			boolean bResult = ovenop.downMode();
-			if (!bResult) {
-				this.logMessage("      but was: " + bResult);
-				statistics.incorrectResult();
-			}
-			this.logMessage("    And the current mode is the first mode index");
-			result = ovenop.currentMode();
-			if (result != 1) {
-				this.logMessage("      but was: " + result);
-				statistics.incorrectResult();
-			}
-
-			statistics.updateStatistics();
-
-			this.logMessage("  Scenario: going up one mode index");
-			this.logMessage("    Given the oven is turned on");
-			this.logMessage("    And the current mode index is the first mode index");
-			result = ovenop.currentMode();
-			if (result != 1) {
-				this.logMessage("      but was: " + result);
-				statistics.failedCondition();
-			}
-			this.logMessage("    When I call upMode()");
-			this.logMessage("    Then the method returns true");
-			bResult = ovenop.upMode();
-			if (!bResult) {
-				this.logMessage("      but was: " + bResult);
-				statistics.incorrectResult();
-			}
-			this.logMessage("    And the current mode is 2");
-			result = ovenop.currentMode();
-			if (result != 2) {
-				this.logMessage("      but was: " + result);
-				statistics.incorrectResult();
-			}
-
-			statistics.updateStatistics();
-
-			this.logMessage("  Scenario: setting the mode index");
-			this.logMessage("    Scenario: setting the mode index");
-			int index = 1;
-			this.logMessage("    And the mode index 1 is legitimate");
-			if (index > maxMode) {
-				this.logMessage("      but was not!");
-				statistics.failedCondition();
-			}
-			this.logMessage("    When I call setMode(1)");
-			this.logMessage("    Then the method returns true");
-			bResult = ovenop.setMode(1);
-			if (!bResult) {
-				this.logMessage("      but was: " + bResult);
-				statistics.incorrectResult();
-			}
-			this.logMessage("    And the current mode is 1");
-			result = ovenop.currentMode();
-			if (result != 1) {
-				this.logMessage("      but was: " + result);
-				statistics.incorrectResult();
-			}
-
-			statistics.updateStatistics();
-
-			this.logMessage("Feature: Getting the power consumption given a mode");
-			this.logMessage("  Scenario: getting the power consumption of the first mode (defrost)");
-			this.logMessage("    Given the oven is turned on");
-			this.logMessage("    When I get the power consumption of the defrost mode");
-			double dResult = ovenop.getModeConsumption(1);
-			this.logMessage("    Then the result is the power consumption of the oven in defrost mode");
-
-			statistics.updateStatistics();
-
-			this.logMessage("Feature: suspending and resuming");
-			this.logMessage("  Scenario: checking if suspended when not");
-			this.logMessage("    Given the oven is turned on");
-			this.logMessage("    And it has not been suspended yet");
-			this.logMessage("    When I check if suspended");
-			bResult = ovenop.suspended();
-			this.logMessage("    Then it is not");
-			if (bResult) {
-				this.logMessage("      but it was!");
-				statistics.incorrectResult();
-			}
-
-			statistics.updateStatistics();
-
-			this.logMessage("  Scenario: suspending");
-			this.logMessage("    Given the oven is turned on");
-			this.logMessage("    And it is not suspended");
-			bResult = ovenop.suspended();
-			if (bResult) {
-				this.logMessage("      but it was!");
-				statistics.failedCondition();;
-			}
-			this.logMessage("    When I call suspend()");
-			bResult = ovenop.suspend();
-			this.logMessage("    Then the method returns true");
-			if (!bResult) {
-				this.logMessage("      but was: " + bResult);
-				statistics.incorrectResult();
-			}
-			this.logMessage("    And the oven is suspended");
-			bResult = ovenop.suspended();
-			if (!bResult) {
-				this.logMessage("      but it was not!");
-				statistics.incorrectResult();
-			}
-
-			statistics.updateStatistics();
-
-			this.logMessage("  Scenario: checking the emergency");
-			this.logMessage("    Given the oven is turned on");
-			this.logMessage("    And it has just been suspended");
-			bResult = ovenop.suspended();
-			if (!bResult) {
-				this.logMessage("      but it was not!");
-				statistics.failedCondition();;
-			}
-			this.logMessage("    When I call emergency()");
-			dResult = ovenop.emergency();
-			this.logMessage("    Then the emergency is between 0.0 and 1.0");
-			if (dResult < 0.0 || dResult > 1.0) {
-				this.logMessage("      but was: " + dResult);
-				statistics.incorrectResult();
-			}
-
-			statistics.updateStatistics();
-
-			this.logMessage("  Scenario: resuming");
-			this.logMessage("    Given the oven is turned on");
-			this.logMessage("    And it is suspended");
-			bResult = ovenop.suspended();
-			if (!bResult) {
-				this.logMessage("      but it was not!");
-				statistics.failedCondition();;
-			}
-			this.logMessage("    When I call resume()");
-			bResult = ovenop.resume();
-			this.logMessage("    Then the method returns true");
-			if (!bResult) {
-				this.logMessage("      but was: " + bResult);
-				statistics.incorrectResult();
-			}
-			this.logMessage("    And the oven is not suspended");
-			bResult = ovenop.suspended();
-			if (bResult) {
-				this.logMessage("      but it was!");
-				statistics.incorrectResult();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		statistics.updateStatistics();
-		statistics.statisticsReport(this);
-
-		this.logMessage("Oven tests end.");
-	}
-	
-	/**
-	 * test the {@code Heater} component, in cooperation with the
-	 * {@code HeaterTester} component.
-	 * 
-	 * <p><strong>Contract</strong></p>
-	 * 
-	 * <pre>
-	 * pre	{@code true}	// no precondition.
-	 * post	{@code true}	// no postcondition.
-	 * </pre>
-	 *
-	 */
-	protected void		scheduleTestOven()
-	{
-		// Test for the oven
-		Instant ovenTestStart =
-				this.ac.getStartInstant().plusSeconds(
-							(OvenUnitTester.SWITCH_ON_DELAY +
-											OvenUnitTester.SWITCH_OFF_DELAY)/2);
-		this.traceMessage("HEM schedules the oven test.\n");
-		long delay = this.ac.nanoDelayUntilInstant(ovenTestStart);
-
-		// schedule the switch on oven in one second
-		this.scheduleTaskOnComponent(
-				new AbstractTask() {
-					@Override
-					public void run() {
-						try {
-							testOven();
-						} catch (Exception e) {
-							throw new BCMRuntimeException(e) ;
-						}
-					}
-				}, delay, TimeUnit.NANOSECONDS);
-	}
-
-	/**
-	 * test the {@code HeatPump} component, in cooperation with the
-	 * {@code HeatPumpTester} component.
-	 *
-	 * <p><strong>Contract</strong></p>
-	 *
-	 * <pre>
-	 * pre	{@code true}	// no precondition.
-	 * post	{@code true}	// no postcondition.
-	 * </pre>
-	 *
-	 */
-	protected void		scheduleTestHeatPump() {
-		// Test for the heater
-		Instant heatPumpTestOn1Start =
-				this.ac.getStartInstant().plusSeconds(
-						(HeatPumpTester.SWITCH_ON_DELAY1 +
-								HeatPumpTester.SET_HEATING_DELAY) / 2);
-		Instant heatPumpTestHeatingStart =
-				this.ac.getStartInstant().plusSeconds(
-						(HeatPumpTester.SET_HEATING_DELAY +
-								HeatPumpTester.SWITCH_OFF_DELAY1) / 2);
-		Instant heatPumpTestOn2 =
-				this.ac.getStartInstant().plusSeconds(
-						(HeatPumpTester.SWITCH_ON_DELAY2 + HeatPumpTester.SET_COOLING_DELAY) / 2);
-		Instant heatPumpTestCoolingStart =
-				this.ac.getStartInstant().plusSeconds(
-						(HeatPumpTester.SET_COOLING_DELAY + HeatPumpTester.SWITCH_OFF_DELAY2) / 2
-				);
-		this.traceMessage("HEM schedules the heat pump test.\n");
-		long delayOn1 = this.ac.nanoDelayUntilInstant(heatPumpTestOn1Start);
-		long delayHeating = this.ac.nanoDelayUntilInstant(heatPumpTestHeatingStart);
-		long delayOn2 = this.ac.nanoDelayUntilInstant(heatPumpTestOn2);
-		long delayCooling = this.ac.nanoDelayUntilInstant(heatPumpTestCoolingStart);
-
-		// schedule the switch on heater in one second
-		this.scheduleTaskOnComponent(
-				new AbstractTask() {
-					@Override
-					public void run() {
-						try {
-							integrationTestHeatPump();
-						} catch (Exception e) {
-							throw new BCMRuntimeException(e);
-						}
-					}
-				}, delayOn1, TimeUnit.NANOSECONDS);
-
-
-		this.scheduleTaskOnComponent(
-				new AbstractTask() {
-					@Override
-					public void run() {
-						try {
-							integrationTestHeatPump();
-						} catch (Exception e) {
-							throw new BCMRuntimeException(e);
-						}
-					}
-				}, delayHeating, TimeUnit.NANOSECONDS);
-
-		this.scheduleTaskOnComponent(
-				new AbstractTask() {
-					@Override
-					public void run() {
-						try {
-							integrationTestHeatPump();
-						} catch (Exception e) {
-							throw new BCMRuntimeException(e);
-						}
-					}
-				}, delayOn2, TimeUnit.NANOSECONDS);
-
-		this.scheduleTaskOnComponent(
-				new AbstractTask() {
-					@Override
-					public void run() {
-						try {
-							integrationTestHeatPump();
-						} catch (Exception e) {
-							throw new BCMRuntimeException(e);
-						}
-					}
-				}, delayCooling, TimeUnit.NANOSECONDS);
-	}
-
-	/**
-	 * test the heat pump
-	 *
-	 * <p><strong>Gherkin specification</strong></p>
-	 *
-	 * <pre>
-	 * Feature: adjustable appliance mode management
-	 *   Scenario: getting the max mode index
-	 *      	Given the heat pump has just been turned on
-	 *      	When I call maxMode()
-	 *   Scenario: getting the current mode index
-	 *   		Given the heat pump has just been turned on
-	 *   		When I call currentMode()
-	 *   		Then the result is its max mode index
-	 *   Scenario: going down one mode index
-	 *       	Given the heater is turned on
-	 *       	And the current mode index is the max mode index
-	 *       	When I call downMode()
-	 *       	Then the method returns true
-	 *       	And the current mode is its max mode minus one
-	 *   Scenario: going up one mode index
-	 *   		Given the heat pump is turned on
-	 *   		And the current mode index is the max mode index minus one
-	 *   		When I call upMode()
-	 *   		Then the method returns true
-	 *   Scenario: setting the mode index
-	 *   		Given the heat pump is turned on
-	 *   		And the mode index 1 is legitimate
-	 *   		When I call setMode(1)
-	 *   		Then the method returns true
-	 *   		And the current mode is 1
-	 * Feature: Getting the power consumption given a mode
-	 *   	Scenario: getting the power consumption of the maximum mode
-	 *   		Given the heat pump is turned on
-	 *   		When I get the power consumption of the maximum mode
-	 *   		Then the result is the maximum power consumption of the heater
-	 * Feature: suspending and resuming
-	 * 		Scenario: checking if suspended when not
-	 * 			Given the heat pump is turned on
-	 * 			And it has not been suspended yet
-	 * 			When I check if suspended
-	 * 			Then it is not
-	 * 		Scenario: suspending
-	 * 			Given the heat pump is turned on
-	 * 			And it is not suspended
-	 * 			When I call suspend()
-	 * 			Then the method returns true
-	 * 			And the heat pump is suspended
-	 * 		Scenario: checking the emergency
-	 * 			Given the heat pump is turned on
-	 * 			And it has just been suspended
-	 * 		 	When I call emergency()
-	 * 		 	Then the emergency is between 0.0 and 1.0
-	 * 		 Scenario: resuming
-	 * 		 	Given the heat pump is turned on
-	 * 		 	And it is suspended
-	 * 		 	When I call resume()
-	 * 		 	Then the method returns true
-	 * 		 	And the heat pump is not suspended
-	 * </pre>
-	 *
-	 *
-	 * <p><strong>Contract</strong></p>
-	 *
-	 * <pre>
-	 * pre  {@code this.registrationTable.has(HeatPump.EQUIPMENT_UID)}
-	 * post	{@code true}	// no postcondition.
-	 * </pre>
-	 *
-	 * @throws Exception	<i>to do</i>.
-	 */
-	public void	integrationTestHeatPump() throws Exception {
-
-		AdjustableOutboundPort outbound = this.registrationTable.get(HeatPump.EQUIPMENT_UID);
-
-		this.logMessage("Heat pump tests starts.");
-		TestsStatistics statistics = new TestsStatistics();
-		try {
-			this.logMessage("Feature: adjustable appliance mode management");
-			this.logMessage("	Scenario: getting the max mode index");
-			this.logMessage("		Given the heat pump has just been turned on");
-			this.logMessage("		When I call maxMode()");
-			this.logMessage("   	Then the result is its max mode index");
-			final int maxMode = outbound.maxMode();
-
-			statistics.updateStatistics();
-
-			this.logMessage("  Scenario: getting the current mode index");
-			this.logMessage("    Given the heat pump has just been turned on");
-			this.logMessage("    When I call currentMode()");
-			this.logMessage("    Then the current mode is its max mode");
-			int result = outbound.currentMode();
-			if ( result != maxMode ) {
-				this.logMessage("		but was: " + result);
-				statistics.incorrectResult();
-			}
-
-			statistics.updateStatistics();
-
-			this.logMessage("	Scenario: going down one mode index");
-			this.logMessage("    Given the heat pump is turned on");
-			this.logMessage("    And the current mode index is the max mode index");
-			this.logMessage("	 When I call downMode()");
-			this.logMessage("	 Then the method returns true");
-
-			boolean downResult = outbound.downMode();
-			if ( !downResult ) {
-				this.logMessage("	but was: false");
-				statistics.incorrectResult();
-			}
-			this.logMessage("	And the current mode is its max mode minus one");
-			result = outbound.currentMode();
-			if (result != maxMode - 1) {
-				this.logMessage("	but was: " + result);
-
-				statistics.incorrectResult();
-			}
-
-			statistics.updateStatistics();
-
-			this.logMessage("   Scenario: going up one mode index");
-			this.logMessage("		Given the heat pump is turned on");
-			this.logMessage("    And the current mode index is the max mode index minus one");
-			this.logMessage("    When I call upMode()");
-			this.logMessage("    Then the method returns true");
-			boolean upResult = outbound.upMode();
-			if (!upResult) {
-				this.logMessage("	but was false");
-				statistics.incorrectResult();
-			}
-			this.logMessage("	And the current mode is its max mode");
-			result = outbound.currentMode();
-			if (result != maxMode) {
-				this.logMessage("	but was: " + result);
-				statistics.incorrectResult();
-			}
-
-			statistics.updateStatistics();
-
-			this.logMessage("	Scenario: setting the mode index");
-			this.logMessage("		Given the heat pump is turned on");
-			int index = 1;
-			this.logMessage("		And the mode index 1 is legitimate");
-			if (index > maxMode) {
-				this.logMessage("	but was not");
-				statistics.failedCondition();
-			}
-			this.logMessage("	When I call setMode(1)");
-			this.logMessage("	Then the method returns true");
-			boolean setResult = outbound.setMode(index);
-			if (!setResult) {
-				this.logMessage("	but was false");
-				statistics.incorrectResult();
-			}
-			this.logMessage("	And the current mode is 1");
-			result = outbound.currentMode();
-			if (result != index) {
-				this.logMessage("	but was: " + result);
-				statistics.incorrectResult();
-			}
-
-			statistics.updateStatistics();
-
-			this.logMessage("Feature MAXIMIZE_POWER");
-			this.logMessage("	Scenario: set the mode index to the maximum");
-			this.logMessage("		Given the heat pump is turned on");
-			this.logMessage(" 		When I call setMode(maxMode)");
-			this.logMessage("		Then the method returns true");
-			setResult = outbound.setMode(maxMode);
-			if (!setResult) {
-				this.logMessage("	but was false");
-				statistics.incorrectResult();
-			}
-			this.logMessage("		And the current mode is max mode");
-			result = outbound.currentMode();
-			if (result != maxMode) {
-				this.logMessage("	but was not: " + result);
-				statistics.incorrectResult();
-			}
-
-			statistics.updateStatistics();
-
-			this.logMessage("Feature: Getting the power consumption given a mode");
-			this.logMessage("  Scenario: getting the power consumption of the maximum mode");
-			this.logMessage("    Given the heat pump is turned on");
-			this.logMessage("    When I get the power consumption of the maximum mode");
-			double modeConsumption = outbound.getModeConsumption(maxMode);
-			this.logMessage("    Then the result is the maximum power consumption of the heater");
-
-			statistics.updateStatistics();
-
-			this.logMessage("Feature: suspending and resuming");
-			this.logMessage("  Scenario: checking if suspended when not");
-			this.logMessage("    Given the heat pump is turned on");
-			this.logMessage("    And it has not been suspended yet");
-			this.logMessage("    When I check if suspended");
-			boolean suspendedResult = outbound.suspended();
-			this.logMessage("    Then it is not");
-			if (suspendedResult) {
-				this.logMessage("      but it was!");
-				statistics.incorrectResult();
-			}
-
-			statistics.updateStatistics();
-
-			this.logMessage("  Scenario: suspending");
-			this.logMessage("    Given the heat pump is turned on");
-			this.logMessage("    And it is not suspended");
-			this.logMessage("    When I call suspend()");
-			suspendedResult = outbound.suspend();
-			this.logMessage("    Then the method returns true");
-			if (!suspendedResult) {
-				this.logMessage("      but was false");
-				statistics.incorrectResult();
-			}
-			this.logMessage("    And the heat pump is suspended");
-			suspendedResult = outbound.suspended();
-			if (!suspendedResult) {
-				this.logMessage("      but it was not!");
-				statistics.incorrectResult();
-			}
-
-			statistics.updateStatistics();
-
-			this.logMessage("  Scenario: checking the emergency");
-			this.logMessage("    Given the heat pump is turned on");
-			this.logMessage("    And it has just been suspended");
-			this.logMessage("    When I call emergency()");
-			double emergencyResult = outbound.emergency();
-			this.logMessage("    Then the emergency is between 0.0 and 1.0");
-			if (emergencyResult < 0.0 || emergencyResult > 1.0) {
-				this.logMessage("      but was: " + emergencyResult);
-				statistics.incorrectResult();
-			}
-
-			statistics.updateStatistics();
-
-			this.logMessage("  Scenario: resuming");
-			this.logMessage("    Given the heat pump is turned on");
-			this.logMessage("    And it is suspended");
-			this.logMessage("    When I call resume()");
-			boolean resumeResult = outbound.resume();
-			this.logMessage("    Then the method returns true");
-			if (!resumeResult) {
-				this.logMessage("      but was false");
-				statistics.incorrectResult();
-			}
-			this.logMessage("    And the heat pump is not suspended");
-			suspendedResult = outbound.suspended();
-			if (suspendedResult) {
-				this.logMessage("      but it was!");
-				statistics.incorrectResult();
-			}
-
-			statistics.updateStatistics();
-
-
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		statistics.statisticsReport(this);
-
-		this.logMessage("Heat pump tests end");
 	}
 
 	/**
@@ -1962,9 +1373,40 @@ public class			HEM
 
 	}
 
+	/**
+	 * test the {@code Heater} component, in cooperation with the
+	 * {@code HeaterTester} component.
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * pre	{@code true}	// no precondition.
+	 * post	{@code true}	// no postcondition.
+	 * </pre>
+	 *
+	 */
+//	protected void		scheduleTestHeater()
+//	{
+//		// Test for the heater
+//		Instant heaterTestStart =
+//				this.ac.getStartInstant().plusSeconds(
+//							(HeaterUnitTester.SWITCH_ON_DELAY +
+//											HeaterUnitTester.SWITCH_OFF_DELAY)/2);
+//		this.traceMessage("HEM schedules the heater test.\n");
+//		long delay = this.ac.nanoDelayUntilInstant(heaterTestStart);
+//
+//		// schedule the switch on heater in one second
+//		this.scheduleTaskOnComponent(
+//				new AbstractComponent.AbstractTask() {
+//					@Override
+//					public void run() {
+//						try {
+//							testHeater();
+//						} catch (Throwable e) {
+//							throw new BCMRuntimeException(e) ;
+//						}
+//					}
+//				}, delay, TimeUnit.NANOSECONDS);
+//	}
 }
-
-
-
-
 // -----------------------------------------------------------------------------

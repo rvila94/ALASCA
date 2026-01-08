@@ -1,7 +1,10 @@
 package equipments.HeatPump.interfaces;
 
+import fr.sorbonne_u.components.interfaces.OfferedCI;
+import fr.sorbonne_u.components.interfaces.RequiredCI;
+
 /**
- * The class <code>interfaces.HeatPump.equipments.HeatPumpInternalControlI</code>.
+ * The class <code>equipments.HeatPump.interfaces.HeatPumpActuatorCI</code>.
  *
  * <p><strong>Description</strong></p>
  *
@@ -19,9 +22,5 @@ package equipments.HeatPump.interfaces;
  * @author    <a href="mailto:Rodrigo.Vila@etu.sorbonne-universite.fr">Rodrigo Vila</a>
  * @author    <a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
  */
-public interface HeatPumpInternalControlI extends HeatPumpActuatorI{
-
-    boolean heating() throws Exception;
-    boolean cooling() throws Exception;
-
+public interface HeatPumpActuatorCI extends HeatPumpActuatorI, OfferedCI, RequiredCI {
 }

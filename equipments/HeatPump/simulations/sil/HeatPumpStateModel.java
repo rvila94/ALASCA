@@ -55,7 +55,7 @@ implements CompleteModelI {
 
     public static boolean VERBOSE = false;
 
-    public static String URI = "HEATPUMP-STATE-MODEL-URI";
+    public static String URI = "HEAT-PUMP-STATE-MODEL-URI";
 
     protected HeatPumpUserI.State currentState;
 

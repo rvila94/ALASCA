@@ -11,7 +11,6 @@ import equipments.dimmerlamp.simulations.events.SwitchOffLampEvent;
 import equipments.dimmerlamp.simulations.events.SwitchOnLampEvent;
 import fr.sorbonne_u.components.cyphy.utils.tests.SimulationTestStep;
 import fr.sorbonne_u.components.cyphy.utils.tests.TestScenarioWithSimulation;
-import fr.sorbonne_u.components.hem2025e2.equipments.hairdryer.mil.HairDryerSimulationConfigurationI;
 import fr.sorbonne_u.devs_simulation.architectures.ArchitectureI;
 import fr.sorbonne_u.devs_simulation.architectures.RTArchitecture;
 import fr.sorbonne_u.devs_simulation.hioa.architectures.RTAtomicHIOA_Descriptor;

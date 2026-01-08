@@ -59,7 +59,13 @@ import java.util.concurrent.TimeUnit;
                 uri = "DIMMER_LAMP_INTEGRATION_TEST_URI",
                 rootModelURI = "DIMMER-LAMP-STATE-MODEL-URI",
                 simulatedTimeUnit = TimeUnit.HOURS,
-                externalEvents = @ModelExternalEvents()
+                externalEvents = @ModelExternalEvents(
+                        exported = {
+                                SwitchOnLampEvent.class,
+                                SwitchOffLampEvent.class,
+                                SetPowerLampEvent.class
+                        }
+                )
         )}
 )
 @RequiredInterfaces(required = {RegistrationCI.class})
@@ -238,6 +244,11 @@ extends DimmerLamp {
         LampPowerValue power_value = new LampPowerValue(variation.getData());
         this.triggerExternalEvent(t -> new SetPowerLampEvent(t, power_value));
     }
+
+    // -------------------------------------------------------------------------
+    // BCM methods
+    // -------------------------------------------------------------------------
+
 
     @Override
     public void start() throws ComponentStartException {

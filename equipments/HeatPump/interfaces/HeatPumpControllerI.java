@@ -1,7 +1,7 @@
 package equipments.HeatPump.interfaces;
 
 /**
- * The class <code>interfaces.HeatPump.equipments.HeatPumpInternalControlI</code>.
+ * The class <code>equipments.HeatPump.interfaces.HeatPumpControllerI</code>.
  *
  * <p><strong>Description</strong></p>
  *
@@ -19,9 +19,10 @@ package equipments.HeatPump.interfaces;
  * @author    <a href="mailto:Rodrigo.Vila@etu.sorbonne-universite.fr">Rodrigo Vila</a>
  * @author    <a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
  */
-public interface HeatPumpInternalControlI extends HeatPumpActuatorI{
+public interface HeatPumpControllerI {
 
-    boolean heating() throws Exception;
-    boolean cooling() throws Exception;
+    void startControlling() throws Exception;
+
+    void stopControlling() throws Exception;
 
 }

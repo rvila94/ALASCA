@@ -50,7 +50,7 @@ implements DimmerLampUserI, DimmerLampExternalI {
     public static final Measure<Double> BASE_POWER_VARIATION = new Measure<>(50., MeasurementUnit.RAW);
     protected static final Measure<Double> FAKE_POWER = new Measure<>(100., MeasurementUnit.WATTS);
 
-    protected static final String BASE_REFLECTION_INBOUND_PORT_URI = "REFLECTION-DIMMER-LAMP-URI";
+    public static final String BASE_REFLECTION_INBOUND_PORT_URI = "REFLECTION-DIMMER-LAMP-URI";
     public static final String BASE_USER_INBOUND_PORT_URI = "USER-DIMMER-LAMP-URI";
     public  static final String BASE_EXTERNAL_INBOUND_PORT_URI = "EXTERNAL-DIMMER-LAMP-URI";
     // TODO potential problem here

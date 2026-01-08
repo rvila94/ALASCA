@@ -71,7 +71,7 @@ extends AbstractComponent {
     protected static final int NUMBER_THREADS = 1;
     protected static final int NUMBER_SCHEDULABLE_THREADS = 1;
 
-    protected static final String BASE_REFLECTION_INBOUND_PORT = "DIMMER-LAMP-TESTER-INBOUND-PORT";
+    public static final String BASE_REFLECTION_INBOUND_PORT = "DIMMER-LAMP-TESTER-INBOUND-PORT";
 
     protected DimmerLampUserOutboundPort userOutboundPort;
 
@@ -524,6 +524,14 @@ extends AbstractComponent {
             throw new ComponentShutdownException(e) ;
         }
         super.shutdown();
+    }
+
+    public void switchOn() throws Exception {
+        this.userOutboundPort.switchOn();
+    }
+
+    public void switchOff() throws Exception {
+        this.userOutboundPort.switchOff();
     }
 
     @Override
