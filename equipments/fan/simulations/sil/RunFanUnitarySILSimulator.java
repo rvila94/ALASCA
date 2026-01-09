@@ -250,24 +250,28 @@ public class RunFanUnitarySILSimulator {
     protected static final String GHERKIN_SPEC_CLASSICAL = "------------------------------------\n" +
             "Classical\n" +
             "   Gherkin specification\n" +
-            "       Feature: dimmer lamp operation\n" +
-            "           Scenario: dimmer lamp switched on\n" +
-            "               Given the dimmer lamp is off\n" +
+            "       Feature: fan operation\n" +
+            "           Scenario: fan switched on\n" +
+            "               Given the fan is off\n" +
             "               When it is switched on\n" +
             "               Then it is on\n" +
-            "               And the power consumption is minimal\n" +
-            "           Scenario: dimmer lamp sets power\n" +
-            "               Given the dimmer lamp is on\n" +
-            "               When the power is set to a valid wattage\n" +
-            "               Then the power is equal to the set wattage\n" +
-            "           Scenario: dimmer lamp switch off\n" +
-            "               Given the dimmer lamp is on\n" +
-            "               When the dimmer lamp is switched off\n" +
-            "               Then the dimmer lamp is off\n" +
-            "           Scenario: The tests are repeated another time\n" +
-            "               Given the dimmer lamp has just been switched off\n" +
-            "               When the tests are repeated\n" +
-            "               Then the behaviour of the tests is still the same\n" +
+            "        		Then it is on and low\n" +
+            "      		Scenario: fan set high\n" +
+			"        		Given a fan that is on\n" +
+			"		        When it is set high\n" +
+			"       		 Then it is on and high\n" +
+			"      		Scenario: fan set medium\n" +
+			"        		Given a fan that is on\n" +
+			"        		When it is set medium\n" +
+			"        		Then it is on and medium\n" +
+			"      		Scenario: fan set low\n" +
+			"        		Given a fan that is on\n" +
+			"        		When it is set low\n" +
+			"        		Then it is on and low\n" +
+			"      		Scenario: fan switched off\n" +
+			"        		Given a fan that is on\n" +
+			"        		When it is switched of\n" +
+			"        		Then it is off\n" +
             "------------------------------------\n";
 
     protected static final String GHERKIN_SPEC_PRIORITY = "------------------------------------\n" +
