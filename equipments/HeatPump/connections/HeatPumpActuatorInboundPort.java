@@ -32,13 +32,13 @@ public class HeatPumpActuatorInboundPort
     implements HeatPumpActuatorCI {
 
     public HeatPumpActuatorInboundPort(String uri, ComponentI owner) throws Exception {
-        super(uri, HeatPumpInternalControlCI.class, owner);
+        super(uri, HeatPumpActuatorCI.class, owner);
         assert owner instanceof HeatPumpActuatorI :
                 new PreconditionException("owner not instance of HeatPumpActuatorI");
     }
 
     public HeatPumpActuatorInboundPort(ComponentI owner) throws Exception {
-        super(HeatPumpInternalControlCI.class, owner);
+        super(HeatPumpActuatorCI.class, owner);
         assert owner instanceof HeatPumpActuatorI :
                 new PreconditionException("owner not instance of HeatPumpActuatorI");
     }

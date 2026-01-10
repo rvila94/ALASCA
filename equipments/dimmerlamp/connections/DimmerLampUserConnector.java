@@ -8,6 +8,7 @@ extends AbstractConnector
 implements DimmerLampUserCI {
     @Override
     public void switchOn() throws Exception {
+        System.out.println("Switch On connector");
         ((DimmerLampUserCI)this.offering).switchOn();
     }
 

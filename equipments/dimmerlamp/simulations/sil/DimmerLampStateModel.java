@@ -63,7 +63,7 @@ implements DimmerLampSimulationOperationI {
     // Variables
     // -------------------------------------------------------------------------
 
-    public static boolean VERBOSE = false;
+    public static boolean VERBOSE = true;
 
     /** current state of the machine */
     protected LampState currentState;
@@ -107,7 +107,9 @@ implements DimmerLampSimulationOperationI {
     public DimmerLampStateModel(String uri, TimeUnit simulatedTimeUnit, AtomicSimulatorI simulationEngine) {
         super(uri, simulatedTimeUnit, simulationEngine);
 
-        this.getSimulationEngine().setLogger(new StandardLogger());
+        if ( VERBOSE ) {
+            this.getSimulationEngine().setLogger(new StandardLogger());
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -116,7 +118,7 @@ implements DimmerLampSimulationOperationI {
 
     protected void logging(String message) {
         if ( VERBOSE ) {
-            this.logMessage(message);
+            this.logMessage(message + "\n");
         }
     }
 
@@ -132,7 +134,6 @@ implements DimmerLampSimulationOperationI {
 
         assert state != null :
                 new PreconditionException("state == null");
-
 
         this.currentState = state;
 
@@ -182,15 +183,17 @@ implements DimmerLampSimulationOperationI {
     @Override
     public ArrayList<EventI> output()
     {
+        this.logging("STATE");
         ArrayList<EventI> result = null;
 
-        if (this.previousEvent != null) {
-            this.logging("output sends : " + this.previousEvent);
+        assert this.previousEvent != null :
+                new NeoSim4JavaException("this.previousEvent == null");
 
-            result = new ArrayList<>();
-            result.add(this.previousEvent);
-            this.previousEvent = null;
-        }
+        this.logging("output sends : " + this.previousEvent);
+
+        result = new ArrayList<>();
+        result.add(this.previousEvent);
+        this.previousEvent = null;
 
         return result;
     }
@@ -200,11 +203,13 @@ implements DimmerLampSimulationOperationI {
      */
     @Override
     public Duration timeAdvance() {
-        final Duration zero = Duration.zero(this.getSimulatedTimeUnit());
+        this.logging("STATE");
+
 
         if (this.previousEvent != null) {
-            return zero;
+            return Duration.zero(this.getSimulatedTimeUnit());
         } else {
+            System.out.println("ADVANCE");
             return Duration.INFINITY;
         }
     }
@@ -226,6 +231,9 @@ implements DimmerLampSimulationOperationI {
     @Override
     public void userDefinedExternalTransition(Duration elapsedTime)
     {
+        this.logging("STATE");
+        System.out.println("EXTERNAL");
+
         super.userDefinedExternalTransition(elapsedTime);
 
         // get the vector of current external events

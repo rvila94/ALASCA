@@ -52,7 +52,9 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
 
     protected static final int NB_THREADS = 1;
     protected static final int NB_SCHEDULABLE_THREADS = 1;
-    protected static final String REFLECTION_INBOUND_URI = "HEAT-PUMP-REFLECTION-INBOUND-URI";
+    protected static final String REFLECTION_INBOUND_URI = "HEAT-PUMP-CONTROLLER-REFLECTION-INBOUND-URI";
+
+    public static final String CONTROLLER_INBOUND_URI = "HEAT-PUMP-CONTROLLER-INBOUND-URI";
 
     protected double hysteresis;
     protected double heating_threshold;
@@ -61,7 +63,8 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
     protected HeatPumpActuatorOutboundPort actuator_port;
     protected HeatPumpExternalControlOutboundPort external_port;
 
-    protected String heatPumpURI;
+    protected String heatPumpExternalURI;
+    protected String heatPumpActuatorURI;
     protected String externalCCName;
     protected String actuatorCCName;
 
@@ -74,13 +77,21 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
     protected HeatPumpUserI.State current_state;
 
     protected HeatPumpController(
-            String heatPumpURI,
+            String heatPumpExternalURI,
+            String heatPumpActuatorURI,
             String externalCCName,
             String actuatorCCName,
+            String heatPumpURI,
             double hysteresis,
             double heating_threshold,
-            double cooling_threshold) throws Exception {
-        this(REFLECTION_INBOUND_URI, heatPumpURI, externalCCName, actuatorCCName, hysteresis, heating_threshold, cooling_threshold);
+            double cooling_threshold,
+            double controlPeriod) throws Exception {
+        this(REFLECTION_INBOUND_URI,
+                heatPumpExternalURI,
+                heatPumpActuatorURI,
+                externalCCName,
+                actuatorCCName,
+                heatPumpURI, hysteresis, heating_threshold, cooling_threshold, controlPeriod);
     }
 
     /**
@@ -94,27 +105,35 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
      *  post {@code true} // no postcondition
      * </pre>
      * @param reflectionInboundPortURI
-     * @param heatPumpURI
+     * @param heatPumpExternalURI
+     * @param heatPumpActuatorURI
      * @param externalCCName
      * @param hysteresis
      */
     protected HeatPumpController(
             String reflectionInboundPortURI,
-            String heatPumpURI,
+            String heatPumpExternalURI,
+            String heatPumpActuatorURI,
             String externalCCName,
             String actuatorCCName,
+            String heatPumpURI,
             double hysteresis,
             double heating_threshold,
-            double cooling_threshold) throws Exception {
+            double cooling_threshold,
+            double controlPeriod) throws Exception {
         super(reflectionInboundPortURI, NB_THREADS, NB_SCHEDULABLE_THREADS);
 
         this.current_state = HeatPumpUserI.State.Off;
+
+        this.controlPeriod = (long) (controlPeriod * TimeUnit.SECONDS.toNanos(1));
+        this.time_unit = TimeUnit.NANOSECONDS;
 
         this.hysteresis = hysteresis;
         this.heating_threshold = heating_threshold;
         this.cooling_threshold = cooling_threshold;
 
-        this.heatPumpURI = heatPumpURI;
+        this.heatPumpExternalURI = heatPumpExternalURI;
+        this.heatPumpActuatorURI = heatPumpActuatorURI;
         this.externalCCName = externalCCName;
         this.actuatorCCName = actuatorCCName;
 
@@ -156,8 +175,8 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
                 time_unit
         );
 
-        assert this.current_state != HeatPumpUserI.State.Off :
-                new PostconditionException("this.current_state == State.Off");
+        assert this.current_state == HeatPumpUserI.State.On :
+                new PostconditionException("this.current_state != State.On");
     }
 
     /**
@@ -168,7 +187,7 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
         assert this.current_state != HeatPumpUserI.State.Off :
                 new PreconditionException("this.current_state == State.Off");
 
-        synchronized ( this.current_state ) {
+        synchronized ( this ) {
             this.current_state = HeatPumpUserI.State.Off;
         }
 
@@ -239,12 +258,12 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
         try {
             this.doPortConnection(
                     this.external_port.getPortURI(),
-                    this.heatPumpURI,
+                    this.heatPumpExternalURI,
                     this.externalCCName
             );
             this.doPortConnection(
                     this.actuator_port.getPortURI(),
-                    this.heatPumpURI,
+                    this.heatPumpActuatorURI,
                     this.actuatorCCName
             );
         } catch (Exception e) {
@@ -279,7 +298,7 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
 
     public void controlLoop() {
 
-        synchronized ( this.current_state ) {
+        synchronized ( this ) {
 
             if (this.current_state != HeatPumpUserI.State.Off) {
 

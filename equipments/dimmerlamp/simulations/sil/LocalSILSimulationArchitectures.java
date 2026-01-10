@@ -1,5 +1,7 @@
 package equipments.dimmerlamp.simulations.sil;
 
+import equipments.HeatPump.simulations.sil.HeatPumpStateModel;
+import equipments.dimmerlamp.simulations.DimmerLampCoupledModel;
 import equipments.dimmerlamp.simulations.DimmerLampElectricityModel;
 import equipments.dimmerlamp.simulations.events.SetPowerLampEvent;
 import equipments.dimmerlamp.simulations.events.SwitchOffLampEvent;
@@ -14,6 +16,7 @@ import fr.sorbonne_u.devs_simulation.models.architectures.RTCoupledModelDescript
 import fr.sorbonne_u.devs_simulation.models.events.EventI;
 import fr.sorbonne_u.devs_simulation.models.events.EventSink;
 import fr.sorbonne_u.devs_simulation.models.events.EventSource;
+import fr.sorbonne_u.devs_simulation.models.events.ReexportedEvent;
 import fr.sorbonne_u.exceptions.PostconditionException;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
@@ -54,6 +57,16 @@ public abstract class LocalSILSimulationArchitectures
                 new EventSink(DimmerLampElectricityModel.URI, eventType);
 
         map.put(source, new EventSink[] { sink });
+    }
+
+    protected static void add_reexported_event(
+            Map<Class<? extends EventI>, ReexportedEvent> map,
+            Class <? extends EventI> eventType
+    ) {
+        map.put(
+                eventType,
+                new ReexportedEvent(DimmerLampStateModel.URI, eventType)
+        );
     }
 
     public static RTArchitecture createDimmerLampSIL_Architecture4UnitTest(
@@ -114,7 +127,7 @@ public abstract class LocalSILSimulationArchitectures
         coupledModelDescriptors.put(
                 rootModelURI,
                 new RTCoupledModelDescriptor(
-                        HairDryerCoupledModel.class,
+                        DimmerLampCoupledModel.class,
                         rootModelURI,
                         submodels,
                         null,
@@ -165,10 +178,10 @@ public abstract class LocalSILSimulationArchitectures
                 new HashMap<>();
 
         atomicModelDescriptors.put(
-                DimmerLampStateModel.URI,
+                rootModelURI,
                 RTAtomicModelDescriptor.create(
                         DimmerLampStateModel.class,
-                        DimmerLampStateModel.URI,
+                        rootModelURI,
                         simulatedTimeUnit,
                         null,
                         accelerationFactor));

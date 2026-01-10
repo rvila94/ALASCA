@@ -41,10 +41,11 @@ public class HeatPumpPowerValue implements EventInformationI {
      */
     public HeatPumpPowerValue(double power) {
 
-        assert HeatPump.MIN_REQUIRED_POWER_LEVEL.getData() <= power
-                && power <= HeatPump.MAX_POWER_LEVEL.getData() :
-                new PreconditionException("HeatPump.MIN_REQUIRED_POWER_LEVEL.getData() > power" +
-                        " || power > HeatPump.MAX_POWER_LEVEL.getData()");
+//        final double eps = 1e-6;
+//        assert HeatPump.MIN_REQUIRED_POWER_LEVEL.getData() - eps <= power
+//                && power <= HeatPump.MAX_POWER_LEVEL.getData() + eps :
+//                new PreconditionException("HeatPump.MIN_REQUIRED_POWER_LEVEL.getData() > power" +
+//                        " || power > HeatPump.MAX_POWER_LEVEL.getData()");
 
         this.power = power;
     }

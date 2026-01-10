@@ -112,6 +112,8 @@ public class HeatPumpHeatingModel extends AtomicHIOA implements StateModelI {
     @ImportedVariable(type = Double.class)
     protected Value<Double> currentTemperaturePower;
 
+    public static String currentTemperatureName = "currentTemperature";
+
     /** current temperature in the room */
     @InternalVariable(type = Double.class)
     protected final DerivableValue<Double> currentTemperature =

@@ -915,6 +915,8 @@ implements HeatPumpUserI,
     @Override
     public void setCurrentPower(Measure<Double> power) throws Exception {
 
+        System.out.println("MAX : " + power.getData() + " " + this.getMaximumPower().getData() + " " + this.getMinimumRequiredPower().getData());
+
         assert this.on() :
                 new PreconditionException("!on()");
         assert power != null :

@@ -29,11 +29,11 @@ extends AbstractOutboundPort
 implements HeatPumpControllerCI {
 
     public HeatPumpControllerOutboundPort(String uri, ComponentI owner) throws Exception {
-        super(uri, HeatPumpActuatorCI.class, owner);
+        super(uri, HeatPumpControllerCI.class, owner);
     }
 
     public HeatPumpControllerOutboundPort(ComponentI owner) throws Exception {
-        super(HeatPumpActuatorCI.class, owner);
+        super(HeatPumpControllerCI.class, owner);
     }
 
     /**

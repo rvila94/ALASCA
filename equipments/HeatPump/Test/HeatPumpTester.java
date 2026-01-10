@@ -1454,6 +1454,7 @@ extends AbstractComponent {
             if (random_power_level < min_required_level) {
                 random_power_level = min_required_level;
             }
+
             this.externalOutboundPort.setCurrentPower(
                     new Measure<>(random_power_level, HeatPump.POWER_UNIT)
             );
@@ -1473,6 +1474,7 @@ extends AbstractComponent {
             this.userOutboundPort.switchOff();
         } catch (Exception e) {
             this.statistics.incorrectResult();
+            e.printStackTrace();
             this.logMessage("     but the exception " + e + " has been raised");
         }
 
@@ -1509,6 +1511,7 @@ extends AbstractComponent {
             this.userOutboundPort.switchOff();
         } catch (Exception e) {
             this.statistics.incorrectResult();
+            e.printStackTrace();
             this.logMessage("     but the exception " + e + " has been raised");
         }
 

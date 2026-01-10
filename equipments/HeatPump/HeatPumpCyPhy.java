@@ -7,16 +7,19 @@ import equipments.HeatPump.connections.HeatPumpExternalControlInboundPort;
 import equipments.HeatPump.connections.HeatPumpExternalJava4InboundPort;
 import equipments.HeatPump.interfaces.*;
 import equipments.HeatPump.powerRepartitionPolicy.PowerRepartitionPolicyI;
+import equipments.HeatPump.simulations.HeatPumpHeatingModel;
 import equipments.HeatPump.simulations.events.*;
 import equipments.HeatPump.simulations.sil.HeatPumpStateModel;
 import equipments.HeatPump.simulations.sil.LocalSILSimulationArchitectures;
 import equipments.HeatPump.temperatureSensor.TemperatureSensorCI;
 import fr.sorbonne_u.alasca.physical_data.Measure;
+import fr.sorbonne_u.alasca.physical_data.SignalData;
 import fr.sorbonne_u.components.annotations.OfferedInterfaces;
 import fr.sorbonne_u.components.annotations.RequiredInterfaces;
 import fr.sorbonne_u.components.cyphy.ExecutionMode;
 import fr.sorbonne_u.components.cyphy.annotations.LocalArchitecture;
 import fr.sorbonne_u.components.cyphy.annotations.SIL_Simulation_Architectures;
+import fr.sorbonne_u.components.cyphy.interfaces.ModelStateAccessI;
 import fr.sorbonne_u.components.cyphy.plugins.devs.AtomicSimulatorPlugin;
 import fr.sorbonne_u.components.cyphy.plugins.devs.RTAtomicSimulatorPlugin;
 import fr.sorbonne_u.components.cyphy.utils.aclocks.ClocksServerWithSimulation;
@@ -86,7 +89,6 @@ import java.util.concurrent.TimeUnit;
         HeatPumpUserCI.class,
         HeatPumpInternalControlCI.class,
         HeatPumpExternalJava4InboundPort.class,
-        HeatPumpExternalControlCI.class,
         HeatPumpActuatorCI.class
 })
 public class HeatPumpCyPhy extends HeatPump {
@@ -142,9 +144,14 @@ public class HeatPumpCyPhy extends HeatPump {
                 registrationHEMCcName);
 
         this.actuator_port = new HeatPumpActuatorInboundPort(actuatorInboundURI, this);
+        this.actuator_port.publishPort();
+
         this.controller_external_port = new HeatPumpExternalControlInboundPort(cExternalInboundURI, this);
+        this.controller_external_port.publishPort();
 
         this.controller_port = new HeatPumpControllerOutboundPort(this);
+        this.controller_port.publishPort();
+
         this.controllerCCName = controllerCCName;
         this.controllerURI = controllerURI;
     }
@@ -160,8 +167,8 @@ public class HeatPumpCyPhy extends HeatPump {
             String externalInboundURI,
             String registrationHEMURI,
             String registrationHEMCcName,
-            String actuatorInboundURI,
             String cExternalInboundURI,
+            String actuatorInboundURI,
             String controllerURI,
             String controllerCCName) throws Exception {
         super(reflectionInboundPortURI,
@@ -176,9 +183,14 @@ public class HeatPumpCyPhy extends HeatPump {
                 registrationHEMCcName);
 
         this.actuator_port = new HeatPumpActuatorInboundPort(actuatorInboundURI, this);
+        this.actuator_port.publishPort();
+
         this.controller_external_port = new HeatPumpExternalControlInboundPort(cExternalInboundURI, this);
+        this.controller_external_port.publishPort();
 
         this.controller_port = new HeatPumpControllerOutboundPort(this);
+        this.controller_port.publishPort();
+
         this.controllerCCName = controllerCCName;
         this.controllerURI = controllerURI;
     }
@@ -204,9 +216,14 @@ public class HeatPumpCyPhy extends HeatPump {
                 externalInboundURI);
 
         this.actuator_port = new HeatPumpActuatorInboundPort(actuatorInboundURI, this);
+        this.actuator_port.publishPort();
+
         this.controller_external_port = new HeatPumpExternalControlInboundPort(cExternalInboundURI, this);
+        this.controller_external_port.publishPort();
 
         this.controller_port = new HeatPumpControllerOutboundPort(this);
+        this.controller_port.publishPort();
+
         this.controllerCCName = controllerCCName;
         this.controllerURI = controllerURI;
     }
@@ -311,18 +328,18 @@ public class HeatPumpCyPhy extends HeatPump {
 
     @Override
     public void switchOn() throws Exception {
-        super.switchOn();
-
         this.controller_port.startControlling();
+
+        super.switchOn();
 
         this.triggerExternalEvent(SwitchOnEvent::new);
     }
 
     @Override
     public void switchOff() throws Exception {
-        super.switchOff();
-
         this.controller_port.stopControlling();
+
+        super.switchOff();
 
         this.triggerExternalEvent(SwitchOffEvent::new);
     }
@@ -357,6 +374,8 @@ public class HeatPumpCyPhy extends HeatPump {
 
     @Override
     public void setCurrentPower(Measure<Double> power) throws Exception {
+        System.out.println(power.getData());
+
         super.setCurrentPower(power);
 
         HeatPumpPowerValue powerValue = new HeatPumpPowerValue(power.getData());
@@ -369,6 +388,21 @@ public class HeatPumpCyPhy extends HeatPump {
 
         HeatPumpPowerValue powerValue = new HeatPumpPowerValue(power.getData());
         this.triggerExternalEvent(t -> new SetPowerEvent(t, powerValue));
+    }
+
+    @Override
+    public SignalData<Double> getCurrentTemperature() throws Exception {
+
+        if ( this.executionMode.isSILTest() ) {
+            Double v = (Double) this.asp
+                    .getModelVariableValue(HeatPumpHeatingModel.URI, HeatPumpHeatingModel.currentTemperatureName)
+                    .getValue();
+
+            return new SignalData<>(new Measure<>(v));
+        } else {
+            return super.getCurrentTemperature();
+        }
+
     }
 
     // -------------------------------------------------------------------------

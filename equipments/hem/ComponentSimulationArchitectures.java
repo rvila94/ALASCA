@@ -38,6 +38,7 @@ import equipments.dimmerlamp.simulations.DimmerLampCoupledModel;
 import equipments.dimmerlamp.simulations.events.SetPowerLampEvent;
 import equipments.dimmerlamp.simulations.events.SwitchOffLampEvent;
 import equipments.dimmerlamp.simulations.events.SwitchOnLampEvent;
+import equipments.dimmerlamp.simulations.sil.DimmerLampStateModel;
 import fr.sorbonne_u.components.cyphy.plugins.devs.CoordinatorPlugin;
 import fr.sorbonne_u.components.cyphy.plugins.devs.architectures.RTComponentAtomicModelDescriptor;
 import fr.sorbonne_u.components.cyphy.plugins.devs.architectures.RTComponentCoupledModelDescriptor;
@@ -178,9 +179,9 @@ public abstract class ComponentSimulationArchitectures
 						HeaterCyPhy.REFLECTION_INBOUND_PORT_URI));
 
 		atomicModelDescriptors.put(
-				DimmerLampCoupledModel.URI,
+				DimmerLampStateModel.URI,
 				RTComponentAtomicModelDescriptor.create(
-						DimmerLampCoupledModel.URI,
+						DimmerLampStateModel.URI,
 						(Class<? extends EventI>[]) new Class<?>[]{},
 						(Class<? extends EventI>[]) new Class<?>[]{
 								SwitchOnLampEvent.class,
@@ -223,7 +224,7 @@ public abstract class ComponentSimulationArchitectures
 		Set<String> submodels = new HashSet<String>();
 		submodels.add(HairDryerStateSILModel.URI);
 		submodels.add(HeaterCoupledModel.URI);
-		submodels.add(DimmerLampCoupledModel.URI);
+		submodels.add(DimmerLampStateModel.URI);
 		submodels.add(ElectricMeterCoupledModel.URI);
 
 		// event exchanging connections between exporting and importing
@@ -299,21 +300,21 @@ public abstract class ComponentSimulationArchitectures
 				});
 
 		connections.put(
-				new EventSource(DimmerLampCoupledModel.URI, SwitchOnLampEvent.class),
+				new EventSource(DimmerLampStateModel.URI, SwitchOnLampEvent.class),
 				new EventSink[] {
 						new EventSink(ElectricMeterCoupledModel.URI,
 								SwitchOnLampEvent.class)
 				}
 		);
 		connections.put(
-				new EventSource(DimmerLampCoupledModel.URI, SwitchOffLampEvent.class),
+				new EventSource(DimmerLampStateModel.URI, SwitchOffLampEvent.class),
 				new EventSink[] {
 						new EventSink(ElectricMeterCoupledModel.URI,
 								SwitchOffLampEvent.class)
 				}
 		);
 		connections.put(
-				new EventSource(DimmerLampCoupledModel.URI, SetPowerLampEvent.class),
+				new EventSource(DimmerLampStateModel.URI, SetPowerLampEvent.class),
 				new EventSink[] {
 						new EventSink(ElectricMeterCoupledModel.URI,
 								SetPowerLampEvent.class)

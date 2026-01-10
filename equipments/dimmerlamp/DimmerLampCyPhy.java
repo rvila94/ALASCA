@@ -19,8 +19,12 @@ import fr.sorbonne_u.components.cyphy.plugins.devs.RTAtomicSimulatorPlugin;
 import fr.sorbonne_u.components.cyphy.utils.aclocks.ClocksServerWithSimulation;
 import fr.sorbonne_u.components.cyphy.utils.tests.TestScenarioWithSimulation;
 import fr.sorbonne_u.components.exceptions.BCMException;
+import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.components.hem2025.bases.RegistrationCI;
+import fr.sorbonne_u.components.hem2025e2.equipments.heater.mil.events.SwitchOnHeater;
+import fr.sorbonne_u.components.hem2025e3.equipments.heater.sil.HeaterStateSILModel;
+import fr.sorbonne_u.components.utils.tests.TestScenario;
 import fr.sorbonne_u.devs_simulation.architectures.RTArchitecture;
 import fr.sorbonne_u.devs_simulation.models.annotations.ModelExternalEvents;
 import fr.sorbonne_u.exceptions.PreconditionException;
@@ -56,7 +60,7 @@ import java.util.concurrent.TimeUnit;
                 externalEvents = @ModelExternalEvents()
         ),
         @LocalArchitecture(
-                uri = "DIMMER_LAMP_INTEGRATION_TEST_URI",
+                uri = "silIntegrationTests",
                 rootModelURI = "DIMMER-LAMP-STATE-MODEL-URI",
                 simulatedTimeUnit = TimeUnit.HOURS,
                 externalEvents = @ModelExternalEvents(
@@ -78,10 +82,10 @@ extends DimmerLamp {
     // -------------------------------------------------------------------------
 
     /** */
-    protected static final String UNIT_TEST_URI = "DIMMER_LAMP_UNIT_TEST_URI";
+    public static final String UNIT_TEST_URI = "DIMMER_LAMP_UNIT_TEST_URI";
 
     /**  */
-    protected static final String INTEGRATION_TEST_URI = "DIMMER_LAMP_INTEGRATION_TEST_URI";
+    public static final String INTEGRATION_TEST_URI = "silIntegrationTests";
 
     // -------------------------------------------------------------------------
     // Variables
@@ -111,8 +115,20 @@ extends DimmerLamp {
                 registrationHemCcName);
     }
 
-    protected DimmerLampCyPhy(String registrationHEMURI, String registrationHemCcName) throws Exception {
-        super(registrationHEMURI, registrationHemCcName);
+    protected DimmerLampCyPhy(String registrationHEMURI,
+                              String registrationHemCcName,
+                              ExecutionMode mode,
+                              TestScenario testScenario,
+                              String architectureURI,
+                              double accelerationFactor) throws Exception {
+        super(registrationHEMURI,
+                registrationHemCcName,
+                mode,
+                testScenario,
+                accelerationFactor);
+
+        this.executionMode = mode;
+        this.localArchitectureURI = architectureURI;
     }
 
     // -------------------------------------------------------------------------
@@ -121,17 +137,17 @@ extends DimmerLamp {
 
     private void tracing(String message) {
         if (DimmerLamp.VERBOSE) {
-            this.traceMessage(message);
+            this.traceMessage(message + "\n");
         }
     }
 
     private void triggerExternalEvent(RTAtomicSimulatorPlugin.EventFactoryFI factory) throws Exception {
         if ( this.getExecutionMode().isSILTest() ) {
-
-            ((RTAtomicSimulatorPlugin)asp).triggerExternalEvent(
+            this.tracing("triggered");
+            ((RTAtomicSimulatorPlugin)this.asp).triggerExternalEvent(
                     DimmerLampStateModel.URI,
-                    factory
-            );
+                    factory);
+            this.tracing("triggered successfully");
         }
     }
 
@@ -140,11 +156,13 @@ extends DimmerLamp {
         switch (this.getExecutionMode()) {
             case INTEGRATION_TEST_WITH_SIL_SIMULATION:
             case UNIT_TEST_WITH_SIL_SIMULATION:
+                this.tracing(this.localArchitectureURI);
                 RTArchitecture architecture =
                         (RTArchitecture) this.localSimulationArchitectures.
                                 get(this.localArchitectureURI);
                 this.asp = new AtomicSimulatorPlugin();
                 this.asp.setPluginURI(architecture.getRootModelURI());
+                this.tracing(architecture.getRootModelURI());
                 this.asp.setSimulationArchitecture(architecture);
                 this.installPlugin(this.asp);
                 this.asp.createSimulator();
@@ -152,6 +170,7 @@ extends DimmerLamp {
                         (TestScenarioWithSimulation) this.testScenario,
                         new HashMap<>()
                 );
+                this.tracing("asp initialised");
                 break;
             case UNIT_TEST_WITH_HIL_SIMULATION:
             case INTEGRATION_TEST_WITH_HIL_SIMULATION:
@@ -185,26 +204,48 @@ extends DimmerLamp {
         RTArchitecture result = null;
         ExecutionMode mode = this.getExecutionMode();
 
-        switch (mode){
-            case UNIT_TEST_WITH_SIL_SIMULATION:
-                result = LocalSILSimulationArchitectures.
+//        switch (mode){
+//            case UNIT_TEST_WITH_SIL_SIMULATION:
+//                result = LocalSILSimulationArchitectures.
+//                        createDimmerLampSIL_Architecture4UnitTest(
+//                                architectureURI,
+//                                rootModelURI,
+//                                simulatedTimeUnit,
+//                                accelerationFactor
+//                        );
+//                break;
+//            case INTEGRATION_TEST_WITH_SIL_SIMULATION:
+//                result = LocalSILSimulationArchitectures.
+//                        createDimmerLampSIL_Architecture4IntegrationTest(
+//                                architectureURI,
+//                                rootModelURI,
+//                                simulatedTimeUnit,
+//                                accelerationFactor
+//                        );
+//                break;
+//            default:
+//                throw new BCMException("Unknown local simulation architecture : " + architectureURI);
+//        }
+
+        if (architectureURI.equals(DimmerLampCyPhy.UNIT_TEST_URI)) {
+            result = LocalSILSimulationArchitectures.
                         createDimmerLampSIL_Architecture4UnitTest(
                                 architectureURI,
                                 rootModelURI,
                                 simulatedTimeUnit,
                                 accelerationFactor
                         );
-            case INTEGRATION_TEST_WITH_HIL_SIMULATION:
-                result = LocalSILSimulationArchitectures.
+        } else if (architectureURI.equals(DimmerLampCyPhy.INTEGRATION_TEST_URI)) {
+            result = LocalSILSimulationArchitectures.
                         createDimmerLampSIL_Architecture4IntegrationTest(
                                 architectureURI,
                                 rootModelURI,
                                 simulatedTimeUnit,
                                 accelerationFactor
                         );
-                break;
-            default:
-                throw new BCMException("Unknown local simulation architecture : " + architectureURI);
+        } else {
+            throw new BCMException("Unknown local simulation architecture "
+                    + "URI: " + architectureURI);
         }
 
         return result;
@@ -219,7 +260,11 @@ extends DimmerLamp {
      */
     @Override
     public void switchOn() throws Exception {
+        this.tracing("super switchOn");
+
         super.switchOn();
+
+        this.tracing("trigger On");
 
         this.triggerExternalEvent(SwitchOnLampEvent::new);
     }
@@ -264,9 +309,18 @@ extends DimmerLamp {
     }
 
     @Override
+    public void shutdown() throws ComponentShutdownException {
+        try {
+            super.shutdown();
+        } catch (Exception e) {
+            throw new ComponentShutdownException(e) ;
+        }
+
+    }
+
+    @Override
     public void execute() throws Exception
     {
-        super.execute();
 
         this.tracing("Dimmer lamp executes.\n");
 
@@ -289,6 +343,11 @@ extends DimmerLamp {
                 Thread.sleep(200L);
                 this.logMessage(this.asp.getFinalReport().toString());
             case INTEGRATION_TEST_WITH_SIL_SIMULATION:
+                this.tracing("Starts INTEGRATION_TEST_WITH_SIL_SIMULATION");
+                this.initialiseClock4Simulation(
+                        ClocksServerWithSimulation.STANDARD_INBOUNDPORT_URI,
+                        this.clockURI);
+                this.tracing("clock initialised");
                 break;
             case UNIT_TEST_WITH_HIL_SIMULATION:
             case INTEGRATION_TEST_WITH_HIL_SIMULATION:
