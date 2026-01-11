@@ -17,7 +17,6 @@ implements DimmerLampUserCI {
 
     @Override
     public void switchOn() throws Exception {
-        System.out.println("Switchon Outbound");
         ((DimmerLampUserCI)this.getConnector()).switchOn();
     }
 

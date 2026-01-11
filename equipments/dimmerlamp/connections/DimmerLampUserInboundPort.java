@@ -29,19 +29,16 @@ implements DimmerLampUserCI {
     public void switchOn() throws Exception {
         this.getOwner().handleRequest(
                 owner -> {
-                    System.out.println("SwitchOn Inbound");
                     ((DimmerLamp)owner).switchOn();
                     return null;
                 }
         );
-        System.out.println("SwitchOn Inbound Ends");
     }
 
     @Override
     public void switchOff() throws Exception {
         this.getOwner().handleRequest(
             owner -> {
-                System.out.println("HEY");
                 ((DimmerLamp)owner).switchOff();
                 return null;
             }
@@ -53,7 +50,6 @@ implements DimmerLampUserCI {
         return this.getOwner().handleRequest(
 
                 owner -> {
-                    System.out.println("HEY");
                     return ((DimmerLamp)owner).isOn();
                 }
         );

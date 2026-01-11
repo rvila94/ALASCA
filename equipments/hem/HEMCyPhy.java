@@ -33,7 +33,6 @@ package equipments.hem;
 // knowledge of the CeCILL-C license and that you accept its terms.
 
 import connectorGenerator.ConnectorConfigurationParser;
-import equipments.CVMIntegrationTest;
 import equipments.dimmerlamp.DimmerLamp;
 import equipments.dimmerlamp.test.DimmerLampTester;
 import fr.sorbonne_u.components.AbstractComponent;
@@ -115,6 +114,8 @@ import java.util.concurrent.TimeUnit;
 @OfferedInterfaces(offered = {RegistrationCI.class})
 public class HEMCyPhy
 extends		AbstractComponent
+		implements RegistrationI
+
 {
 	// -------------------------------------------------------------------------
 	// Constants and variables
@@ -152,9 +153,9 @@ extends		AbstractComponent
 	// Execution/Simulation
 
 	/** one thread for the method execute.									*/
-	protected static int					NUMBER_OF_STANDARD_THREADS = 1;
+	protected static int					NUMBER_OF_STANDARD_THREADS = 2;
 	/** one thread to schedule this component test actions.					*/
-	protected static int					NUMBER_OF_SCHEDULABLE_THREADS = 1;
+	protected static int					NUMBER_OF_SCHEDULABLE_THREADS = 2;
 
 	protected ExecutionMode					executionMode;
 	protected TestScenario					testScenario;
@@ -453,13 +454,15 @@ extends		AbstractComponent
 			this.initialiseClock(
 					ClocksServerWithSimulation.STANDARD_INBOUNDPORT_URI,
 					this.testScenario.getClockURI());
-//			this.executeTestScenario(this.testScenario);
+			//this.executeTestScenario(this.testScenario);
 			break;
 		case UNIT_TEST_WITH_HIL_SIMULATION:
 		case INTEGRATION_TEST_WITH_HIL_SIMULATION:
 			throw new BCMException("HIL simulation not implemented yet!");
 		default:
 		}
+		super.execute();
+
 		this.traceMessage("HEM ends execution.\n");
 
 //		if (this.performTest) {
@@ -532,6 +535,16 @@ extends		AbstractComponent
 	}
 
 	// -------------------------------------------------------------------------
+	// Helper methods
+	// -------------------------------------------------------------------------
+
+	protected void tracing(String message) {
+		if (VERBOSE) {
+			this.logMessage(message + "\n");
+		}
+	}
+
+	// -------------------------------------------------------------------------
 	// Registration methods
 	// -------------------------------------------------------------------------
 
@@ -550,6 +563,7 @@ extends		AbstractComponent
 			String controlPortURI,
 			String xmlControlAdapter
 	) throws Exception {
+
 		assert uid != null && ! uid.isEmpty():
 				new PreconditionException("uid == null || uid.isEmpty()");
 		assert controlPortURI != null && !controlPortURI.isEmpty():
@@ -562,6 +576,7 @@ extends		AbstractComponent
 		boolean res;
 
 		try {
+
 			ConnectorConfigurationParser.ClassFromXml(uid, AdjustableCI.class, xmlControlAdapter);
 			AdjustableOutboundPort newOutboundPort = new AdjustableOutboundPort(this);
 			newOutboundPort.publishPort();
@@ -571,8 +586,6 @@ extends		AbstractComponent
 					uid
 			);
 			this.registrationTable.put(uid, newOutboundPort);
-
-
 
 			res = true;
 		} catch (Exception e) {

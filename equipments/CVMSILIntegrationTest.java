@@ -649,55 +649,30 @@ extends		AbstractCVM
 			START_INSTANT,
 			endInstant,
 			new TestStepI[] {
-					new TestStep(
-							CLOCK_URI,
-							DimmerLampTesterCyPhy.BASE_REFLECTION_INBOUND_PORT,
-							heaterSwitchOn,
-							owner -> {
-								try {
-									((DimmerLampTesterCyPhy)owner).switchOn();
-								} catch (Exception e) {
-									throw new BCMRuntimeException(e) ;
-								}
-							}
-					),
-					new TestStep(
-							CLOCK_URI,
-							DimmerLampTesterCyPhy.BASE_REFLECTION_INBOUND_PORT,
-							hemTestMeter,
-							owner -> {
-								try {
-									((DimmerLampTesterCyPhy)owner).switchOff();
-								} catch (Exception e) {
-									throw new BCMRuntimeException(e) ;
-								}
-							}
-					),
+				new TestStep(
+					CLOCK_URI,
+					HeaterTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
+					heaterSwitchOn,
+					owner ->  {
+						try {
+							((HeaterTesterCyPhy)owner).getHop().switchOn();
+						} catch (Exception e) {
+							throw new BCMRuntimeException(e) ;
+						}
+					}),
 
-//				new TestStep(
-//					CLOCK_URI,
-//					HeaterTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
-//					heaterSwitchOn,
-//					owner ->  {
-//						try {
-//							((HeaterTesterCyPhy)owner).getHop().switchOn();
-//						} catch (Exception e) {
-//							throw new BCMRuntimeException(e) ;
-//						}
-//					}),
-//
-//				// HEM test the meter
-//				new TestStep(
-//					CLOCK_URI,
-//					HEMCyPhy.REFLECTION_INBOUND_PORT_URI,
-//					hemTestMeter,
-//						owner ->  {
-//							try {
-//								((HEMCyPhy)owner).testMeter();
-//							} catch (Exception e) {
-//								throw new BCMRuntimeException(e) ;
-//							}
-//						}),
+				// HEM test the meter
+				new TestStep(
+					CLOCK_URI,
+					HEMCyPhy.REFLECTION_INBOUND_PORT_URI,
+					hemTestMeter,
+						owner ->  {
+							try {
+								((HEMCyPhy)owner).testMeter();
+							} catch (Exception e) {
+								throw new BCMRuntimeException(e) ;
+							}
+						}),
 //				// HEM test the batteries
 //				new ComponentTestStep(
 //					CLOCK_URI,
@@ -736,126 +711,125 @@ extends		AbstractCVM
 //					}),
 
 				// Hair dryer test steps
-//				new TestStep(
-//					CLOCK_URI,
-//					HairDryerTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
-//					hairDryerTurnOn,
-//					owner ->  {
-//						try {
-//							((HairDryerTesterCyPhy)owner).turnOnHairDryer();
-//						} catch (Exception e) {
-//							throw new BCMRuntimeException(e) ;
-//						}
-//					}),
-//				new TestStep(
-//					CLOCK_URI,
-//					HairDryerTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
-//					hairDryerSetHigh,
-//					owner ->  {
-//						try {
-//							((HairDryerTesterCyPhy)owner).setHighHairDryer();
-//						} catch (Exception e) {
-//							throw new BCMRuntimeException(e) ;
-//						}
-//					}),
-//				new TestStep(
-//					CLOCK_URI,
-//					HairDryerTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
-//					hairDryerSetLow,
-//					owner ->  {
-//						try {
-//							((HairDryerTesterCyPhy)owner).setLowHairDryer();
-//						} catch (Exception e) {
-//							throw new BCMRuntimeException(e) ;
-//						}
-//					}),
-//				new TestStep(
-//					CLOCK_URI,
-//					HairDryerTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
-//					hairDryerTurnOff,
-//					owner ->  {
-//						try {
-//							((HairDryerTesterCyPhy)owner).turnOffHairDryer();
-//						} catch (Exception e) {
-//							throw new BCMRuntimeException(e) ;
-//						}
-//					}),
-//
-//				// HEM test the heater
-//				new TestStep(
-//					CLOCK_URI,
-//					HEMCyPhy.REFLECTION_INBOUND_PORT_URI,
-//					hemTestHeater,
-//					owner ->  {
-//						try {
-//							((HEMCyPhy)owner).testHeater();
-//						} catch (Exception e) {
-//							throw new BCMRuntimeException(e) ;
-//						}
-//					}),
-//
-//					new TestStep(
-//							CLOCK_URI,
-//							DimmerLampTesterCyPhy.BASE_REFLECTION_INBOUND_PORT,
-//							DimmerLampSwitchOn,
-//							owner -> {
-//								try {
-//									((DimmerLampTesterCyPhy)owner).switchOn();
-//								} catch (Exception e) {
-//									throw new BCMRuntimeException(e) ;
-//								}
-//							}
-//					),
-//					new TestStep(
-//							CLOCK_URI,
-//							DimmerLampTesterCyPhy.BASE_REFLECTION_INBOUND_PORT,
-//							DimmerLampSwitchOff,
-//							owner -> {
-//								try {
-//									((DimmerLampTesterCyPhy)owner).switchOff();
-//								} catch (Exception e) {
-//									throw new BCMRuntimeException(e) ;
-//								}
-//							}
-//					),
-//
-//					new TestStep(
-//							CLOCK_URI,
-//							HEMCyPhy.REFLECTION_INBOUND_PORT_URI,
-//							hemTestLamp,
-//							owner ->  {
-//								try {
-//									((HEMCyPhy)owner).integrationTestDimmerLamp();
-//								} catch (Exception e) {
-//									throw new BCMRuntimeException(e) ;
-//								}
-//							}),
-//
-//				new TestStep(
-//					CLOCK_URI,
-//					HeaterTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
-//					heaterSwitchOff,
-//					owner ->  {
-//						try {
-//							((HeaterTesterCyPhy)owner).getHop().switchOff();
-//						} catch (Exception e) {
-//							throw new BCMRuntimeException(e) ;
-//						}
-//					}),
-//
-//
-//
-//					new TestStep(
-//							CLOCK_URI,
-//							HEMCyPhy.REFLECTION_INBOUND_PORT_URI,
-//							hemTestHeater,
-//							owner ->  {
-//								try {
-//									((HEMCyPhy)owner).testHeater();
-//								} catch (Exception e) {
-//									throw new BCMRuntimeException(e) ;
-//								}
-//							})
+				new TestStep(
+					CLOCK_URI,
+					HairDryerTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
+					hairDryerTurnOn,
+					owner ->  {
+						try {
+							((HairDryerTesterCyPhy)owner).turnOnHairDryer();
+						} catch (Exception e) {
+							throw new BCMRuntimeException(e) ;
+						}
+					}),
+				new TestStep(
+					CLOCK_URI,
+					HairDryerTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
+					hairDryerSetHigh,
+					owner ->  {
+						try {
+							((HairDryerTesterCyPhy)owner).setHighHairDryer();
+						} catch (Exception e) {
+							throw new BCMRuntimeException(e) ;
+						}
+					}),
+				new TestStep(
+					CLOCK_URI,
+					HairDryerTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
+					hairDryerSetLow,
+					owner ->  {
+						try {
+							((HairDryerTesterCyPhy)owner).setLowHairDryer();
+						} catch (Exception e) {
+							throw new BCMRuntimeException(e) ;
+						}
+					}),
+				new TestStep(
+					CLOCK_URI,
+					HairDryerTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
+					hairDryerTurnOff,
+					owner ->  {
+						try {
+							((HairDryerTesterCyPhy)owner).turnOffHairDryer();
+						} catch (Exception e) {
+							throw new BCMRuntimeException(e) ;
+						}
+					}),
+
+				// HEM test the heater
+				new TestStep(
+					CLOCK_URI,
+					HEMCyPhy.REFLECTION_INBOUND_PORT_URI,
+					hemTestHeater,
+					owner ->  {
+						try {
+							((HEMCyPhy)owner).testHeater();
+						} catch (Exception e) {
+							throw new BCMRuntimeException(e) ;
+						}
+					}),
+
+					new TestStep(
+							CLOCK_URI,
+							DimmerLampTesterCyPhy.BASE_REFLECTION_INBOUND_PORT,
+							DimmerLampSwitchOn,
+							owner -> {
+								try {
+									((DimmerLampTesterCyPhy)owner).switchOn();
+								} catch (Exception e) {
+									throw new BCMRuntimeException(e) ;
+								}
+							}
+					),
+					new TestStep(
+							CLOCK_URI,
+							DimmerLampTesterCyPhy.BASE_REFLECTION_INBOUND_PORT,
+							DimmerLampSwitchOff,
+							owner -> {
+								try {
+									((DimmerLampTesterCyPhy)owner).switchOff();
+								} catch (Exception e) {
+									throw new BCMRuntimeException(e) ;
+								}
+							}
+					),
+
+					new TestStep(
+							CLOCK_URI,
+							HEMCyPhy.REFLECTION_INBOUND_PORT_URI,
+							hemTestLamp,
+							owner ->  {
+								try {
+									((HEMCyPhy)owner).integrationTestDimmerLamp();
+								} catch (Exception e) {
+									throw new BCMRuntimeException(e) ;
+								}
+							}),
+
+				new TestStep(
+					CLOCK_URI,
+					HeaterTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
+					heaterSwitchOff,
+					owner ->  {
+						try {
+							((HeaterTesterCyPhy)owner).getHop().switchOff();
+						} catch (Exception e) {
+							throw new BCMRuntimeException(e) ;
+						}
+					}),
+
+
+					new TestStep(
+							CLOCK_URI,
+							HEMCyPhy.REFLECTION_INBOUND_PORT_URI,
+							hemTestHeater,
+							owner ->  {
+								try {
+									((HEMCyPhy)owner).testHeater();
+								} catch (Exception e) {
+									throw new BCMRuntimeException(e) ;
+								}
+							})
 
 
 			});
@@ -914,34 +888,10 @@ extends		AbstractCVM
 			new Time(0.0, TimeUnit.HOURS),
 			(ts, simParams) -> { },
 			new TestStepI[] {
-					new TestStep(
-							CLOCK_URI,
-							DimmerLampTesterCyPhy.BASE_REFLECTION_INBOUND_PORT,
-							heaterSwitchOn,
-							owner -> {
-								try {
-									((DimmerLampTesterCyPhy)owner).switchOn();
-								} catch (Exception e) {
-									throw new BCMRuntimeException(e) ;
-								}
-							}
-					),
-					new TestStep(
-							CLOCK_URI,
-							DimmerLampTesterCyPhy.BASE_REFLECTION_INBOUND_PORT,
-							hairDryerTurnOn1,
-							owner -> {
-								try {
-									((DimmerLampTesterCyPhy)owner).switchOff();
-								} catch (Exception e) {
-									throw new BCMRuntimeException(e) ;
-								}
-							}
-					),
 				new TestStep(
 					CLOCK_URI,
 					HeaterTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
-					hairDryerSetHigh1,
+					heaterSwitchOn,
 					owner ->  {
 						try {
 							((HeaterTesterCyPhy)owner).getHop().switchOn();
@@ -953,7 +903,7 @@ extends		AbstractCVM
 				new TestStep(
 					CLOCK_URI,
 					HairDryerTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
-					hairDryerSetLow1,
+					hairDryerTurnOn1,
 					owner ->  {
 						try {
 							((HairDryerTesterCyPhy)owner).turnOnHairDryer();
@@ -961,143 +911,143 @@ extends		AbstractCVM
 							throw new BCMRuntimeException(e) ;
 						}
 					}),
-//				new TestStep(
-//					CLOCK_URI,
-//					HairDryerTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
-//					hairDryerSetHigh1,
-//					owner ->  {
-//						try {
-//							((HairDryerTesterCyPhy)owner).setHighHairDryer();
-//						} catch (Exception e) {
-//							throw new BCMRuntimeException(e) ;
-//						}
-//					}),
-//				new TestStep(
-//					CLOCK_URI,
-//					HairDryerTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
-//					hairDryerSetLow1,
-//					owner ->  {
-//						try {
-//							((HairDryerTesterCyPhy)owner).setLowHairDryer();
-//						} catch (Exception e) {
-//							throw new BCMRuntimeException(e) ;
-//						}
-//					}),
-//				new TestStep(
-//					CLOCK_URI,
-//					HairDryerTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
-//					hairDryerTurnOff1,
-//					owner ->  {
-//						try {
-//							((HairDryerTesterCyPhy)owner).turnOffHairDryer();
-//						} catch (Exception e) {
-//							throw new BCMRuntimeException(e) ;
-//						}
-//					}),
-//				new TestStep(
-//					CLOCK_URI,
-//					HairDryerTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
-//					hairDryerTurnOn2,
-//					owner ->  {
-//						try {
-//							((HairDryerTesterCyPhy)owner).turnOnHairDryer();
-//						} catch (Exception e) {
-//							throw new BCMRuntimeException(e) ;
-//						}
-//					}),
-//				new TestStep(
-//					CLOCK_URI,
-//					HairDryerTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
-//					hairDryerSetHigh2,
-//					owner ->  {
-//						try {
-//							((HairDryerTesterCyPhy)owner).setHighHairDryer();
-//						} catch (Exception e) {
-//							throw new BCMRuntimeException(e) ;
-//						}
-//					}),
-//				new TestStep(
-//					CLOCK_URI,
-//					HairDryerTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
-//					hairDryerSetLow2,
-//					owner ->  {
-//						try {
-//							((HairDryerTesterCyPhy)owner).setLowHairDryer();
-//						} catch (Exception e) {
-//							throw new BCMRuntimeException(e) ;
-//						}
-//					}),
-//				new TestStep(
-//					CLOCK_URI,
-//					HairDryerTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
-//					hairDryerTurnOff2,
-//					owner ->  {
-//						try {
-//							((HairDryerTesterCyPhy)owner).turnOffHairDryer();
-//						} catch (Exception e) {
-//							throw new BCMRuntimeException(e) ;
-//						}
-//					}),
-//
-//				new TestStep(
-//						CLOCK_URI,
-//						DimmerLampTesterCyPhy.BASE_REFLECTION_INBOUND_PORT,
-//						DimmerLampSwitchOn1,
-//						owner -> {
-//							try {
-//								((DimmerLampTesterCyPhy)owner).switchOn();
-//							} catch (Exception e) {
-//								throw new BCMRuntimeException(e) ;
-//							}
-//						}
-//				),
-//					new TestStep(
-//							CLOCK_URI,
-//							DimmerLampTesterCyPhy.BASE_REFLECTION_INBOUND_PORT,
-//							DimmerLampSwitchOff1,
-//							owner -> {
-//								try {
-//									((DimmerLampTesterCyPhy)owner).switchOff();
-//								} catch (Exception e) {
-//									throw new BCMRuntimeException(e) ;
-//								}
-//							}
-//					),
-//					new TestStep(
-//							CLOCK_URI,
-//							DimmerLampTesterCyPhy.BASE_REFLECTION_INBOUND_PORT,
-//							DimmerLampSwitchOn2,
-//							owner -> {
-//								try {
-//									((DimmerLampTesterCyPhy)owner).switchOn();
-//								} catch (Exception e) {
-//									throw new BCMRuntimeException(e) ;
-//								}
-//							}
-//					),
-//					new TestStep(
-//							CLOCK_URI,
-//							DimmerLampTesterCyPhy.BASE_REFLECTION_INBOUND_PORT,
-//							DimmerLampSwitchOff2,
-//							owner -> {
-//								try {
-//									((DimmerLampTesterCyPhy)owner).switchOff();
-//								} catch (Exception e) {
-//									throw new BCMRuntimeException(e) ;
-//								}
-//							}
-//					),
-//					new TestStep(
-//							CLOCK_URI,
-//							HeaterTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
-//							heaterSwitchOff,
-//							owner ->  {
-//								try {
-//									((HeaterTesterCyPhy)owner).getHop().switchOff();
-//								} catch (Exception e) {
-//									throw new BCMRuntimeException(e) ;
-//								}
-//							}),
+				new TestStep(
+					CLOCK_URI,
+					HairDryerTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
+					hairDryerSetHigh1,
+					owner ->  {
+						try {
+							((HairDryerTesterCyPhy)owner).setHighHairDryer();
+						} catch (Exception e) {
+							throw new BCMRuntimeException(e) ;
+						}
+					}),
+				new TestStep(
+					CLOCK_URI,
+					HairDryerTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
+					hairDryerSetLow1,
+					owner ->  {
+						try {
+							((HairDryerTesterCyPhy)owner).setLowHairDryer();
+						} catch (Exception e) {
+							throw new BCMRuntimeException(e) ;
+						}
+					}),
+				new TestStep(
+					CLOCK_URI,
+					HairDryerTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
+					hairDryerTurnOff1,
+					owner ->  {
+						try {
+							((HairDryerTesterCyPhy)owner).turnOffHairDryer();
+						} catch (Exception e) {
+							throw new BCMRuntimeException(e) ;
+						}
+					}),
+				new TestStep(
+					CLOCK_URI,
+					HairDryerTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
+					hairDryerTurnOn2,
+					owner ->  {
+						try {
+							((HairDryerTesterCyPhy)owner).turnOnHairDryer();
+						} catch (Exception e) {
+							throw new BCMRuntimeException(e) ;
+						}
+					}),
+				new TestStep(
+					CLOCK_URI,
+					HairDryerTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
+					hairDryerSetHigh2,
+					owner ->  {
+						try {
+							((HairDryerTesterCyPhy)owner).setHighHairDryer();
+						} catch (Exception e) {
+							throw new BCMRuntimeException(e) ;
+						}
+					}),
+				new TestStep(
+					CLOCK_URI,
+					HairDryerTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
+					hairDryerSetLow2,
+					owner ->  {
+						try {
+							((HairDryerTesterCyPhy)owner).setLowHairDryer();
+						} catch (Exception e) {
+							throw new BCMRuntimeException(e) ;
+						}
+					}),
+				new TestStep(
+					CLOCK_URI,
+					HairDryerTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
+					hairDryerTurnOff2,
+					owner ->  {
+						try {
+							((HairDryerTesterCyPhy)owner).turnOffHairDryer();
+						} catch (Exception e) {
+							throw new BCMRuntimeException(e) ;
+						}
+					}),
+
+				new TestStep(
+						CLOCK_URI,
+						DimmerLampTesterCyPhy.BASE_REFLECTION_INBOUND_PORT,
+						DimmerLampSwitchOn1,
+						owner -> {
+							try {
+								((DimmerLampTesterCyPhy)owner).switchOn();
+							} catch (Exception e) {
+								throw new BCMRuntimeException(e) ;
+							}
+						}
+				),
+					new TestStep(
+							CLOCK_URI,
+							DimmerLampTesterCyPhy.BASE_REFLECTION_INBOUND_PORT,
+							DimmerLampSwitchOff1,
+							owner -> {
+								try {
+									((DimmerLampTesterCyPhy)owner).switchOff();
+								} catch (Exception e) {
+									throw new BCMRuntimeException(e) ;
+								}
+							}
+					),
+					new TestStep(
+							CLOCK_URI,
+							DimmerLampTesterCyPhy.BASE_REFLECTION_INBOUND_PORT,
+							DimmerLampSwitchOn2,
+							owner -> {
+								try {
+									((DimmerLampTesterCyPhy)owner).switchOn();
+								} catch (Exception e) {
+									throw new BCMRuntimeException(e) ;
+								}
+							}
+					),
+					new TestStep(
+							CLOCK_URI,
+							DimmerLampTesterCyPhy.BASE_REFLECTION_INBOUND_PORT,
+							DimmerLampSwitchOff2,
+							owner -> {
+								try {
+									((DimmerLampTesterCyPhy)owner).switchOff();
+								} catch (Exception e) {
+									throw new BCMRuntimeException(e) ;
+								}
+							}
+					),
+					new TestStep(
+							CLOCK_URI,
+							HeaterTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
+							heaterSwitchOff,
+							owner ->  {
+								try {
+									((HeaterTesterCyPhy)owner).getHop().switchOff();
+								} catch (Exception e) {
+									throw new BCMRuntimeException(e) ;
+								}
+							}),
 			});
 	}
 }

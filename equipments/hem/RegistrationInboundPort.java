@@ -40,14 +40,14 @@ implements RegistrationCI {
     @Override
     public boolean registered(String uid) throws Exception {
         return this.getOwner().handleRequest(
-                owner -> ((HEM)owner).registered(uid)
+                owner -> ((RegistrationI)owner).registered(uid)
         );
     }
 
     @Override
     public boolean register(String uid, String controlPortURI, String xmlControlAdapter) throws Exception {
         return this.getOwner().handleRequest(
-                owner -> ((HEM)owner).register(uid, controlPortURI, xmlControlAdapter)
+                owner -> ((RegistrationI)owner).register(uid, controlPortURI, xmlControlAdapter)
         );
     }
 
@@ -55,7 +55,7 @@ implements RegistrationCI {
     public void unregister(String uid) throws Exception {
         this.getOwner().handleRequest(
           owner -> {
-              ((HEM)owner).unregister(uid);
+              ((RegistrationI)owner).unregister(uid);
               return null;
           }
         );

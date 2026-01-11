@@ -197,12 +197,12 @@ implements DimmerLampUserI, DimmerLampExternalI {
         this.externalInbound = new DimmerLampExternalJava4InboundPort(externalInboundPortURI, this);
         this.externalInbound.publishPort();
 
-//        this.registrationPort = new RegistrationOutboundPort(this);
-//        this.registrationPort.publishPort();
+        this.registrationPort = new RegistrationOutboundPort(this);
+        this.registrationPort.publishPort();
         this.registrationHEMURI = registrationHEMURI;
         this.registrationHEMConnectorClassName = registrationHemCcName;
 
-        this.isUnitTest = true;
+        this.isUnitTest = false;
 
         if (DimmerLamp.VERBOSE) {
             this.tracer.get().setTitle("DimmerLamp Component");
@@ -237,12 +237,12 @@ implements DimmerLampUserI, DimmerLampExternalI {
         this.externalInbound = new DimmerLampExternalJava4InboundPort(externalInboundPortURI, this);
         this.externalInbound.publishPort();
 
-//        this.registrationPort = new RegistrationOutboundPort(this);
-//        this.registrationPort.publishPort();
+        this.registrationPort = new RegistrationOutboundPort(this);
+        this.registrationPort.publishPort();
         this.registrationHEMURI = registrationHEMURI;
         this.registrationHEMConnectorClassName = registrationHemCcName;
 
-        this.isUnitTest = true;
+        this.isUnitTest = false;
 
         if (DimmerLamp.VERBOSE) {
             this.tracer.get().setTitle("DimmerLamp Component");
@@ -315,10 +315,10 @@ implements DimmerLampUserI, DimmerLampExternalI {
         this.externalInbound = new DimmerLampExternalJava4InboundPort(BASE_EXTERNAL_INBOUND_PORT_URI, this);
         this.externalInbound.publishPort();
 
-        this.isUnitTest = true;
+        this.isUnitTest = false;
 
-//        this.registrationPort = new RegistrationOutboundPort(this);
-//        this.registrationPort.publishPort();
+        this.registrationPort = new RegistrationOutboundPort(this);
+        this.registrationPort.publishPort();
         this.registrationHEMURI = registrationHEMURI;
         this.registrationHEMConnectorClassName = registrationHemCcName;
 
@@ -391,7 +391,6 @@ implements DimmerLampUserI, DimmerLampExternalI {
 
         this.state = LampState.ON;
 
-        this.isUnitTest = true;
         if (! this.isUnitTest) {
 
             boolean registered = this.registrationPort.register(
@@ -404,8 +403,6 @@ implements DimmerLampUserI, DimmerLampExternalI {
             }
 
         }
-
-        this.logMessage("END SWITCHON");
 
         assert this.state.isOn(): new PostconditionException("Lamp is off");
 

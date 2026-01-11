@@ -121,6 +121,7 @@ import java.util.concurrent.TimeUnit;
 @OfferedInterfaces(offered = {RegistrationCI.class})
 public class			HEM
 		extends		AbstractComponent
+	implements RegistrationI
 {
 	// -------------------------------------------------------------------------
 	// Constants and variables

@@ -160,7 +160,7 @@ extends DimmerLamp {
                 RTArchitecture architecture =
                         (RTArchitecture) this.localSimulationArchitectures.
                                 get(this.localArchitectureURI);
-                this.asp = new AtomicSimulatorPlugin();
+                this.asp = new RTAtomicSimulatorPlugin();
                 this.asp.setPluginURI(architecture.getRootModelURI());
                 this.tracing(architecture.getRootModelURI());
                 this.asp.setSimulationArchitecture(architecture);
@@ -348,6 +348,16 @@ extends DimmerLamp {
                         ClocksServerWithSimulation.STANDARD_INBOUNDPORT_URI,
                         this.clockURI);
                 this.tracing("clock initialised");
+
+                this.asp.startRTSimulation(
+                        TimeUnit.NANOSECONDS.toMillis(
+                                this.getClock4Simulation().getStartEpochNanos()),
+                        this.getClock4Simulation().getSimulatedStartTime().getSimulatedTime(),
+                        this.getClock4Simulation().getSimulatedDuration().getSimulatedDuration());
+
+                this.getClock4Simulation().waitUntilStart();
+                Thread.sleep(200L);
+
                 break;
             case UNIT_TEST_WITH_HIL_SIMULATION:
             case INTEGRATION_TEST_WITH_HIL_SIMULATION:

@@ -203,13 +203,10 @@ implements DimmerLampSimulationOperationI {
      */
     @Override
     public Duration timeAdvance() {
-        this.logging("STATE");
-
 
         if (this.previousEvent != null) {
             return Duration.zero(this.getSimulatedTimeUnit());
         } else {
-            System.out.println("ADVANCE");
             return Duration.INFINITY;
         }
     }
@@ -231,9 +228,6 @@ implements DimmerLampSimulationOperationI {
     @Override
     public void userDefinedExternalTransition(Duration elapsedTime)
     {
-        this.logging("STATE");
-        System.out.println("EXTERNAL");
-
         super.userDefinedExternalTransition(elapsedTime);
 
         // get the vector of current external events
