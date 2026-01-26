@@ -49,6 +49,7 @@ implements HeatPumpExternalControlCI {
 
     @Override
     public SignalData<Double> getCurrentTemperature() throws Exception {
+        System.out.println("CURRENT OUTBOUND");
         return ((HeatPumpExternalControlCI)this.getConnector()).getCurrentTemperature();
     }
 

@@ -542,7 +542,7 @@ extends AbstractCyPhyComponent {
     @Override
     public synchronized void	execute() throws Exception
     {
-        this.traceMessage("Heater Unit Tester begins execution.\n");
+        this.traceMessage("dimmer lamp Unit Tester begins execution.\n");
 
         switch (this.getExecutionMode()) {
             case STANDARD:

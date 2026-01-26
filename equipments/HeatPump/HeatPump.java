@@ -2,6 +2,7 @@ package equipments.HeatPump;
 
 import equipments.HeatPump.compressor.CompressorOutboundPort;
 import equipments.HeatPump.powerRepartitionPolicy.PowerRepartitionPolicyI;
+import equipments.HeatPump.simulations.events.*;
 import equipments.HeatPump.temperatureSensor.TemperatureSensorOutboundPort;
 import equipments.HeatPump.connections.HeatPumpExternalJava4InboundPort;
 import equipments.HeatPump.connections.HeatPumpInternalControlInboundPort;
@@ -9,23 +10,34 @@ import equipments.HeatPump.connections.HeatPumpUserInboundPort;
 import equipments.HeatPump.interfaces.*;
 import equipments.HeatPump.temperatureSensor.TemperatureSensorCI;
 import equipments.HeatPump.compressor.CompressorCI;
+import equipments.dimmerlamp.simulations.events.SetPowerLampEvent;
+import equipments.dimmerlamp.simulations.events.SwitchOffLampEvent;
+import equipments.dimmerlamp.simulations.events.SwitchOnLampEvent;
 import equipments.hem.RegistrationOutboundPort;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.alasca.physical_data.MeasureI;
 import fr.sorbonne_u.alasca.physical_data.MeasurementUnit;
 import fr.sorbonne_u.alasca.physical_data.SignalData;
-import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.annotations.OfferedInterfaces;
 import fr.sorbonne_u.components.annotations.RequiredInterfaces;
 import fr.sorbonne_u.components.cyphy.AbstractCyPhyComponent;
+import fr.sorbonne_u.components.cyphy.ExecutionMode;
+import fr.sorbonne_u.components.cyphy.annotations.LocalArchitecture;
+import fr.sorbonne_u.components.cyphy.annotations.SIL_Simulation_Architectures;
 import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.components.hem2025.bases.RegistrationCI;
+import fr.sorbonne_u.components.utils.tests.TestScenario;
+import fr.sorbonne_u.devs_simulation.models.annotations.ModelExternalEvents;
 import fr.sorbonne_u.exceptions.AssertionChecking;
 import fr.sorbonne_u.exceptions.PostconditionException;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 /**
  * The class <code>HeatPump.equipments.HeatPump</code>.
@@ -46,6 +58,30 @@ import java.io.File;
  * @author    <a href="mailto:Rodrigo.Vila@etu.sorbonne-universite.fr">Rodrigo Vila</a>
  * @author    <a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
  */
+@SIL_Simulation_Architectures({
+        @LocalArchitecture(
+                uri = "HEAT_PUMP_UNIT_TEST_URI",
+                rootModelURI = "HEAT_PUMP_COUPLED_MODEL",
+                simulatedTimeUnit = TimeUnit.HOURS,
+                externalEvents = @ModelExternalEvents()
+        ),
+        @LocalArchitecture(
+                uri = "HEAT_PUMP_INTEGRATION_TEST_URI",
+                rootModelURI = "HEAT_PUMP_COUPLED_MODEL",
+                simulatedTimeUnit = TimeUnit.HOURS,
+                externalEvents = @ModelExternalEvents(
+                        exported = {
+                                SwitchOnEvent.class,
+                                SwitchOffEvent.class,
+                                StartHeatingEvent.class,
+                                StartCoolingEvent.class,
+                                StopHeatingEvent.class,
+                                StopCoolingEvent.class,
+                                SetPowerEvent.class
+                        }
+                )
+        )}
+)
 @RequiredInterfaces(required = {
         TemperatureSensorCI.class,
         CompressorCI.class,
@@ -54,7 +90,7 @@ import java.io.File;
 @OfferedInterfaces(offered = {
         HeatPumpUserCI.class,
         HeatPumpInternalControlCI.class,
-        HeatPumpExternalJava4InboundPort.class})
+        HeatPumpExternalControlCI.class})
 public class HeatPump
 extends AbstractCyPhyComponent
 implements HeatPumpUserI,
@@ -122,6 +158,68 @@ implements HeatPumpUserI,
     protected String registrationHEMConnectorClassName;
 
     protected boolean isUnitTest;
+
+    protected HeatPump(String compressorURI,
+                       String bufferTankURI,
+                       String compressorCcName,
+                       String bufferCcName,
+                       String userInboundURI,
+                       String internalInboundURI,
+                       String externalInboundURI,
+                       String registrationHEMURI,
+                       String registrationHEMCcName,
+                         ExecutionMode mode,
+                         TestScenario testScenario,
+                         double accelerationFactor) throws Exception {
+        super(REFLECTION_INBOUND_URI, NUMBER_THREADS, NUMBER_SCHEDULABLE_THREADS, mode,
+                AssertionChecking.assertTrueAndReturnOrThrow(
+                        testScenario != null,
+                        testScenario.getClockURI(),
+                        () -> new PreconditionException("testScenario != null")),
+                testScenario,
+                ((Supplier<Set<String>>) () ->
+                {
+                    HashSet<String> hs = new HashSet<>();
+                    hs.add(HeatPumpCyPhy.UNIT_TEST_URI);
+                    hs.add(HeatPumpCyPhy.INTEGRATION_TEST_URI);
+                    return hs;
+                }).get(), accelerationFactor);
+
+        this.pumpState = State.Off;
+        this.currentPower = new SignalData<>(STANDARD_POWER_LEVEL);
+
+        this.compressorBoundPort = new CompressorOutboundPort(this);
+        this.compressorBoundPort.publishPort();
+        this.compressorInboundURI = compressorURI;
+
+        this.temperatureOutboundPort = new TemperatureSensorOutboundPort(this);
+        this.temperatureOutboundPort.publishPort();
+        this.bufferTankInboundURI = bufferTankURI;
+
+        this.compressorConnectorClassName = compressorCcName;
+        this.bufferConnectorClassName = bufferCcName;
+
+        this.userInboundPort = new HeatPumpUserInboundPort(userInboundURI, this);
+        this.userInboundPort.publishPort();
+
+        this.internalInboundPort = new HeatPumpInternalControlInboundPort(internalInboundURI, this);
+        this.internalInboundPort.publishPort();
+
+        this.externalInboundPort = new HeatPumpExternalJava4InboundPort(externalInboundURI, this);
+        this.externalInboundPort.publishPort();
+
+        this.registrationOutboundPort = new RegistrationOutboundPort(this);
+        this.registrationOutboundPort.publishPort();
+        this.registrationHEMURI = registrationHEMURI;
+        this.registrationHEMConnectorClassName = registrationHEMCcName;
+
+        if (HeatPump.VERBOSE) {
+            this.tracer.get().setTitle("HeatPump component");
+            this.tracer.get().setRelativePosition(X_RELATIVE_POSITION,
+                    Y_RELATIVE_POSITION);
+            this.toggleTracing();
+        }
+    }
 
     protected HeatPump(
             String compressorURI,

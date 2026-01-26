@@ -9,6 +9,7 @@ import fr.sorbonne_u.alasca.physical_data.SignalData;
 import fr.sorbonne_u.components.ComponentI;
 import fr.sorbonne_u.components.ports.AbstractInboundPort;
 import fr.sorbonne_u.exceptions.PreconditionException;
+import org.apache.commons.math3.analysis.function.Sin;
 
 /**
  * The class <code>connections.HeatPump.equipments.HeatPumpExternalControlInboundPort</code>.
@@ -62,9 +63,12 @@ implements HeatPumpExternalControlCI {
 
     @Override
     public SignalData<Double> getCurrentTemperature() throws Exception {
-        return         this.getOwner().handleRequest(
-                o -> ((HeatPump)o).getCurrentTemperature()
+        System.out.println("INBOUND");
+        SignalData<Double> result = this.getOwner().handleRequest(
+                o -> ((HeatPumpExternalControlI)o).getCurrentTemperature()
         );
+        System.out.println("OUT");
+        return result;
     }
 
     @Override

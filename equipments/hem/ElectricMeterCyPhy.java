@@ -32,9 +32,7 @@ package equipments.hem;
 // The fact that you are presently reading this means that you have had
 // knowledge of the CeCILL-C license and that you accept its terms.
 
-import equipments.HeatPump.simulations.events.SetPowerEvent;
-import equipments.HeatPump.simulations.events.SwitchOffEvent;
-import equipments.HeatPump.simulations.events.SwitchOnEvent;
+import equipments.HeatPump.simulations.events.*;
 import equipments.dimmerlamp.simulations.events.SetPowerLampEvent;
 import equipments.dimmerlamp.simulations.events.SwitchOffLampEvent;
 import equipments.dimmerlamp.simulations.events.SwitchOnLampEvent;
@@ -65,7 +63,6 @@ import fr.sorbonne_u.components.hem2025e2.equipments.heater.mil.events.Heat;
 import fr.sorbonne_u.components.hem2025e2.equipments.heater.mil.events.SwitchOffHeater;
 import fr.sorbonne_u.components.hem2025e2.equipments.heater.mil.events.SwitchOnHeater;
 import fr.sorbonne_u.components.hem2025e3.equipments.heater.sil.events.SIL_SetPowerHeater;
-import fr.sorbonne_u.components.hem2025e3.equipments.meter.sil.LocalSimulationArchitectures;
 import fr.sorbonne_u.components.utils.tests.TestScenario;
 import fr.sorbonne_u.devs_simulation.architectures.RTArchitecture;
 import fr.sorbonne_u.devs_simulation.models.annotations.ModelExternalEvents;
@@ -210,7 +207,14 @@ import java.util.function.Supplier;
 						DoNotHeat.class,
 						SwitchOnLampEvent.class,
 						SwitchOffLampEvent.class,
-						SetPowerLampEvent.class}
+						SetPowerLampEvent.class,
+						SwitchOnEvent.class,
+						SwitchOffEvent.class,
+						StartHeatingEvent.class,
+						StartCoolingEvent.class,
+						StopHeatingEvent.class,
+						StopCoolingEvent.class,
+						SetPowerEvent.class}
 		)
 	)
 })

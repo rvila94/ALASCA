@@ -63,12 +63,12 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
     protected HeatPumpActuatorOutboundPort actuator_port;
     protected HeatPumpExternalControlOutboundPort external_port;
 
+    protected HeatPumpControllerInboundPort controller_port;
+
     protected String heatPumpExternalURI;
     protected String heatPumpActuatorURI;
     protected String externalCCName;
     protected String actuatorCCName;
-
-    protected HeatPumpControllerInboundPort controller_port;
 
     protected long controlPeriod;
 
@@ -85,13 +85,14 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
             double hysteresis,
             double heating_threshold,
             double cooling_threshold,
-            double controlPeriod) throws Exception {
+            double controlPeriod,
+            double accelerationFactor) throws Exception {
         this(REFLECTION_INBOUND_URI,
                 heatPumpExternalURI,
                 heatPumpActuatorURI,
                 externalCCName,
                 actuatorCCName,
-                heatPumpURI, hysteresis, heating_threshold, cooling_threshold, controlPeriod);
+                heatPumpURI, hysteresis, heating_threshold, cooling_threshold, controlPeriod, accelerationFactor);
     }
 
     /**
@@ -120,12 +121,13 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
             double hysteresis,
             double heating_threshold,
             double cooling_threshold,
-            double controlPeriod) throws Exception {
+            double controlPeriod,
+            double accelerationFactor) throws Exception {
         super(reflectionInboundPortURI, NB_THREADS, NB_SCHEDULABLE_THREADS);
 
         this.current_state = HeatPumpUserI.State.Off;
 
-        this.controlPeriod = (long) (controlPeriod * TimeUnit.SECONDS.toNanos(1));
+        this.controlPeriod = (long) ((controlPeriod * TimeUnit.SECONDS.toNanos(1)) / accelerationFactor);
         this.time_unit = TimeUnit.NANOSECONDS;
 
         this.hysteresis = hysteresis;
@@ -187,7 +189,7 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
         assert this.current_state != HeatPumpUserI.State.Off :
                 new PreconditionException("this.current_state == State.Off");
 
-        synchronized ( this ) {
+        synchronized ( this.current_state ) {
             this.current_state = HeatPumpUserI.State.Off;
         }
 
@@ -205,7 +207,9 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
 
     protected ActionState recommendedAction() throws Exception {
 
+        System.out.println("Temp : " );
         Double current_temperature = this.getCurrentTemperature();
+        System.out.println("Temp : " + current_temperature);
 
         ActionState result = ActionState.Idle;
 
@@ -248,6 +252,7 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
             default:
         }
 
+        System.out.println("END UPDATE");
     }
 
     @Override
@@ -298,11 +303,18 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
 
     public void controlLoop() {
 
-        synchronized ( this ) {
+        System.out.println("CONTROLE");
+
+        synchronized ( this.current_state ) {
+
+            System.out.println("PLEASE");
 
             if (this.current_state != HeatPumpUserI.State.Off) {
 
+                System.out.println("UPDATE");
+
                 try {
+                    System.out.println("UPDATE STATE");
                     this.updateState();
                 } catch (Exception e) {
                     StringBuilder builder = new StringBuilder();
@@ -311,12 +323,15 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
                     this.tracing(builder.toString());
                 }
 
+                System.out.println("PLEASE");
+
                 this.scheduleTask(
                         owner -> ((HeatPumpController) owner).controlLoop(),
                         this.controlPeriod,
                         time_unit
                 );
 
+                System.out.println("PLEASE");
             }
         }
 

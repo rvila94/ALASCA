@@ -129,7 +129,11 @@ import java.util.concurrent.TimeUnit;
 	{@ModelImportedVariable(name = "currentHeaterIntensity",
 							type = Double.class),
 	 @ModelImportedVariable(name = "currentHairDryerIntensity",
-	 						type = Double.class)
+	 						type = Double.class),
+			@ModelImportedVariable(name = "currentDimmerLampIntensity",
+					type = Double.class),
+			@ModelImportedVariable(name = "currentHeatPumpIntensity",
+					type = Double.class)
 //	 @ModelImportedVariable(name = "solarPanelOutputPower",
 //	 						type = Double.class),
 //	 @ModelImportedVariable(name = "batteriesInputPower",
@@ -217,6 +221,12 @@ extends		AtomicHIOA
 	/** current intensity of the hair dryer in amperes.						*/
 	@ImportedVariable(type = Double.class)
 	protected Value<Double>			currentHairDryerIntensity;
+	/** current intensity of the dimmer lamp in amperes.						*/
+	@ImportedVariable(type = Double.class)
+	protected Value<Double> 		currentDimmerLampIntensity;
+	/** current intensity of the heat pump in amperes.						*/
+	@ImportedVariable(type = Double.class)
+	protected Value<Double> 		currentHeatPumpIntensity;
 
 //	/** current total power production of the house in the power unit
 //	 *  defined by the electric meter.										*/
@@ -480,6 +490,8 @@ extends		AtomicHIOA
 		return this.currentHairDryerIntensity.getValue()
 					+ this.currentHeaterIntensity.getValue()
 //					+ this.batteriesInputPower.getValue()
+					+ this.currentDimmerLampIntensity.getValue()
+					+ this.currentHeatPumpIntensity.getValue()
 					;
 	}
 
@@ -563,7 +575,9 @@ extends		AtomicHIOA
 		if (!this.currentIntensity.isInitialised()
 //				&& this.batteriesInputPower.isInitialised()
 				&& this.currentHairDryerIntensity.isInitialised()
-				&& this.currentHeaterIntensity.isInitialised()) {
+				&& this.currentHeaterIntensity.isInitialised()
+				&& this.currentHeatPumpIntensity.isInitialised()
+				&& this.currentDimmerLampIntensity.isInitialised()) {
 			double i = this.computeTotalIntensity();
 			this.currentIntensity.initialise(i);
 			this.cumulativeConsumption.initialise(0.0);

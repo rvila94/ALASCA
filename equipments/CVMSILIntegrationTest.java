@@ -32,7 +32,17 @@ package equipments;
 // The fact that you are presently reading this means that you have had
 // knowledge of the CeCILL-C license and that you accept its terms.
 
-import equipments.dimmerlamp.DimmerLamp;
+import equipments.HeatPump.HeatPump;
+import equipments.HeatPump.HeatPumpController;
+import equipments.HeatPump.HeatPumpCyPhy;
+import equipments.HeatPump.Test.HeatPumpTesterCyPhy;
+import equipments.HeatPump.compressor.Compressor;
+import equipments.HeatPump.compressor.CompressorConnector;
+import equipments.HeatPump.connections.HeatPumpActuatorConnector;
+import equipments.HeatPump.connections.HeatPumpControllerConnector;
+import equipments.HeatPump.connections.HeatPumpExternalControlConnector;
+import equipments.HeatPump.temperatureSensor.TemperatureSensor;
+import equipments.HeatPump.temperatureSensor.TemperatureSensorConnector;
 import equipments.dimmerlamp.DimmerLampCyPhy;
 import equipments.dimmerlamp.connections.DimmerLampExternalConnector;
 import equipments.dimmerlamp.connections.DimmerLampUserConnector;
@@ -291,9 +301,12 @@ extends		AbstractCVM
 		HeaterController.X_RELATIVE_POSITION = 2;
 		HeaterController.Y_RELATIVE_POSITION = 3;
 		DimmerLampCyPhy.VERBOSE = true;
-		DimmerLamp.X_RELATIVE_POSITION = 2;
-		DimmerLamp.Y_RELATIVE_POSITION = 4;
+		DimmerLampCyPhy.X_RELATIVE_POSITION = 2;
+		DimmerLampCyPhy.Y_RELATIVE_POSITION = 4;
 		DimmerLampStateModel.VERBOSE = true;
+		HeatPumpCyPhy.VERBOSE = true;
+		HeatPumpCyPhy.X_RELATIVE_POSITION = 3;
+		HeatPumpCyPhy.Y_RELATIVE_POSITION = 4;
 
 		assert	CVMSILIntegrationTest.implementationInvariants(this) :
 				new InvariantException(
@@ -519,53 +532,60 @@ extends		AbstractCVM
 							testScenario
 					});	// is unit test
 
-//			AbstractComponent.createComponent(
-//					Compressor.class.getCanonicalName(),
-//					new Object[]{COMPRESSOR_INBOUND_URI});
-//
-//			AbstractComponent.createComponent(
-//					TemperatureSensor.class.getCanonicalName(),
-//					new Object[]{SENSOR_INBOUND_URI});
-//
-//			AbstractComponent.createComponent(
-//					HeatPumpCyPhy.class.getCanonicalName(),
-//					new Object[]{
-//							COMPRESSOR_INBOUND_URI,
-//							SENSOR_INBOUND_URI,
-//							CompressorConnector.class.getCanonicalName(),
-//							TemperatureSensorConnector.class.getCanonicalName(),
-//							HEATPUMP_USER_INBOUND_URI,
-//							HEATPUMP_INTERNAL_INBOUND_URI,
-//							HEATPUMP_EXTERNAL_INBOUND_URI,
-//							HEM.RegistrationHEMURI,
-//							RegistrationConnector.class.getCanonicalName(),
-//							HEATPUMP_EXTERNAL_CONTROLLER_INBOUND_URI,
-//							HEATPUMP_ACTUATOR_INBOUND_URI,
-//							HeatPumpController.CONTROLLER_INBOUND_URI,
-//							HeatPumpControllerConnector.class.getCanonicalName()
-//					});
-//
-//			AbstractComponent.createComponent(
-//					HeatPumpController.class.getCanonicalName(),
-//					new Object[]{
-//							HEATPUMP_EXTERNAL_CONTROLLER_INBOUND_URI,
-//							HEATPUMP_ACTUATOR_INBOUND_URI,
-//							HeatPumpExternalControlConnector.class.getCanonicalName(),
-//							HeatPumpActuatorConnector.class.getCanonicalName(),
-//							HeatPumpController.CONTROLLER_INBOUND_URI,
-//							0.5,
-//							18.0,
-//							22.0
-//					});
-//
-//			AbstractComponent.createComponent(
-//					HeatPumpTester.class.getCanonicalName(),
-//					new Object[]{
-//							false,
-//							HEATPUMP_USER_INBOUND_URI,
-//							HEATPUMP_INTERNAL_INBOUND_URI,
-//							HEATPUMP_EXTERNAL_INBOUND_URI
-//					});	// is unit test
+			AbstractComponent.createComponent(
+					Compressor.class.getCanonicalName(),
+					new Object[]{COMPRESSOR_INBOUND_URI});
+
+			AbstractComponent.createComponent(
+					TemperatureSensor.class.getCanonicalName(),
+					new Object[]{SENSOR_INBOUND_URI});
+
+			AbstractComponent.createComponent(
+					HeatPumpCyPhy.class.getCanonicalName(),
+					new Object[]{
+							COMPRESSOR_INBOUND_URI,
+							SENSOR_INBOUND_URI,
+							CompressorConnector.class.getCanonicalName(),
+							TemperatureSensorConnector.class.getCanonicalName(),
+							HEATPUMP_USER_INBOUND_URI,
+							HEATPUMP_INTERNAL_INBOUND_URI,
+							HEATPUMP_EXTERNAL_INBOUND_URI,
+							HEMCyPhy.RegistrationHEMURI,
+							RegistrationConnector.class.getCanonicalName(),
+							HEATPUMP_ACTUATOR_INBOUND_URI,
+							HEATPUMP_EXTERNAL_CONTROLLER_INBOUND_URI,
+							HeatPumpController.CONTROLLER_INBOUND_URI,
+							HeatPumpControllerConnector.class.getCanonicalName(),
+							ExecutionMode.INTEGRATION_TEST_WITH_SIL_SIMULATION,
+							testScenario,
+							HeatPumpCyPhy.INTEGRATION_TEST_URI,
+							ACCELERATION_FACTOR
+					});
+
+			AbstractComponent.createComponent(
+					HeatPumpController.class.getCanonicalName(),
+					new Object[]{
+							HEATPUMP_EXTERNAL_CONTROLLER_INBOUND_URI,
+							HEATPUMP_ACTUATOR_INBOUND_URI,
+							HeatPumpExternalControlConnector.class.getCanonicalName(),
+							HeatPumpActuatorConnector.class.getCanonicalName(),
+							HeatPumpController.CONTROLLER_INBOUND_URI,
+							0.5,
+							18.0,
+							22.0,
+							60.0,
+							ACCELERATION_FACTOR
+					});
+
+			AbstractComponent.createComponent(
+					HeatPumpTesterCyPhy.class.getCanonicalName(),
+					new Object[]{
+							HEATPUMP_USER_INBOUND_URI,
+							HEATPUMP_INTERNAL_INBOUND_URI,
+							HEATPUMP_EXTERNAL_INBOUND_URI,
+							ExecutionMode.INTEGRATION_TEST,
+							testScenario
+					});	// is unit test
 
 		}
 
@@ -641,8 +661,6 @@ extends		AbstractCVM
 		Instant hemTestLamp = START_INSTANT.plusSeconds(1400);
 
 		Instant heaterSwitchOff = START_INSTANT.plusSeconds(d - 60);
-
-		System.out.println("hey");
 
 		return new TestScenario(
 			CLOCK_URI,
@@ -866,6 +884,9 @@ extends		AbstractCVM
 		Instant heaterSwitchOn = Instant.parse("2025-12-02T07:00:00.00Z");
 		Instant heaterSwitchOff = Instant.parse("2025-12-02T10:00:00.00Z");
 
+		Instant heatPumpSwitchOn = Instant.parse("2025-12-02T07:01:00.00Z");
+		Instant heatPumpSwitchOff = Instant.parse("2025-12-02T10:01:00.00Z");
+
 		Instant hairDryerTurnOn1 = Instant.parse("2025-12-02T07:15:00.00Z");
 		Instant hairDryerSetHigh1 = Instant.parse("2025-12-02T07:15:20.00Z");
 		Instant hairDryerSetLow1 = Instant.parse("2025-12-02T07:20:00.00Z");
@@ -899,6 +920,18 @@ extends		AbstractCVM
 							throw new BCMRuntimeException(e) ;
 						}
 					}),
+
+					new TestStep(
+							CLOCK_URI,
+							HeatPumpTesterCyPhy.REFLECTION_INBOUND_URI,
+							heatPumpSwitchOn,
+							owner ->  {
+								try {
+									((HeatPumpTesterCyPhy)owner).switchOn();
+								} catch (Exception e) {
+									throw new BCMRuntimeException(e) ;
+								}
+							}),
 
 				new TestStep(
 					CLOCK_URI,
@@ -1044,6 +1077,17 @@ extends		AbstractCVM
 							owner ->  {
 								try {
 									((HeaterTesterCyPhy)owner).getHop().switchOff();
+								} catch (Exception e) {
+									throw new BCMRuntimeException(e) ;
+								}
+							}),
+					new TestStep(
+							CLOCK_URI,
+							HeatPumpTesterCyPhy.REFLECTION_INBOUND_URI,
+							heatPumpSwitchOff,
+							owner ->  {
+								try {
+									((HeatPumpTesterCyPhy)owner).switchOff();
 								} catch (Exception e) {
 									throw new BCMRuntimeException(e) ;
 								}

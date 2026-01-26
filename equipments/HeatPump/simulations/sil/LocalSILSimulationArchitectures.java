@@ -4,7 +4,6 @@ import equipments.HeatPump.simulations.events.*;
 import equipments.HeatPump.simulations.HeatPumpCoupledModel;
 import equipments.HeatPump.simulations.HeatPumpElectricityModel;
 import equipments.HeatPump.simulations.HeatPumpHeatingModel;
-import fr.sorbonne_u.components.hem2025e2.equipments.heater.mil.ExternalTemperatureModel;
 import fr.sorbonne_u.components.hem2025e3.equipments.heater.sil.ExternalTemperatureSILModel;
 import fr.sorbonne_u.devs_simulation.architectures.RTArchitecture;
 import fr.sorbonne_u.devs_simulation.hioa.architectures.RTAtomicHIOA_Descriptor;
@@ -243,14 +242,6 @@ public abstract class LocalSILSimulationArchitectures {
                 new HashMap<>();
 
         atomicModelDescriptors.put(
-                HeatPumpElectricityModel.URI,
-                RTAtomicHIOA_Descriptor.create(
-                        HeatPumpElectricityModel.class,
-                        HeatPumpElectricityModel.URI,
-                        simulatedTimeUnit,
-                        null,
-                        accelerationFactor));
-        atomicModelDescriptors.put(
                 HeatPumpHeatingModel.URI,
                 RTAtomicHIOA_Descriptor.create(
                         HeatPumpHeatingModel.class,
@@ -260,10 +251,10 @@ public abstract class LocalSILSimulationArchitectures {
                         accelerationFactor
                 ));
         atomicModelDescriptors.put(
-                ExternalTemperatureModel.URI,
+                ExternalTemperatureSILModel.URI,
                 RTAtomicHIOA_Descriptor.create(
-                        ExternalTemperatureModel.class,
-                        ExternalTemperatureModel.URI,
+                        ExternalTemperatureSILModel.class,
+                        ExternalTemperatureSILModel.URI,
                         simulatedTimeUnit,
                         null,
                         accelerationFactor));

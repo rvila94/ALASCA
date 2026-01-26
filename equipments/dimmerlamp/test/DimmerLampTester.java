@@ -54,19 +54,19 @@ extends AbstractComponent {
 
 
     /**	in clock-driven scenario, the delay from the start instant at which
-     *  the heatPump is switched on for the first time.											*/
+     *  the dimmerLamp is switched on for the first time.											*/
     public static final int SWITCH_ON_DELAY1 = 3;
     /**	in clock-driven scenario, the delay from the start instant at which
-     *  the heat pump is put in heating mode.                                  */
+     *  the dimmer lamp is put in heating mode.                                  */
     public static final int SWITCH_OFF_DELAY1 = 8;
     /**	in clock-driven scenario, the delay from the start instant at which
-     *  the heatPump is switched on for the second time.											*/
+     *  the dimmerLamp is switched on for the second time.											*/
     public static final int SWITCH_ON_DELAY2 = 11;
     /**	in clock-driven scenario, the delay from the start instant at which
-     *  the heat pump is put in heating mode.                                  */
+     *  the dimmer lamp is put in heating mode.                                  */
     public static final int SWITCH_OFF_DELAY2 = 14;
     /**	in clock-driven scenario, the delay from the start instant at which
-     *  the heatPump is switched on for the second time. */
+     *  the dimmerLamp is switched on for the second time. */
 
     protected static final int NUMBER_THREADS = 1;
     protected static final int NUMBER_SCHEDULABLE_THREADS = 1;
@@ -547,7 +547,7 @@ extends AbstractComponent {
                     clocksServerOutboundPort.getPortURI(),
                     ClocksServer.STANDARD_INBOUNDPORT_URI,
                     ClocksServerConnector.class.getCanonicalName());
-            this.traceMessage("Heater tester gets the clock.\n");
+            this.traceMessage("Dimmer lamp tester gets the clock.\n");
             AcceleratedClock ac =
                     clocksServerOutboundPort.getClock(
                             CVMIntegrationTest.CLOCK_URI);
@@ -556,19 +556,19 @@ extends AbstractComponent {
             clocksServerOutboundPort.unpublishPort();
 
             Instant startInstant = ac.getStartInstant();
-            Instant heatPumpSwitchOn1 = startInstant.plusSeconds(SWITCH_ON_DELAY1);
-            Instant heatPumpSwitchOff1 = startInstant.plusSeconds(SWITCH_OFF_DELAY1);
-            Instant heatPumpSwitchOn2 = startInstant.plusSeconds(SWITCH_ON_DELAY2);
-            Instant heatPumpSwitchOff2 = startInstant.plusSeconds(SWITCH_OFF_DELAY2);
-            this.traceMessage("Heat pump tester waits until start.\n");
+            Instant dimmerLampSwitchOn1 = startInstant.plusSeconds(SWITCH_ON_DELAY1);
+            Instant dimmerLampSwitchOff1 = startInstant.plusSeconds(SWITCH_OFF_DELAY1);
+            Instant dimmerLampSwitchOn2 = startInstant.plusSeconds(SWITCH_ON_DELAY2);
+            Instant dimmerLampSwitchOff2 = startInstant.plusSeconds(SWITCH_OFF_DELAY2);
+            this.traceMessage("dimmer lamp tester waits until start.\n");
 
             ac.waitUntilStart();
 
-            long delayToSwitchOn1 = ac.nanoDelayUntilInstant(heatPumpSwitchOn1);
-            long delayToSwitchOff1 = ac.nanoDelayUntilInstant(heatPumpSwitchOff1);
+            long delayToSwitchOn1 = ac.nanoDelayUntilInstant(dimmerLampSwitchOn1);
+            long delayToSwitchOff1 = ac.nanoDelayUntilInstant(dimmerLampSwitchOff1);
 
-            long delayToSwitchOn2 = ac.nanoDelayUntilInstant(heatPumpSwitchOn2);
-            long delayToSwitchOff2 = ac.nanoDelayUntilInstant(heatPumpSwitchOff2);
+            long delayToSwitchOn2 = ac.nanoDelayUntilInstant(dimmerLampSwitchOn2);
+            long delayToSwitchOff2 = ac.nanoDelayUntilInstant(dimmerLampSwitchOff2);
 
             AbstractComponent o = this;
 

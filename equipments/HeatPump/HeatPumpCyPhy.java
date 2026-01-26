@@ -4,7 +4,6 @@ import equipments.HeatPump.compressor.CompressorCI;
 import equipments.HeatPump.connections.HeatPumpActuatorInboundPort;
 import equipments.HeatPump.connections.HeatPumpControllerOutboundPort;
 import equipments.HeatPump.connections.HeatPumpExternalControlInboundPort;
-import equipments.HeatPump.connections.HeatPumpExternalJava4InboundPort;
 import equipments.HeatPump.interfaces.*;
 import equipments.HeatPump.powerRepartitionPolicy.PowerRepartitionPolicyI;
 import equipments.HeatPump.simulations.HeatPumpHeatingModel;
@@ -19,7 +18,6 @@ import fr.sorbonne_u.components.annotations.RequiredInterfaces;
 import fr.sorbonne_u.components.cyphy.ExecutionMode;
 import fr.sorbonne_u.components.cyphy.annotations.LocalArchitecture;
 import fr.sorbonne_u.components.cyphy.annotations.SIL_Simulation_Architectures;
-import fr.sorbonne_u.components.cyphy.interfaces.ModelStateAccessI;
 import fr.sorbonne_u.components.cyphy.plugins.devs.AtomicSimulatorPlugin;
 import fr.sorbonne_u.components.cyphy.plugins.devs.RTAtomicSimulatorPlugin;
 import fr.sorbonne_u.components.cyphy.utils.aclocks.ClocksServerWithSimulation;
@@ -28,6 +26,7 @@ import fr.sorbonne_u.components.exceptions.BCMException;
 import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.components.hem2025.bases.RegistrationCI;
+import fr.sorbonne_u.components.utils.tests.TestScenario;
 import fr.sorbonne_u.devs_simulation.architectures.RTArchitecture;
 import fr.sorbonne_u.devs_simulation.models.annotations.ModelExternalEvents;
 import fr.sorbonne_u.exceptions.PreconditionException;
@@ -64,7 +63,7 @@ import java.util.concurrent.TimeUnit;
         ),
         @LocalArchitecture(
                 uri = "HEAT_PUMP_INTEGRATION_TEST_URI",
-                rootModelURI = "HEAT-PUMP-STATE-MODEL-URI",
+                rootModelURI = "HEAT_PUMP_COUPLED_MODEL",
                 simulatedTimeUnit = TimeUnit.HOURS,
                 externalEvents = @ModelExternalEvents(
                         exported = {
@@ -88,8 +87,9 @@ import java.util.concurrent.TimeUnit;
 @OfferedInterfaces(offered = {
         HeatPumpUserCI.class,
         HeatPumpInternalControlCI.class,
-        HeatPumpExternalJava4InboundPort.class,
-        HeatPumpActuatorCI.class
+        HeatPumpExternalControlCI.class,
+        HeatPumpActuatorCI.class,
+        HeatPumpControllerCI.class
 })
 public class HeatPumpCyPhy extends HeatPump {
 
@@ -98,10 +98,10 @@ public class HeatPumpCyPhy extends HeatPump {
     // -------------------------------------------------------------------------
 
     /** */
-    protected static final String UNIT_TEST_URI = "HEAT_PUMP_UNIT_TEST_URI";
+    public static final String UNIT_TEST_URI = "HEAT_PUMP_UNIT_TEST_URI";
 
     /**  */
-    protected static final String INTEGRATION_TEST_URI = "HEAT_PUMP_INTEGRATION_TEST_URI";
+    public static final String INTEGRATION_TEST_URI = "HEAT_PUMP_INTEGRATION_TEST_URI";
 
 
     // -------------------------------------------------------------------------
@@ -157,7 +157,6 @@ public class HeatPumpCyPhy extends HeatPump {
     }
 
     protected HeatPumpCyPhy(
-            String reflectionInboundPortURI,
             String compressorURI,
             String bufferTankURI,
             String compressorCcName,
@@ -167,12 +166,15 @@ public class HeatPumpCyPhy extends HeatPump {
             String externalInboundURI,
             String registrationHEMURI,
             String registrationHEMCcName,
-            String cExternalInboundURI,
             String actuatorInboundURI,
+            String cExternalInboundURI,
             String controllerURI,
-            String controllerCCName) throws Exception {
-        super(reflectionInboundPortURI,
-                compressorURI,
+            String controllerCCName,
+            ExecutionMode mode,
+            TestScenario testScenario,
+            String localArchitectureURI,
+            double accelerationFactor) throws Exception {
+        super(compressorURI,
                 bufferTankURI,
                 compressorCcName,
                 bufferCcName,
@@ -180,7 +182,13 @@ public class HeatPumpCyPhy extends HeatPump {
                 internalInboundURI,
                 externalInboundURI,
                 registrationHEMURI,
-                registrationHEMCcName);
+                registrationHEMCcName,
+                mode,
+                testScenario,
+                accelerationFactor);
+
+        this.localArchitectureURI = localArchitectureURI;
+        this.executionMode = mode;
 
         this.actuator_port = new HeatPumpActuatorInboundPort(actuatorInboundURI, this);
         this.actuator_port.publishPort();
@@ -193,6 +201,7 @@ public class HeatPumpCyPhy extends HeatPump {
 
         this.controllerCCName = controllerCCName;
         this.controllerURI = controllerURI;
+
     }
 
     protected HeatPumpCyPhy(
@@ -256,7 +265,7 @@ public class HeatPumpCyPhy extends HeatPump {
                 RTArchitecture architecture =
                         (RTArchitecture) this.localSimulationArchitectures.
                                 get(this.localArchitectureURI);
-                this.asp = new AtomicSimulatorPlugin();
+                this.asp = new RTAtomicSimulatorPlugin();
                 this.asp.setPluginURI(architecture.getRootModelURI());
                 this.asp.setSimulationArchitecture(architecture);
                 this.installPlugin(this.asp);
@@ -295,28 +304,26 @@ public class HeatPumpCyPhy extends HeatPump {
                 new PreconditionException("accelerationFactor <= 0.0");
 
         RTArchitecture result = null;
-        ExecutionMode mode = this.getExecutionMode();
 
-        switch (mode){
-            case UNIT_TEST_WITH_SIL_SIMULATION:
-                result = LocalSILSimulationArchitectures.
-                        createHeatPumpSIL_Architecture4UnitTest(
-                                architectureURI,
-                                rootModelURI,
-                                simulatedTimeUnit,
-                                accelerationFactor
-                        );
-            case INTEGRATION_TEST_WITH_HIL_SIMULATION:
-                result = LocalSILSimulationArchitectures.
-                        createHeatPumpSIL_Architecture4IntegrationTest(
-                                architectureURI,
-                                rootModelURI,
-                                simulatedTimeUnit,
-                                accelerationFactor
-                        );
-                break;
-            default:
-                throw new BCMException("Unknown local simulation architecture : " + architectureURI);
+        if (architectureURI.equals(HeatPumpCyPhy.UNIT_TEST_URI)) {
+            result = LocalSILSimulationArchitectures.
+                    createHeatPumpSIL_Architecture4UnitTest(
+                            architectureURI,
+                            rootModelURI,
+                            simulatedTimeUnit,
+                            accelerationFactor
+                    );
+        } else if (architectureURI.equals(HeatPumpCyPhy.INTEGRATION_TEST_URI)) {
+            result = LocalSILSimulationArchitectures.
+                    createHeatPumpSIL_Architecture4IntegrationTest(
+                            architectureURI,
+                            rootModelURI,
+                            simulatedTimeUnit,
+                            accelerationFactor
+                    );
+        } else {
+            throw new BCMException("Unknown local simulation architecture "
+                    + "URI: " + architectureURI);
         }
 
         return result;

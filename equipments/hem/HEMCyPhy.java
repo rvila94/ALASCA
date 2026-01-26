@@ -62,7 +62,6 @@ import fr.sorbonne_u.components.hem2025e1.equipments.meter.connections.ElectricM
 import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.SolarPanelCI;
 import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.SolarPanelUnitTester;
 import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.connections.SolarPanelOutboundPort;
-import fr.sorbonne_u.components.hem2025e3.equipments.meter.ElectricMeterCyPhy;
 import fr.sorbonne_u.components.utils.tests.TestScenario;
 import fr.sorbonne_u.components.utils.tests.TestsStatistics;
 import fr.sorbonne_u.exceptions.*;
