@@ -4,7 +4,6 @@ import equipments.fan.connections.FanInboundPort;
 import fr.sorbonne_u.components.annotations.OfferedInterfaces;
 import fr.sorbonne_u.components.cyphy.AbstractCyPhyComponent;
 import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
-import fr.sorbonne_u.components.hem2025e1.equipments.hairdryer.HairDryer;
 import fr.sorbonne_u.exceptions.AssertionChecking;
 import fr.sorbonne_u.exceptions.ImplementationInvariantException;
 import fr.sorbonne_u.exceptions.InvariantException;
@@ -186,7 +185,7 @@ implements FanImplementationI
 				HIGH_POWER != null &&
 					HIGH_POWER.getData() > 0.0 &&
 					HIGH_POWER.getMeasurementUnit().equals(POWER_UNIT),
-				HairDryer.class,
+				Fan.class,
 				"HIGH_POWER != null && HIGH_POWER.getData()"
 				+ " > 0.0 && HIGH_POWER.getMeasurementUnit().equals("
 				+ "POWER_UNIT)");
@@ -194,7 +193,7 @@ implements FanImplementationI
 				MEDIUM_POWER != null &&
 					MEDIUM_POWER.getData() > 0.0 &&
 					MEDIUM_POWER.getMeasurementUnit().equals(POWER_UNIT),
-				HairDryer.class,
+				Fan.class,
 				"MEDIUM_POWER != null && MEDIUM_POWER.getData()"
 				+ " > 0.0 && MEDIUM_POWER.getMeasurementUnit().equals("
 				+ "POWER_UNIT)");
@@ -202,7 +201,7 @@ implements FanImplementationI
 				LOW_POWER != null &&
 					LOW_POWER.getData() > 0.0 &&
 					LOW_POWER.getMeasurementUnit().equals(POWER_UNIT),
-				HairDryer.class,
+				Fan.class,
 				"LOW_POWER != null && LOW_POWER.getData() >"
 				+ " 0.0 && LOW_POWER.getMeasurementUnit().equals("
 				+ "POWER_UNIT)");
@@ -210,7 +209,7 @@ implements FanImplementationI
 				TENSION != null &&
 					(TENSION.getData() == 110.0 || TENSION.getData() == 220.0) &&
 					TENSION.getMeasurementUnit().equals(TENSION_UNIT),
-				HairDryer.class,
+				Fan.class,
 				"TENSION != null && (TENSION.getData() == 110.0 || TENSION."
 				+ "getData() == 220.0) && TENSION.getMeasurementUnit().equals("
 				+ "TENSION_UNIT)");
