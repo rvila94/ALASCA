@@ -1,6 +1,8 @@
-package equipments.oven.mil.events;
+package equipments.oven.simulations.events;
 
-import equipments.oven.mil.OvenTemperatureModel;
+import equipments.oven.Oven.OvenState;
+import equipments.oven.simulations.OvenElectricityModel;
+import equipments.oven.simulations.sil.OvenStateModel;
 import fr.sorbonne_u.devs_simulation.es.events.ES_Event;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
 import fr.sorbonne_u.devs_simulation.models.events.EventI;
@@ -9,8 +11,8 @@ import fr.sorbonne_u.devs_simulation.models.time.Time;
 
 // -----------------------------------------------------------------------------
 /**
- * The class <code>CloseDoorOven</code> defines the simulation event of the
- * oven door being closed.
+ * The class <code>SwitchOnOven</code> defines the simulation event of the
+ * Oven being switched on.
  *
  * <p><strong>Description</strong></p>
  * 
@@ -26,12 +28,12 @@ import fr.sorbonne_u.devs_simulation.models.time.Time;
  * invariant	{@code true}	// no more invariant
  * </pre>
  * 
- * <p>Created on : 2026-01-03</p>
+ * <p>Created on : 2025-11-13</p>
  * 
  * @author	<a href="mailto:Rodrigo.Vila@etu.sorbonne-universite.fr">Rodrigo Vila</a>
  * @author	<a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
  */
-public class			CloseDoorOven
+public class			SwitchOnOven
 extends		ES_Event
 implements	OvenEventI
 {
@@ -46,7 +48,7 @@ implements	OvenEventI
 	// -------------------------------------------------------------------------
 
 	/**
-	 * create a <code>CloseDoorOven</code> event.
+	 * create a <code>SwitchOnOven</code> event.
 	 * 
 	 * <p><strong>Contract</strong></p>
 	 * 
@@ -58,7 +60,7 @@ implements	OvenEventI
 	 *
 	 * @param timeOfOccurrence	time of occurrence of the event.
 	 */
-	public				CloseDoorOven(
+	public				SwitchOnOven(
 		Time timeOfOccurrence
 		)
 	{
@@ -69,26 +71,47 @@ implements	OvenEventI
 	// Methods
 	// -------------------------------------------------------------------------
 
+	/**
+	 * @see fr.sorbonne_u.devs_simulation.es.events.ES_Event#hasPriorityOver(fr.sorbonne_u.devs_simulation.models.events.EventI)
+	 */
 	@Override
 	public boolean		hasPriorityOver(EventI e)
 	{
+		// if many Oven events occur at the same time, the
+		// SwitchOnOven one will be executed first.
 		return true;
 	}
 
+	/**
+	 * @see fr.sorbonne_u.devs_simulation.models.events.Event#executeOn(fr.sorbonne_u.devs_simulation.models.interfaces.AtomicModelI)
+	 */
 	@Override
 	public void			executeOn(AtomicModelI model)
 	{
-		assert	model instanceof OvenTemperatureModel :
+		assert	model instanceof OvenElectricityModel 
+			|| model instanceof OvenStateModel:
 				new NeoSim4JavaException(
 						"Precondition violation: model instanceof "
-						+ "OvenTemperatureModel");
-
-		OvenTemperatureModel oven = (OvenTemperatureModel) model;
-
-		assert	oven.isDoorOpen() :
-				new NeoSim4JavaException(
-						"The oven door is already closed.");
-
-		oven.setDoorOpen(false);
+						+ "OvenElectricityModel or OvenStateModel");
+		
+		if (model instanceof OvenElectricityModel) {
+			OvenElectricityModel Oven = (OvenElectricityModel)model;
+			assert	Oven.getState() == OvenState.OFF :
+					new NeoSim4JavaException(
+							"model not in the right state, should be "
+							+ "OvenElectricityModel.State.OFF but is "
+							+ Oven.getState());
+			Oven.setState(OvenState.ON,
+							this.getTimeOfOccurrence());
+		} else {
+			OvenStateModel Oven = (OvenStateModel)model;
+			assert	Oven.getState() == OvenState.OFF :
+					new NeoSim4JavaException(
+							"model not in the right state, should be "
+							+ "OvenStateModel.State.OFF but is "
+							+ Oven.getState());
+			Oven.setState(OvenState.ON);
+		}
 	}
 }
+// -----------------------------------------------------------------------------

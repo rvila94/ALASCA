@@ -1,16 +1,16 @@
-package equipments.oven.mil;
+package equipments.oven.simulations;
 
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-import equipments.oven.mil.events.DoNotHeatOven;
-import equipments.oven.mil.events.HeatOven;
-import equipments.oven.mil.events.OvenEventI;
-import equipments.oven.mil.events.SetPowerOven;
-import equipments.oven.mil.events.SwitchOffOven;
-import equipments.oven.mil.events.SwitchOnOven;
 import equipments.oven.Oven.OvenMode;
 import equipments.oven.Oven.OvenState;
+import equipments.oven.simulations.events.DoNotHeatOven;
+import equipments.oven.simulations.events.HeatOven;
+import equipments.oven.simulations.events.OvenEventI;
+import equipments.oven.simulations.events.SetPowerOven;
+import equipments.oven.simulations.events.SwitchOffOven;
+import equipments.oven.simulations.events.SwitchOnOven;
 import equipments.oven.OvenExternalControlI;
 import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeterImplementationI;
 import fr.sorbonne_u.components.hem2025e2.GlobalReportI;

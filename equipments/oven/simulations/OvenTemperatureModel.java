@@ -1,19 +1,19 @@
-package equipments.oven.mil;
+package equipments.oven.simulations;
 
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-import equipments.oven.mil.events.DoNotHeatOven;
-import equipments.oven.mil.events.HeatOven;
-import equipments.oven.mil.events.OvenEventI;
-import equipments.oven.mil.events.SetModeOven;
-import equipments.oven.mil.events.SetTargetTemperatureOven;
-import equipments.oven.mil.events.SwitchOffOven;
-import equipments.oven.mil.events.OpenDoorOven;
-import equipments.oven.mil.events.CloseDoorOven;
 import equipments.oven.Oven;
 import equipments.oven.Oven.OvenMode;
 import equipments.oven.Oven.OvenState;
+import equipments.oven.simulations.events.CloseDoorOven;
+import equipments.oven.simulations.events.DoNotHeatOven;
+import equipments.oven.simulations.events.HeatOven;
+import equipments.oven.simulations.events.OpenDoorOven;
+import equipments.oven.simulations.events.OvenEventI;
+import equipments.oven.simulations.events.SetModeOven;
+import equipments.oven.simulations.events.SetTargetTemperatureOven;
+import equipments.oven.simulations.events.SwitchOffOven;
 import equipments.oven.OvenExternalControlI;
 import fr.sorbonne_u.components.hem2025e2.GlobalReportI;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;

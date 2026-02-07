@@ -1,9 +1,9 @@
-package equipments.oven.mil;
+package equipments.oven.simulations;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import equipments.oven.mil.OvenCoupledModel;
+import equipments.oven.simulations.OvenCoupledModel;
 import fr.sorbonne_u.devs_simulation.hioa.models.vars.StaticVariableDescriptor;
 import fr.sorbonne_u.devs_simulation.hioa.models.vars.VariableSink;
 import fr.sorbonne_u.devs_simulation.hioa.models.vars.VariableSource;

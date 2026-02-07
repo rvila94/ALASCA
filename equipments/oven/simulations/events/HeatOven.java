@@ -1,12 +1,13 @@
-package equipments.oven.mil.events;
+package equipments.oven.simulations.events;
 
 import fr.sorbonne_u.devs_simulation.models.events.Event;
 import fr.sorbonne_u.devs_simulation.models.events.EventI;
 import fr.sorbonne_u.devs_simulation.models.interfaces.AtomicModelI;
 import fr.sorbonne_u.devs_simulation.models.time.Time;
 import equipments.oven.Oven.OvenState;
-import equipments.oven.mil.OvenElectricityModel;
-import equipments.oven.mil.OvenTemperatureModel;
+import equipments.oven.simulations.OvenElectricityModel;
+import equipments.oven.simulations.OvenTemperatureModel;
+import equipments.oven.simulations.sil.OvenStateModel;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
 
 // -----------------------------------------------------------------------------
@@ -93,12 +94,13 @@ implements	OvenEventI
 	@Override
 	public void			executeOn(AtomicModelI model)
 	{
-		assert	model instanceof OvenElectricityModel ||
-									model instanceof OvenTemperatureModel :
-				new NeoSim4JavaException(
-						"Precondition violation: model instanceof "
-						+ "OvenElectricityModel || "
-						+ "model instanceof OvenTemperatureModel");
+		assert model instanceof OvenElectricityModel
+	        || model instanceof OvenTemperatureModel 
+	        || model instanceof OvenStateModel :
+	        new NeoSim4JavaException(
+	            "model must be OvenElectricityModel or "
+	            + "OvenTemperatureModel "
+	            + "or OvenStateModel");
 
 		if (model instanceof OvenElectricityModel) {
 			OvenElectricityModel Oven = (OvenElectricityModel)model;
@@ -110,7 +112,7 @@ implements	OvenEventI
 							+ Oven.getState());
 			Oven.setState(OvenState.HEATING,
 							this.getTimeOfOccurrence());
-		} else {
+		} else if (model instanceof OvenTemperatureModel){
 			OvenTemperatureModel Oven = (OvenTemperatureModel)model;
 			assert	Oven.getState() == OvenState.ON|| 
 					Oven.getState() == OvenState.WAITING:
@@ -119,7 +121,19 @@ implements	OvenEventI
 							+ "OvenTemperatureModel.State.ON or WAITING but is "
 							+ Oven.getState());
 			Oven.setState(OvenState.HEATING);
-		}
+		} else {
+	    	OvenStateModel Oven = (OvenStateModel) model;
+
+	    	assert	Oven.getState() == OvenState.ON|| 
+					Oven.getState() == OvenState.WAITING:
+					new NeoSim4JavaException(
+							"model not in the right state, should be "
+							+ "OvenStateModel.State.ON or WAITING but is "
+							+ Oven.getState());
+
+	        Oven.setState(OvenState.HEATING);
+	    }
+		
 	}
 }
 // -----------------------------------------------------------------------------

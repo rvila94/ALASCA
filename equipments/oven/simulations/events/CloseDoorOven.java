@@ -1,8 +1,6 @@
-package equipments.oven.mil.events;
+package equipments.oven.simulations.events;
 
-import equipments.oven.Oven.OvenState;
-import equipments.oven.mil.OvenElectricityModel;
-import equipments.oven.mil.OvenTemperatureModel;
+import equipments.oven.simulations.OvenTemperatureModel;
 import fr.sorbonne_u.devs_simulation.es.events.ES_Event;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
 import fr.sorbonne_u.devs_simulation.models.events.EventI;
@@ -11,8 +9,8 @@ import fr.sorbonne_u.devs_simulation.models.time.Time;
 
 // -----------------------------------------------------------------------------
 /**
- * The class <code>SwitchOffOven</code> defines the simulation event of the
- * Oven being switched off.
+ * The class <code>CloseDoorOven</code> defines the simulation event of the
+ * oven door being closed.
  *
  * <p><strong>Description</strong></p>
  * 
@@ -28,12 +26,12 @@ import fr.sorbonne_u.devs_simulation.models.time.Time;
  * invariant	{@code true}	// no more invariant
  * </pre>
  * 
- * <p>Created on : 2025-11-13</p>
+ * <p>Created on : 2026-01-03</p>
  * 
  * @author	<a href="mailto:Rodrigo.Vila@etu.sorbonne-universite.fr">Rodrigo Vila</a>
  * @author	<a href="mailto:Damien.Ribeiro@etu.sorbonne-universite.fr">Damien Ribeiro</a>
  */
-public class			SwitchOffOven
+public class			CloseDoorOven
 extends		ES_Event
 implements	OvenEventI
 {
@@ -43,8 +41,12 @@ implements	OvenEventI
 
 	private static final long serialVersionUID = 1L;
 
+	// -------------------------------------------------------------------------
+	// Constructors
+	// -------------------------------------------------------------------------
+
 	/**
-	 * create a <code>SwitchOffOven</code> event.
+	 * create a <code>CloseDoorOven</code> event.
 	 * 
 	 * <p><strong>Contract</strong></p>
 	 * 
@@ -56,7 +58,7 @@ implements	OvenEventI
 	 *
 	 * @param timeOfOccurrence	time of occurrence of the event.
 	 */
-	public				SwitchOffOven(
+	public				CloseDoorOven(
 		Time timeOfOccurrence
 		)
 	{
@@ -67,47 +69,26 @@ implements	OvenEventI
 	// Methods
 	// -------------------------------------------------------------------------
 
-	/**
-	 * @see fr.sorbonne_u.devs_simulation.es.events.ES_Event#hasPriorityOver(fr.sorbonne_u.devs_simulation.models.events.EventI)
-	 */
 	@Override
 	public boolean		hasPriorityOver(EventI e)
 	{
-		// if many Oven events occur at the same time, the
-		// SwitchOffOven one will be executed after all others.
-		return false;
+		return true;
 	}
 
-	/**
-	 * @see fr.sorbonne_u.devs_simulation.models.events.Event#executeOn(fr.sorbonne_u.devs_simulation.models.interfaces.AtomicModelI)
-	 */
 	@Override
 	public void			executeOn(AtomicModelI model)
 	{
-		assert	model instanceof OvenElectricityModel ||
-									model instanceof OvenTemperatureModel :
+		assert	model instanceof OvenTemperatureModel :
 				new NeoSim4JavaException(
 						"Precondition violation: model instanceof "
-						+ "OvenElectricityModel || "
-						+ "model instanceof OvenTemperatureModel");
+						+ "OvenTemperatureModel");
 
-		if (model instanceof OvenElectricityModel) {
-			OvenElectricityModel Oven = (OvenElectricityModel)model;
-			assert	Oven.getState() != OvenState.ON ||
-					Oven.getState() != OvenState.WAITING || 
-					Oven.getState() != OvenState.HEATING:
-					new NeoSim4JavaException(
-							"model not in the right state, should not be "
-							+ "OvenElectricityModel.State.ON or  WAITING or "
-							+ "HEATING but is " + Oven.getState());
-			Oven.setState(OvenState.OFF,
-							this.getTimeOfOccurrence());
-		} else {
-			OvenTemperatureModel Oven = (OvenTemperatureModel)model;
-			// for the temperature model, OvenState.ON is the substitute
-			// for OvenState.OFF as it also means not heating
-			Oven.setState(OvenState.ON);
-		}
+		OvenTemperatureModel oven = (OvenTemperatureModel) model;
+
+		assert	oven.isDoorOpen() :
+				new NeoSim4JavaException(
+						"The oven door is already closed.");
+
+		oven.setDoorOpen(false);
 	}
 }
-// -----------------------------------------------------------------------------

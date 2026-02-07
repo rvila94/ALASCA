@@ -1,8 +1,8 @@
-package equipments.oven.mil.events;
+package equipments.oven.simulations.events;
 
 import equipments.oven.Oven.OvenState;
+import equipments.oven.simulations.OvenElectricityModel;
 import equipments.oven.OvenExternalControlI;
-import equipments.oven.mil.OvenElectricityModel;
 import fr.sorbonne_u.devs_simulation.es.events.ES_Event;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
 import fr.sorbonne_u.devs_simulation.models.events.EventI;

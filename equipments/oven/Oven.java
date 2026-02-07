@@ -12,12 +12,14 @@ import equipments.oven.connections.OvenExternalControlJava4InboundPort;
 import equipments.oven.connections.OvenUserJava4InboundPort;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.alasca.physical_data.SignalData;
-import fr.sorbonne_u.components.AbstractComponent;
 import fr.sorbonne_u.components.annotations.OfferedInterfaces;
 import fr.sorbonne_u.components.annotations.RequiredInterfaces;
+import fr.sorbonne_u.components.cyphy.AbstractCyPhyComponent;
+import fr.sorbonne_u.components.cyphy.ExecutionMode;
 import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.components.hem2025.bases.RegistrationCI;
+import fr.sorbonne_u.components.utils.tests.TestScenario;
 import fr.sorbonne_u.devs_simulation.models.time.Duration;
 import equipments.hem.RegistrationOutboundPort;
 import equipments.oven.connections.OvenInternalControlInboundPort;
@@ -73,9 +75,11 @@ import fr.sorbonne_u.exceptions.PreconditionException;
 		OvenInternalControlCI.class, 
 		OvenExternalControlJava4CI.class})
 public class			Oven
-extends		AbstractComponent
+extends		AbstractCyPhyComponent
 implements	OvenUserI, 
-			OvenInternalControlI
+			OvenInternalControlI,
+			OvenExternalControlI
+			
 {
 	// -------------------------------------------------------------------------
 	// Inner types
@@ -436,6 +440,59 @@ implements	OvenUserI,
 		    this.registrationHEMURI = registrationHEMURI;
 		    this.registrationHEMConnectorClassName = registrationHEMConnectorClassName;
 	}
+	
+	protected Oven(
+	        String userInboundPortURI,
+	        String internalControlInboundPortURI,
+	        String externalControlInboundPortURI,
+	        String registrationHEMURI,
+	        String registrationHEMConnectorClassName
+	) throws Exception
+	{
+	    super(1, 0);
+	    this.isUnitTest = false;
+
+	    this.initialise(
+	            userInboundPortURI,
+	            internalControlInboundPortURI,
+	            externalControlInboundPortURI
+	    );
+
+	    this.registrationOutboundPort = new RegistrationOutboundPort(this);
+	    this.registrationOutboundPort.publishPort();
+	    this.registrationHEMURI = registrationHEMURI;
+	    this.registrationHEMConnectorClassName = registrationHEMConnectorClassName;
+	}
+	
+	protected Oven(
+	        String reflectionInboundPortURI,
+	        String userInboundPortURI,
+	        String internalControlInboundPortURI,
+	        String externalControlInboundPortURI,
+	        String registrationHEMURI,
+	        String registrationHEMConnectorClassName,
+	        ExecutionMode mode,
+	        TestScenario testScenario,
+	        double accelerationFactor
+	) throws Exception
+	{
+	    super(reflectionInboundPortURI, 1, 0);
+	    this.isUnitTest = false;
+
+	    this.executionMode = mode;
+
+	    this.initialise(
+	            userInboundPortURI,
+	            internalControlInboundPortURI,
+	            externalControlInboundPortURI
+	    );
+
+	    this.registrationOutboundPort = new RegistrationOutboundPort(this);
+	    this.registrationOutboundPort.publishPort();
+	    this.registrationHEMURI = registrationHEMURI;
+	    this.registrationHEMConnectorClassName = registrationHEMConnectorClassName;
+	}
+
 	
 	/**
 	 * initialize a new oven.

@@ -1,6 +1,6 @@
-package equipments.oven.mil.events;
+package equipments.oven.simulations.events;
 
-import equipments.oven.mil.OvenTemperatureModel;
+import equipments.oven.simulations.OvenTemperatureModel;
 import fr.sorbonne_u.devs_simulation.es.events.ES_Event;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
 import fr.sorbonne_u.devs_simulation.models.events.EventI;

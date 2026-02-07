@@ -1,12 +1,13 @@
-package equipments.oven.mil.events;
+package equipments.oven.simulations.events;
 
 import fr.sorbonne_u.devs_simulation.models.events.Event;
 import fr.sorbonne_u.devs_simulation.models.events.EventI;
 import fr.sorbonne_u.devs_simulation.models.interfaces.AtomicModelI;
 import fr.sorbonne_u.devs_simulation.models.time.Time;
 import equipments.oven.Oven.OvenState;
-import equipments.oven.mil.OvenElectricityModel;
-import equipments.oven.mil.OvenTemperatureModel;
+import equipments.oven.simulations.OvenElectricityModel;
+import equipments.oven.simulations.OvenTemperatureModel;
+import equipments.oven.simulations.sil.OvenStateModel;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
 
 // -----------------------------------------------------------------------------
@@ -90,32 +91,47 @@ implements	OvenEventI
 	 * @see fr.sorbonne_u.devs_simulation.models.events.Event#executeOn(fr.sorbonne_u.devs_simulation.models.interfaces.AtomicModelI)
 	 */
 	@Override
-	public void			executeOn(AtomicModelI model)
-	{
-		assert	model instanceof OvenElectricityModel ||
-									model instanceof OvenTemperatureModel :
-				new NeoSim4JavaException(
-						"Precondition violation: model instanceof "
-						+ "OvenElectricityModel || "
-						+ "model instanceof OvenTemperatureModel");
+	public void executeOn(AtomicModelI model) {
+	    assert model instanceof OvenElectricityModel
+	        || model instanceof OvenTemperatureModel 
+	        || model instanceof OvenStateModel :
+	        new NeoSim4JavaException(
+	            "model must be OvenElectricityModel or "
+	            + "OvenTemperatureModel "
+	            + "or OvenStateModel");
 
-		if (model instanceof OvenElectricityModel) {
-			OvenElectricityModel oven = (OvenElectricityModel)model;
-			assert	oven.getState() == OvenState.HEATING:
-					new NeoSim4JavaException(
-							"model not in the right state, should be "
-							+ "OvenElectricityModel.State.HEATING but is "
-							+ oven.getState());
-			oven.setState(OvenState.ON, this.getTimeOfOccurrence());
-		} else {
-			OvenTemperatureModel oven = (OvenTemperatureModel)model;
-			assert	oven.getState() == OvenState.HEATING:
-					new NeoSim4JavaException(
-							"model not in the right state, should be "
-							+ "OvenTemperatureModel.State.HEATING but is "
-							+ oven.getState());
-			oven.setState(OvenState.ON);
-		}
+	    if (model instanceof OvenElectricityModel) {
+	        OvenElectricityModel oven = (OvenElectricityModel) model;
+
+	        assert oven.getState() == OvenState.HEATING: 
+	        	new NeoSim4JavaException( "model not in the right state, "
+	        			+ "should be OvenElectricityModel.State.HEATING but is " 
+	        			+ oven.getState());
+
+	        oven.setState(OvenState.ON, this.getTimeOfOccurrence());
+
+	    } else if (model instanceof OvenTemperatureModel) {
+	        OvenTemperatureModel oven = (OvenTemperatureModel) model;
+
+	        assert oven.getState() == OvenState.HEATING: 
+	        	new NeoSim4JavaException( "model not in the right state, "
+	        			+ "should be OvenTemperatureModel.State.HEATING but is " 
+	        			+ oven.getState());
+
+	        oven.setState(OvenState.ON);
+	    } else {
+	    	OvenStateModel oven = (OvenStateModel) model;
+
+	        assert oven.getState() == OvenState.HEATING: 
+	        	new NeoSim4JavaException( "model not in the right state, "
+	        			+ "should be OvenStateModel.State.HEATING but is " 
+	        			+ oven.getState());
+
+	        oven.setState(OvenState.ON);
+	    }
+	    
+	    
 	}
+
 }
 // -----------------------------------------------------------------------------

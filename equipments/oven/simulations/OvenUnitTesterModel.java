@@ -1,20 +1,22 @@
-package equipments.oven.mil;
+package equipments.oven.simulations;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import equipments.oven.mil.events.DoNotHeatOven;
-import equipments.oven.mil.events.HeatOven;
-import equipments.oven.mil.events.SetPowerOven;
-import equipments.oven.mil.events.SwitchOffOven;
-import equipments.oven.mil.events.SwitchOnOven;
-import equipments.oven.mil.events.SetModeOven;
-import equipments.oven.mil.events.OpenDoorOven;
-import equipments.oven.mil.events.CloseDoorOven;
-import equipments.oven.mil.events.SetTargetTemperatureOven;
+import equipments.oven.simulations.OvenUnitTesterModel;
+import equipments.oven.simulations.events.DelayedStartOven;
+import equipments.oven.simulations.events.CancelDelayedStartOven;
+import equipments.oven.simulations.events.CloseDoorOven;
+import equipments.oven.simulations.events.DoNotHeatOven;
+import equipments.oven.simulations.events.HeatOven;
+import equipments.oven.simulations.events.OpenDoorOven;
+import equipments.oven.simulations.events.SetModeOven;
+import equipments.oven.simulations.events.SetPowerOven;
+import equipments.oven.simulations.events.SetTargetTemperatureOven;
+import equipments.oven.simulations.events.SwitchOffOven;
+import equipments.oven.simulations.events.SwitchOnOven;
 import fr.sorbonne_u.components.cyphy.utils.tests.AbstractTestScenarioBasedAtomicModel;
 import fr.sorbonne_u.components.cyphy.utils.tests.TestScenarioWithSimulation;
-import equipments.oven.mil.OvenUnitTesterModel;
 import fr.sorbonne_u.devs_simulation.exceptions.MissingRunParameterException;
 import fr.sorbonne_u.devs_simulation.models.annotations.ModelExternalEvents;
 import fr.sorbonne_u.devs_simulation.models.interfaces.ModelI;
@@ -68,7 +70,9 @@ import fr.sorbonne_u.devs_simulation.utils.StandardLogger;
 								 SetModeOven.class,
 								 SetTargetTemperatureOven.class,
 								 OpenDoorOven.class,
-								 CloseDoorOven.class})
+								 CloseDoorOven.class,
+								 DelayedStartOven.class,
+								 CancelDelayedStartOven.class})
 // -----------------------------------------------------------------------------
 public class			OvenUnitTesterModel
 extends		AbstractTestScenarioBasedAtomicModel

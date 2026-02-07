@@ -1,4 +1,4 @@
-package equipments.oven.mil;
+package equipments.oven.simulations.mil;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -7,17 +7,22 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import equipments.oven.Oven.OvenMode;
-import equipments.oven.mil.events.DoNotHeatOven;
-import equipments.oven.mil.events.HeatOven;
-import equipments.oven.mil.events.SetModeOven;
-import equipments.oven.mil.events.SetModeOven.ModeValue;
-import equipments.oven.mil.events.SetPowerOven;
-import equipments.oven.mil.events.SwitchOffOven;
-import equipments.oven.mil.events.SwitchOnOven;
-import equipments.oven.mil.events.SetTargetTemperatureOven;
-import equipments.oven.mil.events.SetTargetTemperatureOven.TargetTemperatureValue;
-import equipments.oven.mil.events.OpenDoorOven;
-import equipments.oven.mil.events.CloseDoorOven;
+import equipments.oven.simulations.OvenCoupledModel;
+import equipments.oven.simulations.OvenElectricityModel;
+import equipments.oven.simulations.OvenSimulationConfigurationI;
+import equipments.oven.simulations.OvenTemperatureModel;
+import equipments.oven.simulations.OvenUnitTesterModel;
+import equipments.oven.simulations.events.CloseDoorOven;
+import equipments.oven.simulations.events.DoNotHeatOven;
+import equipments.oven.simulations.events.HeatOven;
+import equipments.oven.simulations.events.OpenDoorOven;
+import equipments.oven.simulations.events.SetModeOven;
+import equipments.oven.simulations.events.SetPowerOven;
+import equipments.oven.simulations.events.SetTargetTemperatureOven;
+import equipments.oven.simulations.events.SwitchOffOven;
+import equipments.oven.simulations.events.SwitchOnOven;
+import equipments.oven.simulations.events.SetModeOven.ModeValue;
+import equipments.oven.simulations.events.SetTargetTemperatureOven.TargetTemperatureValue;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -356,21 +361,21 @@ public class			RunOvenUnitaryMILSimulation
 		        "        When a target temperature of 50 is set\n" +
 		        "        Then its mode is CUSTOM and target temperature is 50\n" +
 		        "      Scenario: Oven heats\n" +
-		        "        Given a Oven that is on and not heating\n" +
+		        "        Given a Oven that is on, on CUSTOM mode and not heating\n" +
 		        "        When it is asked to heat\n" +
-		        "        Then it is on and it heats at 500W power level\n" +
+		        "        Then it is on and it heats at max power level\n" +
 		        "      Scenario: Oven stops heating\n" +
 		        "        Given a Oven that is heating\n" +
 		        "        When it is asked not to heat\n" +
 		        "        Then it is on but it stops heating\n" +
-		        "      Scenario: Mode set to GRILL\n" +
+		        "      Scenario: Mode set to DEFROST\n" +
 		        "        Given a Oven that is on\n" +
 		        "        When its mode is set to DEFROST\n" +
-		        "        Then its target temperature is 80\n" +
+		        "        Then its target temperature is 50\n" +
 		        "      Scenario: Oven heats again\n" +
 		        "        Given a Oven that is on and not heating\n" +
 		        "        When it is asked to heat\n" +
-		        "        Then it is on and it heats at 800W power level\n" +
+		        "        Then it is on and it heats at 500 power level\n" +
 		        "      Scenario: Oven stops heating\n" +
 		        "        Given a Oven that is heating\n" +
 		        "        When it is asked not to heat\n" +
@@ -382,7 +387,7 @@ public class			RunOvenUnitaryMILSimulation
 		        "      Scenario: Oven heats again\n" +
 		        "        Given a Oven that is on and not heating\n" +
 		        "        When it is asked to heat\n" +
-		        "        Then it is on and it heats at 2200W power level\n" +
+		        "        Then it is on and it heats at max power level\n" +
 		        "      Scenario: Oven set a different power level\n" +
 		        "        Given a Oven that is heating\n" +
 		        "        When it is set to a new power level\n" +

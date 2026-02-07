@@ -1,4 +1,4 @@
-package equipments.oven.mil;
+package equipments.oven.simulations;
 
 import java.util.concurrent.TimeUnit;
 import fr.sorbonne_u.alasca.physical_data.Measure;
@@ -6,9 +6,9 @@ import fr.sorbonne_u.alasca.physical_data.MeasurementUnit;
 import equipments.oven.Oven;
 import equipments.oven.OvenExternalControlI;
 import equipments.oven.OvenTemperatureI;
+import equipments.oven.simulations.OvenSimulationConfigurationI;
 import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeter;
 import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeterImplementationI;
-import equipments.oven.mil.OvenSimulationConfigurationI;
 import fr.sorbonne_u.devs_simulation.utils.AssertionChecking;
 
 // -----------------------------------------------------------------------------
