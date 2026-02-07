@@ -66,7 +66,7 @@ import java.util.function.Supplier;
                 externalEvents = @ModelExternalEvents()
         ),
         @LocalArchitecture(
-                uri = "HEAT_PUMP_INTEGRATION_TEST_URI",
+                uri = "silIntegrationTests",
                 rootModelURI = "HEAT_PUMP_COUPLED_MODEL",
                 simulatedTimeUnit = TimeUnit.HOURS,
                 externalEvents = @ModelExternalEvents(
@@ -104,7 +104,7 @@ implements HeatPumpUserI,
     /** when tracing, y coordinate of the window relative position.			*/
     public static int Y_RELATIVE_POSITION = 0;
 
-    protected static final String REFLECTION_INBOUND_URI = "HEAT-PUMP-REFLECTION-INBOUND-URI";
+    public static final String REFLECTION_INBOUND_URI = "HEAT-PUMP-REFLECTION-INBOUND-URI";
 
     public static final String EQUIPMENT_UID = "1A100354";
 

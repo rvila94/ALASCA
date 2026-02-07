@@ -53,7 +53,7 @@ public class HeatPumpStateModel
 extends AtomicModel
 implements CompleteModelI {
 
-    public static boolean VERBOSE = false;
+    public static boolean VERBOSE = true;
 
     public static String URI = "HEAT-PUMP-STATE-MODEL-URI";
 
@@ -88,7 +88,9 @@ implements CompleteModelI {
     public HeatPumpStateModel(String uri, TimeUnit simulatedTimeUnit, AtomicSimulatorI simulationEngine) {
         super(uri, simulatedTimeUnit, simulationEngine);
 
-        this.getSimulationEngine().setLogger(new StandardLogger());
+        if ( VERBOSE ) {
+            this.getSimulationEngine().setLogger(new StandardLogger());
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -104,17 +106,6 @@ implements CompleteModelI {
     // -------------------------------------------------------------------------
     // Methods : State transition
     // -------------------------------------------------------------------------
-
-    @Override
-    public void initialiseState(Time initialTime)
-    {
-        super.initialiseState(initialTime);
-
-        this.currentState = HeatPumpUserI.State.Off;
-        this.previousEvent = null;
-
-        this.logging("simulation begins.");
-    }
 
     /**
      * @see StateModelI#setCurrentState
@@ -147,6 +138,17 @@ implements CompleteModelI {
     public void setCurrentPower(double newPower, Time time) {
         assert time != null:
                 new PreconditionException("time == null");
+    }
+
+    @Override
+    public void initialiseState(Time initialTime)
+    {
+        super.initialiseState(initialTime);
+
+        this.currentState = HeatPumpUserI.State.Off;
+        this.previousEvent = null;
+
+        this.logging("simulation begins.");
     }
 
     /**

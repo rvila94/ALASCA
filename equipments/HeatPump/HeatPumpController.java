@@ -56,9 +56,7 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
 
     public static final String CONTROLLER_INBOUND_URI = "HEAT-PUMP-CONTROLLER-INBOUND-URI";
 
-    protected double hysteresis;
-    protected double heating_threshold;
-    protected double cooling_threshold;
+    protected HeatPumpControllerParamI parameters;
 
     protected HeatPumpActuatorOutboundPort actuator_port;
     protected HeatPumpExternalControlOutboundPort external_port;
@@ -82,9 +80,7 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
             String externalCCName,
             String actuatorCCName,
             String heatPumpURI,
-            double hysteresis,
-            double heating_threshold,
-            double cooling_threshold,
+            HeatPumpControllerParamI parameters,
             double controlPeriod,
             double accelerationFactor) throws Exception {
         this(REFLECTION_INBOUND_URI,
@@ -92,7 +88,7 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
                 heatPumpActuatorURI,
                 externalCCName,
                 actuatorCCName,
-                heatPumpURI, hysteresis, heating_threshold, cooling_threshold, controlPeriod, accelerationFactor);
+                heatPumpURI, parameters, controlPeriod, accelerationFactor);
     }
 
     /**
@@ -109,7 +105,7 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
      * @param heatPumpExternalURI
      * @param heatPumpActuatorURI
      * @param externalCCName
-     * @param hysteresis
+     * @param parameters : how to compute the threshold to make a decision
      */
     protected HeatPumpController(
             String reflectionInboundPortURI,
@@ -118,9 +114,7 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
             String externalCCName,
             String actuatorCCName,
             String heatPumpURI,
-            double hysteresis,
-            double heating_threshold,
-            double cooling_threshold,
+            HeatPumpControllerParamI parameters,
             double controlPeriod,
             double accelerationFactor) throws Exception {
         super(reflectionInboundPortURI, NB_THREADS, NB_SCHEDULABLE_THREADS);
@@ -130,9 +124,7 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
         this.controlPeriod = (long) ((controlPeriod * TimeUnit.SECONDS.toNanos(1)) / accelerationFactor);
         this.time_unit = TimeUnit.NANOSECONDS;
 
-        this.hysteresis = hysteresis;
-        this.heating_threshold = heating_threshold;
-        this.cooling_threshold = cooling_threshold;
+        this.parameters = parameters;
 
         this.heatPumpExternalURI = heatPumpExternalURI;
         this.heatPumpActuatorURI = heatPumpActuatorURI;
@@ -207,21 +199,25 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
 
     protected ActionState recommendedAction() throws Exception {
 
-        System.out.println("Temp : " );
         Double current_temperature = this.getCurrentTemperature();
-        System.out.println("Temp : " + current_temperature);
 
         ActionState result = ActionState.Idle;
 
-        if ( current_temperature < this.heating_threshold - this.hysteresis
-                && this.current_state == HeatPumpUserI.State.On ) {
+        // the controller cannot pass the state of the heater from Heating to Cooling of vice versa
+        // The controller is forced to pass the HeatPump to the On State beforehand
+        if ( this.current_state == HeatPumpUserI.State.Off ) {
+            result = ActionState.Idle;
+        } else if ( current_temperature < this.parameters.computeStartHeatingThreshold()
+                    && this.current_state == HeatPumpUserI.State.On ) {
             result = ActionState.StartHeating;
-        } else if ( current_temperature > this.cooling_threshold + this.hysteresis
-                && this.current_state == HeatPumpUserI.State.On ) {
+        } else if ( current_temperature > this.parameters.computeStartCoolingThreshold()
+                && this.current_state == HeatPumpUserI.State.On) {
             result = ActionState.StartCooling;
-        } else if ( this.current_state == HeatPumpUserI.State.Heating ) {
+        } else if ( this.current_state == HeatPumpUserI.State.Heating
+                && current_temperature > this.parameters.computeStopHeatingThreshold()) {
             result = ActionState.StopHeating;
-        } else if ( this.current_state == HeatPumpUserI.State.Cooling ) {
+        } else if ( this.current_state == HeatPumpUserI.State.Cooling
+                && current_temperature < this.parameters.computeStopCoolingThreshold()) {
             result = ActionState.StopCooling;
         }
 
@@ -230,29 +226,30 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
 
     protected void updateState() throws Exception {
 
-        ActionState recommended = this.recommendedAction();
+        synchronized ( this.current_state ) {
+            ActionState recommended = this.recommendedAction();
 
-        switch (recommended) {
-            case StartHeating:
-                this.actuator_port.startHeating();
-                this.current_state = HeatPumpUserI.State.Heating;
-                break;
-            case StartCooling:
-                this.actuator_port.startCooling();
-                this.current_state = HeatPumpUserI.State.Cooling;
-                break;
-            case StopHeating:
-                this.actuator_port.stopHeating();
-                this.current_state = HeatPumpUserI.State.On;
-                break;
-            case StopCooling:
-                this.actuator_port.stopCooling();
-                this.current_state = HeatPumpUserI.State.On;
-                break;
-            default:
+            switch (recommended) {
+                case StartHeating:
+                    this.actuator_port.startHeating();
+                    this.current_state = HeatPumpUserI.State.Heating;
+                    break;
+                case StartCooling:
+                    this.actuator_port.startCooling();
+                    this.current_state = HeatPumpUserI.State.Cooling;
+                    break;
+                case StopHeating:
+                    this.actuator_port.stopHeating();
+                    this.current_state = HeatPumpUserI.State.On;
+                    break;
+                case StopCooling:
+                    this.actuator_port.stopCooling();
+                    this.current_state = HeatPumpUserI.State.On;
+                    break;
+                default:
+            }
+
         }
-
-        System.out.println("END UPDATE");
     }
 
     @Override
@@ -303,18 +300,11 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
 
     public void controlLoop() {
 
-        System.out.println("CONTROLE");
-
         synchronized ( this.current_state ) {
-
-            System.out.println("PLEASE");
 
             if (this.current_state != HeatPumpUserI.State.Off) {
 
-                System.out.println("UPDATE");
-
                 try {
-                    System.out.println("UPDATE STATE");
                     this.updateState();
                 } catch (Exception e) {
                     StringBuilder builder = new StringBuilder();
@@ -323,15 +313,12 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
                     this.tracing(builder.toString());
                 }
 
-                System.out.println("PLEASE");
-
                 this.scheduleTask(
                         owner -> ((HeatPumpController) owner).controlLoop(),
                         this.controlPeriod,
                         time_unit
                 );
 
-                System.out.println("PLEASE");
             }
         }
 

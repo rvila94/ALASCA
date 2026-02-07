@@ -65,7 +65,7 @@ public class RunHeatPumpUnitarySILSimulator {
         final EventSink sink_electricity =
                 new EventSink(HeatPumpElectricityModel.URI, eventType);
         final EventSink sink_heating =
-                new EventSink(HeatPumpHeatingModel.URI, eventType);
+                new EventSink(HeatPumpHeatingModelSIL.URI, eventType);
 
         map.put(source, new EventSink[] { sink_electricity, sink_heating });
     }
@@ -119,10 +119,10 @@ public class RunHeatPumpUnitarySILSimulator {
                             ACCELERATION_FACTOR));
 
             atomicModelDescriptors.put(
-                    HeatPumpHeatingModel.URI,
+                    HeatPumpHeatingModelSIL.URI,
                     RTAtomicHIOA_Descriptor.create(
-                            HeatPumpHeatingModel.class,
-                            HeatPumpHeatingModel.URI,
+                            HeatPumpHeatingModelSIL.class,
+                            HeatPumpHeatingModelSIL.URI,
                             HeatPumpSimulationConfigurationI.TIME_UNIT,
                             null,
                             ACCELERATION_FACTOR
@@ -157,7 +157,7 @@ public class RunHeatPumpUnitarySILSimulator {
             Set<String> submodels = new HashSet<String>();
             submodels.add(HeatPumpStateModel.URI);
             submodels.add(HeatPumpElectricityModel.URI);
-            submodels.add(HeatPumpHeatingModel.URI);
+            submodels.add(HeatPumpHeatingModelSIL.URI);
             submodels.add(ExternalTemperatureSILModel.URI);
             submodels.add(HeatPumpUnitTesterModel.URI);
 
@@ -206,10 +206,10 @@ public class RunHeatPumpUnitarySILSimulator {
 
             add_binding(bindings,
                     "externalTemperature", Double.class,
-                    ExternalTemperatureSILModel.URI, HeatPumpHeatingModel.URI);
+                    ExternalTemperatureSILModel.URI, HeatPumpHeatingModelSIL.URI);
             add_binding(bindings,
                     "currentTemperaturePower", Double.class,
-                    HeatPumpElectricityModel.URI, HeatPumpHeatingModel.URI
+                    HeatPumpElectricityModel.URI, HeatPumpHeatingModelSIL.URI
                     );
 
             Map<String, CoupledModelDescriptor> coupledModelDescriptors =

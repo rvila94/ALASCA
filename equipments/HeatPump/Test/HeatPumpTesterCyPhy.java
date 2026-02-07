@@ -1734,6 +1734,7 @@ extends AbstractCyPhyComponent {
                 break;
             case UNIT_TEST_WITH_SIL_SIMULATION:
             case INTEGRATION_TEST_WITH_SIL_SIMULATION:
+                System.out.println("ALO");
                 this.initialiseClock4Simulation(
                         ClocksServer.STANDARD_INBOUNDPORT_URI,
                         this.clockURI);

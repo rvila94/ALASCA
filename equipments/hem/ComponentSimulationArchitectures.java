@@ -33,8 +33,10 @@ package equipments.hem;
 // The fact that you are presently reading this means that you have had
 // knowledge of the CeCILL-C license and that you accept its terms.
 
+import equipments.HeatPump.HeatPumpCyPhy;
+import equipments.HeatPump.simulations.HeatPumpCoupledModel;
+import equipments.HeatPump.simulations.events.*;
 import equipments.dimmerlamp.DimmerLampCyPhy;
-import equipments.dimmerlamp.simulations.DimmerLampCoupledModel;
 import equipments.dimmerlamp.simulations.events.SetPowerLampEvent;
 import equipments.dimmerlamp.simulations.events.SwitchOffLampEvent;
 import equipments.dimmerlamp.simulations.events.SwitchOnLampEvent;
@@ -43,6 +45,10 @@ import fr.sorbonne_u.components.cyphy.plugins.devs.CoordinatorPlugin;
 import fr.sorbonne_u.components.cyphy.plugins.devs.architectures.RTComponentAtomicModelDescriptor;
 import fr.sorbonne_u.components.cyphy.plugins.devs.architectures.RTComponentCoupledModelDescriptor;
 import fr.sorbonne_u.components.cyphy.plugins.devs.architectures.RTComponentModelArchitecture;
+import fr.sorbonne_u.components.hem2025e2.equipments.generator.mil.events.Start;
+import fr.sorbonne_u.components.hem2025e2.equipments.generator.mil.events.Stop;
+import fr.sorbonne_u.components.hem2025e2.equipments.generator.mil.events.TankEmpty;
+import fr.sorbonne_u.components.hem2025e2.equipments.generator.mil.events.TankNoLongerEmpty;
 import fr.sorbonne_u.components.hem2025e2.equipments.hairdryer.mil.events.SetHighHairDryer;
 import fr.sorbonne_u.components.hem2025e2.equipments.hairdryer.mil.events.SetLowHairDryer;
 import fr.sorbonne_u.components.hem2025e2.equipments.hairdryer.mil.events.SwitchOffHairDryer;
@@ -52,14 +58,29 @@ import fr.sorbonne_u.components.hem2025e2.equipments.heater.mil.events.DoNotHeat
 import fr.sorbonne_u.components.hem2025e2.equipments.heater.mil.events.Heat;
 import fr.sorbonne_u.components.hem2025e2.equipments.heater.mil.events.SwitchOffHeater;
 import fr.sorbonne_u.components.hem2025e2.equipments.heater.mil.events.SwitchOnHeater;
+import fr.sorbonne_u.components.hem2025e2.equipments.solar_panel.mil.SolarPanelCoupledModel;
+import fr.sorbonne_u.components.hem2025e2.equipments.solar_panel.mil.events.SunriseEvent;
+import fr.sorbonne_u.components.hem2025e2.equipments.solar_panel.mil.events.SunsetEvent;
 import fr.sorbonne_u.components.hem2025e3.CoordinatorComponent;
 import fr.sorbonne_u.components.hem2025e3.GlobalCoupledModel;
+import fr.sorbonne_u.components.hem2025e3.equipments.batteries.BatteriesCyPhy;
+import fr.sorbonne_u.components.hem2025e3.equipments.batteries.sil.BatteriesStateSILModel;
+import fr.sorbonne_u.components.hem2025e3.equipments.batteries.sil.events.CurrentBatteriesLevel;
+import fr.sorbonne_u.components.hem2025e3.equipments.batteries.sil.events.SIL_StartCharging;
+import fr.sorbonne_u.components.hem2025e3.equipments.batteries.sil.events.SIL_StopCharging;
+import fr.sorbonne_u.components.hem2025e3.equipments.generator.GeneratorCyPhy;
+import fr.sorbonne_u.components.hem2025e3.equipments.generator.sil.GeneratorStateSILModel;
+import fr.sorbonne_u.components.hem2025e3.equipments.generator.sil.events.CurrentFuelConsumption;
+import fr.sorbonne_u.components.hem2025e3.equipments.generator.sil.events.CurrentFuelLevel;
+import fr.sorbonne_u.components.hem2025e3.equipments.generator.sil.events.CurrentPowerProduction;
+import fr.sorbonne_u.components.hem2025e3.equipments.generator.sil.events.SIL_Refill;
 import fr.sorbonne_u.components.hem2025e3.equipments.hairdryer.HairDryerCyPhy;
 import fr.sorbonne_u.components.hem2025e3.equipments.hairdryer.sil.HairDryerStateSILModel;
 import fr.sorbonne_u.components.hem2025e3.equipments.heater.HeaterCyPhy;
 import fr.sorbonne_u.components.hem2025e3.equipments.heater.sil.events.SIL_SetPowerHeater;
-import fr.sorbonne_u.components.hem2025e3.equipments.meter.ElectricMeterCyPhy;
 import fr.sorbonne_u.components.hem2025e3.equipments.meter.sil.ElectricMeterCoupledModel;
+import fr.sorbonne_u.components.hem2025e3.equipments.solar_panel.SolarPanelCyPhy;
+import fr.sorbonne_u.components.hem2025e3.equipments.solar_panel.sil.events.PowerProductionLevel;
 import fr.sorbonne_u.devs_simulation.models.architectures.AbstractAtomicModelDescriptor;
 import fr.sorbonne_u.devs_simulation.models.architectures.CoupledModelDescriptor;
 import fr.sorbonne_u.devs_simulation.models.events.EventI;
@@ -179,6 +200,43 @@ public abstract class ComponentSimulationArchitectures
 						HeaterCyPhy.REFLECTION_INBOUND_PORT_URI));
 
 		atomicModelDescriptors.put(
+				BatteriesStateSILModel.URI,
+				RTComponentAtomicModelDescriptor.create(
+						BatteriesStateSILModel.URI,
+						(Class<? extends EventI>[]) new Class<?>[]{
+								CurrentBatteriesLevel.class},
+						(Class<? extends EventI>[]) new Class<?>[]{
+								SIL_StartCharging.class,
+								SIL_StopCharging.class},
+						simulatedTimeUnit,
+						BatteriesCyPhy.REFLECTION_INBOUND_PORT_URI));
+
+		atomicModelDescriptors.put(
+				SolarPanelCoupledModel.URI,
+				RTComponentAtomicModelDescriptor.create(
+						SolarPanelCoupledModel.URI,
+						(Class<? extends EventI>[]) new Class<?>[]{
+								PowerProductionLevel.class},
+						(Class<? extends EventI>[]) new Class<?>[]{
+								SunriseEvent.class,
+								SunsetEvent.class},
+						simulatedTimeUnit,
+						SolarPanelCyPhy.REFLECTION_INBOUND_PORT_URI));
+
+		atomicModelDescriptors.put(
+				GeneratorStateSILModel.URI,
+				RTComponentAtomicModelDescriptor.create(
+						GeneratorStateSILModel.URI,
+						(Class<? extends EventI>[]) new Class<?>[]{
+								TankEmpty.class, TankNoLongerEmpty.class,
+								CurrentPowerProduction.class, CurrentFuelLevel.class,
+								CurrentFuelConsumption.class},
+						(Class<? extends EventI>[]) new Class<?>[]{
+								Start.class, Stop.class, SIL_Refill.class},
+						simulatedTimeUnit,
+						GeneratorCyPhy.REFLECTION_INBOUND_PORT_URI));
+
+		atomicModelDescriptors.put(
 				DimmerLampStateModel.URI,
 				RTComponentAtomicModelDescriptor.create(
 						DimmerLampStateModel.URI,
@@ -190,6 +248,25 @@ public abstract class ComponentSimulationArchitectures
 						},
 						simulatedTimeUnit,
 						DimmerLampCyPhy.BASE_REFLECTION_INBOUND_PORT_URI));
+
+		atomicModelDescriptors.put(
+				HeatPumpCoupledModel.URI,
+				RTComponentAtomicModelDescriptor.create(
+						HeatPumpCoupledModel.URI,
+						(Class<? extends EventI>[]) new Class<?>[]{},
+						(Class<? extends EventI>[]) new Class<?>[]{
+								SwitchOnEvent.class,
+								SwitchOffEvent.class,
+								SetPowerEvent.class,
+								StartCoolingEvent.class,
+								StartHeatingEvent.class,
+								StopCoolingEvent.class,
+								StopHeatingEvent.class
+						},
+						simulatedTimeUnit,
+						HeatPumpCyPhy.REFLECTION_INBOUND_URI
+				)
+		);
 
 		// The electric meter also has a SIL simulation model
 		atomicModelDescriptors.put(
@@ -207,9 +284,32 @@ public abstract class ComponentSimulationArchitectures
 							Heat.class,
 							DoNotHeat.class,
 								SwitchOnLampEvent.class,
-								SwitchOnLampEvent.class,
-								SetPowerLampEvent.class},
-						(Class<? extends EventI>[]) new Class<?>[]{},
+								SwitchOffLampEvent.class,
+								SetPowerLampEvent.class,
+							SwitchOnEvent.class,
+								SwitchOffEvent.class,
+								SetPowerEvent.class,
+								StartCoolingEvent.class,
+								StartHeatingEvent.class,
+								StopCoolingEvent.class,
+								StopHeatingEvent.class,
+								SIL_StartCharging.class,
+								SIL_StopCharging.class,
+								SunriseEvent.class,
+								SunsetEvent.class,
+								Start.class,
+								Stop.class,
+								SIL_Refill.class
+						},
+						(Class<? extends EventI>[]) new Class<?>[]{
+								CurrentBatteriesLevel.class,
+								PowerProductionLevel.class,
+								TankEmpty.class,
+								TankNoLongerEmpty.class,
+								CurrentPowerProduction.class,
+								CurrentFuelLevel.class,
+								CurrentFuelConsumption.class
+						},
 						simulatedTimeUnit,
 						ElectricMeterCyPhy.REFLECTION_INBOUND_PORT_URI));
 
@@ -225,7 +325,11 @@ public abstract class ComponentSimulationArchitectures
 		submodels.add(HairDryerStateSILModel.URI);
 		submodels.add(HeaterCoupledModel.URI);
 		submodels.add(DimmerLampStateModel.URI);
+		submodels.add(HeatPumpCoupledModel.URI);
 		submodels.add(ElectricMeterCoupledModel.URI);
+		submodels.add(BatteriesStateSILModel.URI);
+		submodels.add(SolarPanelCoupledModel.URI);
+		submodels.add(GeneratorStateSILModel.URI);
 
 		// event exchanging connections between exporting and importing
 		// models
@@ -320,6 +424,159 @@ public abstract class ComponentSimulationArchitectures
 								SetPowerLampEvent.class)
 				}
 		);
+
+		connections.put(
+				new EventSource(HeatPumpCoupledModel.URI, SwitchOnEvent.class),
+				new EventSink[] {
+						new EventSink(ElectricMeterCoupledModel.URI, SwitchOnEvent.class)
+				}
+		);
+
+		connections.put(
+				new EventSource(HeatPumpCoupledModel.URI, SwitchOffEvent.class),
+				new EventSink[] {
+						new EventSink(ElectricMeterCoupledModel.URI, SwitchOffEvent.class)
+				}
+		);
+
+		connections.put(
+				new EventSource(HeatPumpCoupledModel.URI, StartHeatingEvent.class),
+				new EventSink[] {
+						new EventSink(ElectricMeterCoupledModel.URI, StartHeatingEvent.class)
+				}
+		);
+
+		connections.put(
+				new EventSource(HeatPumpCoupledModel.URI, StartCoolingEvent.class),
+				new EventSink[] {
+						new EventSink(ElectricMeterCoupledModel.URI, StartCoolingEvent.class)
+				}
+		);
+
+		connections.put(
+				new EventSource(HeatPumpCoupledModel.URI, StopCoolingEvent.class),
+				new EventSink[] {
+						new EventSink(ElectricMeterCoupledModel.URI, StopCoolingEvent.class)
+				}
+		);
+
+		connections.put(
+				new EventSource(HeatPumpCoupledModel.URI, StopHeatingEvent.class),
+				new EventSink[] {
+						new EventSink(ElectricMeterCoupledModel.URI, StopHeatingEvent.class)
+				}
+		);
+
+		connections.put (
+				new EventSource(HeatPumpCoupledModel.URI, SetPowerEvent.class),
+				new EventSink[] {
+						new EventSink(ElectricMeterCoupledModel.URI, SetPowerEvent.class)
+				}
+		);
+
+		// events exchanged between the batteries and the electric meter
+		connections.put(
+				new EventSource(BatteriesStateSILModel.URI,
+						SIL_StartCharging.class),
+				new EventSink[] {
+						new EventSink(ElectricMeterCoupledModel.URI,
+								SIL_StartCharging.class)
+				});
+		connections.put(
+				new EventSource(BatteriesStateSILModel.URI,
+						SIL_StopCharging.class),
+				new EventSink[] {
+						new EventSink(ElectricMeterCoupledModel.URI,
+								SIL_StopCharging.class)
+				});
+		connections.put(
+				new EventSource(ElectricMeterCoupledModel.URI,
+						CurrentBatteriesLevel.class),
+				new EventSink[] {
+						new EventSink(BatteriesStateSILModel.URI,
+								CurrentBatteriesLevel.class)
+				});
+
+		// events exchanged between the solar panel the electric meter
+		connections.put(
+				new EventSource(SolarPanelCoupledModel.URI,
+						SunriseEvent.class),
+				new EventSink[] {
+						new EventSink(ElectricMeterCoupledModel.URI,
+								SunriseEvent.class)
+				});
+		connections.put(
+				new EventSource(SolarPanelCoupledModel.URI,
+						SunsetEvent.class),
+				new EventSink[] {
+						new EventSink(ElectricMeterCoupledModel.URI,
+								SunsetEvent.class)
+				});
+		connections.put(
+				new EventSource(ElectricMeterCoupledModel.URI,
+						PowerProductionLevel.class),
+				new EventSink[] {
+						new EventSink(SolarPanelCoupledModel.URI,
+								PowerProductionLevel.class)
+				});
+
+		// events exchanged between the generator the electric meter
+		connections.put(
+				new EventSource(GeneratorStateSILModel.URI,
+						Start.class),
+				new EventSink[] {
+						new EventSink(ElectricMeterCoupledModel.URI,
+								Start.class)
+				});
+		connections.put(
+				new EventSource(GeneratorStateSILModel.URI,
+						Stop.class),
+				new EventSink[] {
+						new EventSink(ElectricMeterCoupledModel.URI,
+								Stop.class)
+				});
+		connections.put(
+				new EventSource(GeneratorStateSILModel.URI,
+						SIL_Refill.class),
+				new EventSink[] {
+						new EventSink(ElectricMeterCoupledModel.URI,
+								SIL_Refill.class)
+				});
+		connections.put(
+				new EventSource(ElectricMeterCoupledModel.URI,
+						TankEmpty.class),
+				new EventSink[] {
+						new EventSink(GeneratorStateSILModel.URI,
+								TankEmpty.class)
+				});
+		connections.put(
+				new EventSource(ElectricMeterCoupledModel.URI,
+						TankNoLongerEmpty.class),
+				new EventSink[] {
+						new EventSink(GeneratorStateSILModel.URI,
+								TankNoLongerEmpty.class)
+				});
+		connections.put(
+				new EventSource(ElectricMeterCoupledModel.URI,
+						CurrentPowerProduction.class),
+				new EventSink[] {
+						new EventSink(GeneratorStateSILModel.URI,
+								CurrentPowerProduction.class)
+				});
+		connections.put(
+				new EventSource(ElectricMeterCoupledModel.URI,
+						CurrentFuelLevel.class),
+				new EventSink[] {
+						new EventSink(GeneratorStateSILModel.URI,
+								CurrentFuelLevel.class)
+				});
+		connections.put(
+				new EventSource(ElectricMeterCoupledModel.URI,
+						CurrentFuelConsumption.class),
+				new EventSink[]{
+						new EventSink(GeneratorStateSILModel.URI,
+								CurrentFuelConsumption.class)
+				});
 
 		// coupled model descriptor
 		coupledModelDescriptors.put(

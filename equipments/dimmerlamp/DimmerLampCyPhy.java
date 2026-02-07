@@ -22,8 +22,6 @@ import fr.sorbonne_u.components.exceptions.BCMException;
 import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.components.hem2025.bases.RegistrationCI;
-import fr.sorbonne_u.components.hem2025e2.equipments.heater.mil.events.SwitchOnHeater;
-import fr.sorbonne_u.components.hem2025e3.equipments.heater.sil.HeaterStateSILModel;
 import fr.sorbonne_u.components.utils.tests.TestScenario;
 import fr.sorbonne_u.devs_simulation.architectures.RTArchitecture;
 import fr.sorbonne_u.devs_simulation.models.annotations.ModelExternalEvents;
@@ -302,6 +300,7 @@ extends DimmerLamp {
         // Error wrapping
         try {
             this.setSimulatorPlugin();
+            this.logMessage("begins");
         } catch (Exception e) {
             throw new ComponentStartException(e);
         }
@@ -343,20 +342,7 @@ extends DimmerLamp {
                 Thread.sleep(200L);
                 this.logMessage(this.asp.getFinalReport().toString());
             case INTEGRATION_TEST_WITH_SIL_SIMULATION:
-                this.tracing("Starts INTEGRATION_TEST_WITH_SIL_SIMULATION");
-                this.initialiseClock4Simulation(
-                        ClocksServerWithSimulation.STANDARD_INBOUNDPORT_URI,
-                        this.clockURI);
-                this.tracing("clock initialised");
 
-                this.asp.startRTSimulation(
-                        TimeUnit.NANOSECONDS.toMillis(
-                                this.getClock4Simulation().getStartEpochNanos()),
-                        this.getClock4Simulation().getSimulatedStartTime().getSimulatedTime(),
-                        this.getClock4Simulation().getSimulatedDuration().getSimulatedDuration());
-
-                this.getClock4Simulation().waitUntilStart();
-                Thread.sleep(200L);
 
                 break;
             case UNIT_TEST_WITH_HIL_SIMULATION:

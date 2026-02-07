@@ -1,9 +1,9 @@
-package equipments.HeatPump.simulations;
+package equipments.HeatPump.simulations.sil;
 
 import equipments.HeatPump.HeatPump;
 import equipments.HeatPump.interfaces.HeatPumpUserI;
 import equipments.HeatPump.simulations.events.*;
-import equipments.HeatPump.simulations.interfaces.StateModelI;
+import equipments.HeatPump.simulations.interfaces.CompleteModelI;
 import equipments.HeatPump.simulations.reports.HeatPumpTemperatureReport;
 import fr.sorbonne_u.alasca.physical_data.MeasurementUnit;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
@@ -24,12 +24,13 @@ import fr.sorbonne_u.devs_simulation.utils.Pair;
 import fr.sorbonne_u.devs_simulation.utils.StandardLogger;
 import fr.sorbonne_u.exceptions.PostconditionException;
 import fr.sorbonne_u.exceptions.PreconditionException;
+import fr.sorbonne_u.components.cyphy.interfaces.ModelStateAccessI.VariableValue;
 
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The class <code>equipments.HeatPump.simulations.HeatPumpHeatingModel</code>.
+ * The class <code>equipments.HeatPump.simulations.mil.HeatPumpHeatingModel</code>.
  *
  * <p><strong>Description</strong></p>
  *
@@ -51,17 +52,17 @@ import java.util.concurrent.TimeUnit;
         StartHeatingEvent.class,
         StopHeatingEvent.class,
         StartCoolingEvent.class,
-        StopCoolingEvent.class
+        StopCoolingEvent.class,
+        SetPowerEvent.class
 })
 @ModelImportedVariable(name = "externalTemperature", type = Double.class)
-@ModelImportedVariable(name = "currentTemperaturePower", type = Double.class)
-public class HeatPumpHeatingModel extends AtomicHIOA implements StateModelI {
+public class HeatPumpHeatingModelSIL extends AtomicHIOA implements CompleteModelI {
 
     // -------------------------------------------------------------------------
     // Variables
     // -------------------------------------------------------------------------
 
-    public static String URI = HeatPumpHeatingModel.class.getSimpleName();
+    public static String URI = HeatPumpHeatingModelSIL.class.getSimpleName();
 
     public static boolean VERBOSE = true;
 
@@ -109,8 +110,7 @@ public class HeatPumpHeatingModel extends AtomicHIOA implements StateModelI {
 
     /** the current power used by the heat pump to modulate the temperature for the
      * simulation report */
-    @ImportedVariable(type = Double.class)
-    protected Value<Double> currentTemperaturePower;
+    protected double currentTemperaturePower;
 
     public static String currentTemperatureName = "currentTemperature";
 
@@ -152,7 +152,7 @@ public class HeatPumpHeatingModel extends AtomicHIOA implements StateModelI {
      * @param simulatedTimeUnit time unit used for the simulation clock.
      * @param simulationEngine  simulation engine enacting the model.
      */
-    public HeatPumpHeatingModel(String uri, TimeUnit simulatedTimeUnit, AtomicSimulatorI simulationEngine) {
+    public HeatPumpHeatingModelSIL(String uri, TimeUnit simulatedTimeUnit, AtomicSimulatorI simulationEngine) {
         super(uri, simulatedTimeUnit, simulationEngine);
 
         this.integrationStep = new Duration(STEP, simulatedTimeUnit);
@@ -218,6 +218,15 @@ public class HeatPumpHeatingModel extends AtomicHIOA implements StateModelI {
         // TODO check invariants
     }
 
+    public VariableValue<Double> getCurrentTemperature() {
+        VariableValue<Double> res = new VariableValue<>(
+                this.currentTemperature.getValue(),
+                this.currentTemperature.getTime()
+        );
+        this.logMessage("temperature queried in model : " + this.currentTemperature.getValue());
+        return res;
+    }
+
     /**
      *
      * Compute the heating performance coefficient for a heat pump
@@ -276,7 +285,7 @@ public class HeatPumpHeatingModel extends AtomicHIOA implements StateModelI {
     {
         double c = 1.0 / (MIN_HEATING_TRANSFER_CONSTANT *
                 HeatPump.MAX_POWER_LEVEL.getData());
-        return 1.0 / (c * this.currentTemperaturePower.getValue());
+        return 1.0 / (c * this.currentTemperaturePower);
     }
 
     protected double computeDerivatives(double current)
@@ -286,24 +295,22 @@ public class HeatPumpHeatingModel extends AtomicHIOA implements StateModelI {
         Time t = this.getCurrentStateTime();
         double external_temp = this.externalTemperature.evaluateAt(t);
 
-        double current_power = this.currentTemperaturePower.evaluateAt(t);
-
         if (this.currentState == HeatPumpUserI.State.Heating
-                && current_power > HeatPump.MIN_REQUIRED_POWER_LEVEL.getData()) {
+                && this.currentTemperaturePower > HeatPump.MIN_REQUIRED_POWER_LEVEL.getData()) {
             double perf_coeff = heatingPerformanceCoeff();
 
             // We used a similar equation to the one of heater temperature model
             // Heating contribution : current warmth source, external_temp cold source
             // perf_coeff * power => how much heat emanates from the heat pump
-            result = ((current - external_temp) + perf_coeff * current_power) /
+            result = ((current - external_temp) + perf_coeff * this.currentTemperaturePower) /
                     this.currentHeatTransfertConstant();
         } else if (this.currentState == HeatPumpUserI.State.Cooling
-                && current_power > HeatPump.MIN_REQUIRED_POWER_LEVEL.getData()) {
+                && this.currentTemperaturePower > HeatPump.MIN_REQUIRED_POWER_LEVEL.getData()) {
             double perf_coeff = coolingPerformanceCoeff();
 
             // We use the opposite sign with the perf coeff as to decrease the temperature
             // external_temp source of warmth, current source of cold
-            result = ((external_temp - current) - perf_coeff * current_power) /
+            result = ((external_temp - current) - perf_coeff * this.currentTemperaturePower) /
                     this.currentHeatTransfertConstant();
         }
 
@@ -389,6 +396,8 @@ public class HeatPumpHeatingModel extends AtomicHIOA implements StateModelI {
 
         Pair<Integer, Integer> result = new Pair<>(0, 0);
 
+        System.out.println("HELP");
+
         // The currentTemperature variable depends on the external Temperature variable, therefore we need to wait
         // for the external Temperature variable to be initialised
         if (!this.currentTemperature.isInitialised() && this.externalTemperature.isInitialised()) {
@@ -445,8 +454,6 @@ public class HeatPumpHeatingModel extends AtomicHIOA implements StateModelI {
     public void userDefinedInternalTransition(Duration elapsedTime) {
         super.userDefinedInternalTransition(elapsedTime);
 
-
-
         double elapsed_time = elapsedTime.getSimulatedDuration();
 
         double newTemp = this.computeNewTemperature(elapsed_time);
@@ -454,8 +461,6 @@ public class HeatPumpHeatingModel extends AtomicHIOA implements StateModelI {
         Time newTime = this.computeNextStateTime(this.currentTemperature.getTime().getSimulatedTime(), elapsed_time);
 
         this.currentTemperature.setNewValue(newTemp, newDerivative, newTime);
-
-
 
         if (VERBOSE) {
             StringBuilder builder = new StringBuilder("new temperature: ");
@@ -472,7 +477,7 @@ public class HeatPumpHeatingModel extends AtomicHIOA implements StateModelI {
     }
 
     @Override
-    public void			userDefinedExternalTransition(Duration elapsedTime) {
+    public void userDefinedExternalTransition(Duration elapsedTime) {
         super.userDefinedExternalTransition(elapsedTime);
 
         ArrayList<EventI> currentEvents = this.getStoredEventAndReset();
@@ -481,7 +486,7 @@ public class HeatPumpHeatingModel extends AtomicHIOA implements StateModelI {
 
         Event event = (Event) currentEvents.get(0);
         assert event instanceof AbstractHeatPumpEvent :
-            new NeoSim4JavaException("events is not an instance of AbstractHeatPumpEvent");
+                new NeoSim4JavaException("events is not an instance of AbstractHeatPumpEvent");
 
         double elapsed_time = elapsedTime.getSimulatedDuration();
 
@@ -503,4 +508,11 @@ public class HeatPumpHeatingModel extends AtomicHIOA implements StateModelI {
         // TODO check invariants
     }
 
+    /**
+     * @see equipments.HeatPump.simulations.interfaces.ElectricityModelI#setCurrentPower
+     */
+    @Override
+    public void setCurrentPower(double newPower, Time time) {
+        this.currentTemperaturePower = newPower;
+    }
 }

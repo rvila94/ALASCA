@@ -210,11 +210,12 @@ import java.util.function.Supplier;
 						SetPowerLampEvent.class,
 						SwitchOnEvent.class,
 						SwitchOffEvent.class,
-						StartHeatingEvent.class,
 						StartCoolingEvent.class,
-						StopHeatingEvent.class,
 						StopCoolingEvent.class,
-						SetPowerEvent.class}
+						StartHeatingEvent.class,
+						StopHeatingEvent.class,
+						SetPowerEvent.class,
+			}
 		)
 	)
 })

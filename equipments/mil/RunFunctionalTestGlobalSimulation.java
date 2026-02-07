@@ -43,7 +43,7 @@ import equipments.HeatPump.simulations.events.*;
 import fr.sorbonne_u.components.utils.tests.TestStepI;
 import equipments.HeatPump.HeatPump;
 import equipments.HeatPump.simulations.HeatPumpElectricityModel;
-import equipments.HeatPump.simulations.HeatPumpHeatingModel;
+import equipments.HeatPump.simulations.mil.HeatPumpHeatingModel;
 import equipments.HeatPump.simulations.HeatPumpUnitTesterModel;
 import equipments.dimmerlamp.DimmerLamp;
 import equipments.dimmerlamp.simulations.DimmerLampElectricityModel;

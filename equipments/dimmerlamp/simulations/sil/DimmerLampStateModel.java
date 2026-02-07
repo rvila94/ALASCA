@@ -183,7 +183,6 @@ implements DimmerLampSimulationOperationI {
     @Override
     public ArrayList<EventI> output()
     {
-        this.logging("STATE");
         ArrayList<EventI> result = null;
 
         assert this.previousEvent != null :

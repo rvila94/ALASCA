@@ -6,7 +6,7 @@ import equipments.HeatPump.connections.HeatPumpControllerOutboundPort;
 import equipments.HeatPump.connections.HeatPumpExternalControlInboundPort;
 import equipments.HeatPump.interfaces.*;
 import equipments.HeatPump.powerRepartitionPolicy.PowerRepartitionPolicyI;
-import equipments.HeatPump.simulations.HeatPumpHeatingModel;
+import equipments.HeatPump.simulations.sil.HeatPumpHeatingModelSIL;
 import equipments.HeatPump.simulations.events.*;
 import equipments.HeatPump.simulations.sil.HeatPumpStateModel;
 import equipments.HeatPump.simulations.sil.LocalSILSimulationArchitectures;
@@ -62,7 +62,7 @@ import java.util.concurrent.TimeUnit;
                 externalEvents = @ModelExternalEvents()
         ),
         @LocalArchitecture(
-                uri = "HEAT_PUMP_INTEGRATION_TEST_URI",
+                uri = "silIntegrationTests",
                 rootModelURI = "HEAT_PUMP_COUPLED_MODEL",
                 simulatedTimeUnit = TimeUnit.HOURS,
                 externalEvents = @ModelExternalEvents(
@@ -101,7 +101,7 @@ public class HeatPumpCyPhy extends HeatPump {
     public static final String UNIT_TEST_URI = "HEAT_PUMP_UNIT_TEST_URI";
 
     /**  */
-    public static final String INTEGRATION_TEST_URI = "HEAT_PUMP_INTEGRATION_TEST_URI";
+    public static final String INTEGRATION_TEST_URI = "silIntegrationTests";
 
 
     // -------------------------------------------------------------------------
@@ -201,7 +201,6 @@ public class HeatPumpCyPhy extends HeatPump {
 
         this.controllerCCName = controllerCCName;
         this.controllerURI = controllerURI;
-
     }
 
     protected HeatPumpCyPhy(
@@ -265,7 +264,25 @@ public class HeatPumpCyPhy extends HeatPump {
                 RTArchitecture architecture =
                         (RTArchitecture) this.localSimulationArchitectures.
                                 get(this.localArchitectureURI);
-                this.asp = new RTAtomicSimulatorPlugin();
+                this.asp = new RTAtomicSimulatorPlugin() {
+                    private static final long serialVersionUID = 1L;
+
+                    /**
+                     * @see fr.sorbonne_u.components.cyphy.plugins.devs.AtomicSimulatorPlugin#getModelStateValue(java.lang.String, java.lang.String)
+                     */
+                    @SuppressWarnings("unchecked")
+                    @Override
+                    public VariableValue<Double> getModelVariableValue(
+                            String modelURI,
+                            String name
+                    ) throws Exception {
+
+                        return ((HeatPumpHeatingModelSIL)
+                                this.atomicSimulators.get(modelURI).
+                                        getSimulatedModel()).
+                                getCurrentTemperature();
+                    }
+                };
                 this.asp.setPluginURI(architecture.getRootModelURI());
                 this.asp.setSimulationArchitecture(architecture);
                 this.installPlugin(this.asp);
@@ -314,6 +331,7 @@ public class HeatPumpCyPhy extends HeatPump {
                             accelerationFactor
                     );
         } else if (architectureURI.equals(HeatPumpCyPhy.INTEGRATION_TEST_URI)) {
+            this.logMessage("TF");
             result = LocalSILSimulationArchitectures.
                     createHeatPumpSIL_Architecture4IntegrationTest(
                             architectureURI,
@@ -402,9 +420,9 @@ public class HeatPumpCyPhy extends HeatPump {
 
         if ( this.executionMode.isSILTest() ) {
             Double v = (Double) this.asp
-                    .getModelVariableValue(HeatPumpHeatingModel.URI, HeatPumpHeatingModel.currentTemperatureName)
+                    .getModelVariableValue(HeatPumpHeatingModelSIL.URI, HeatPumpHeatingModelSIL.currentTemperatureName)
                     .getValue();
-
+            System.out.println("HELLO");
             return new SignalData<>(new Measure<>(v));
         } else {
             return super.getCurrentTemperature();
@@ -430,6 +448,7 @@ public class HeatPumpCyPhy extends HeatPump {
             );
 
             this.setSimulatorPlugin();
+            this.logMessage("begins");
         } catch (Exception e) {
             throw new ComponentStartException(e);
         }
@@ -482,9 +501,15 @@ public class HeatPumpCyPhy extends HeatPump {
                         this.getClock4Simulation().getSimulatedDuration().getSimulatedDuration());
 
                 this.getClock4Simulation().waitUntilStart();
+
+                this.getClock4Simulation().waitUntilEnd();
                 Thread.sleep(200L);
                 this.logMessage(this.asp.getFinalReport().toString());
+                break;
             case INTEGRATION_TEST_WITH_SIL_SIMULATION:
+                this.initialiseClock4Simulation(
+                        ClocksServerWithSimulation.STANDARD_INBOUNDPORT_URI,
+                        this.clockURI);
                 break;
             case UNIT_TEST_WITH_HIL_SIMULATION:
             case INTEGRATION_TEST_WITH_HIL_SIMULATION:

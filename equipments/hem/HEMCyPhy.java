@@ -46,11 +46,15 @@ import fr.sorbonne_u.components.exceptions.ComponentShutdownException;
 import fr.sorbonne_u.components.exceptions.ComponentStartException;
 import fr.sorbonne_u.components.hem2025.bases.AdjustableCI;
 import fr.sorbonne_u.components.hem2025.bases.RegistrationCI;
+import fr.sorbonne_u.components.hem2025e1.equipments.batteries.Batteries;
 import fr.sorbonne_u.components.hem2025e1.equipments.batteries.BatteriesCI;
 import fr.sorbonne_u.components.hem2025e1.equipments.batteries.BatteriesUnitTester;
+import fr.sorbonne_u.components.hem2025e1.equipments.batteries.connections.BatteriesConnector;
 import fr.sorbonne_u.components.hem2025e1.equipments.batteries.connections.BatteriesOutboundPort;
+import fr.sorbonne_u.components.hem2025e1.equipments.generator.Generator;
 import fr.sorbonne_u.components.hem2025e1.equipments.generator.GeneratorCI;
 import fr.sorbonne_u.components.hem2025e1.equipments.generator.GeneratorUnitTester;
+import fr.sorbonne_u.components.hem2025e1.equipments.generator.connections.GeneratorConnector;
 import fr.sorbonne_u.components.hem2025e1.equipments.generator.connections.GeneratorOutboundPort;
 import fr.sorbonne_u.components.hem2025e1.equipments.heater.Heater;
 import fr.sorbonne_u.components.hem2025e1.equipments.hem.AdjustableOutboundPort;
@@ -59,8 +63,10 @@ import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeterCI;
 import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeterUnitTester;
 import fr.sorbonne_u.components.hem2025e1.equipments.meter.connections.ElectricMeterConnector;
 import fr.sorbonne_u.components.hem2025e1.equipments.meter.connections.ElectricMeterOutboundPort;
+import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.SolarPanel;
 import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.SolarPanelCI;
 import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.SolarPanelUnitTester;
+import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.connections.SolarPanelConnector;
 import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.connections.SolarPanelOutboundPort;
 import fr.sorbonne_u.components.utils.tests.TestScenario;
 import fr.sorbonne_u.components.utils.tests.TestsStatistics;
@@ -395,24 +401,24 @@ extends		AbstractComponent
 					this.meterop.getPortURI(),
 					ElectricMeterCyPhy.ELECTRIC_METER_INBOUND_PORT_URI,
 					ElectricMeterConnector.class.getCanonicalName());
-//			this.batteriesop = new BatteriesOutboundPort(this);
-//			this.batteriesop.publishPort();
-//			this.doPortConnection(
-//					batteriesop.getPortURI(),
-//					Batteries.STANDARD_INBOUND_PORT_URI,
-//					BatteriesConnector.class.getCanonicalName());
-//			this.solarPanelop = new SolarPanelOutboundPort(this);
-//			this.solarPanelop.publishPort();
-//			this.doPortConnection(
-//					this.solarPanelop.getPortURI(),
-//					SolarPanel.STANDARD_INBOUND_PORT_URI,
-//					SolarPanelConnector.class.getCanonicalName());
-//			this.generatorop = new GeneratorOutboundPort(this);
-//			this.generatorop.publishPort();
-//			this.doPortConnection(
-//					this.generatorop.getPortURI(),
-//					Generator.STANDARD_INBOUND_PORT_URI,
-//					GeneratorConnector.class.getCanonicalName());
+			this.batteriesop = new BatteriesOutboundPort(this);
+			this.batteriesop.publishPort();
+			this.doPortConnection(
+					batteriesop.getPortURI(),
+					Batteries.STANDARD_INBOUND_PORT_URI,
+					BatteriesConnector.class.getCanonicalName());
+			this.solarPanelop = new SolarPanelOutboundPort(this);
+			this.solarPanelop.publishPort();
+			this.doPortConnection(
+					this.solarPanelop.getPortURI(),
+					SolarPanel.STANDARD_INBOUND_PORT_URI,
+					SolarPanelConnector.class.getCanonicalName());
+			this.generatorop = new GeneratorOutboundPort(this);
+			this.generatorop.publishPort();
+			this.doPortConnection(
+					this.generatorop.getPortURI(),
+					Generator.STANDARD_INBOUND_PORT_URI,
+					GeneratorConnector.class.getCanonicalName());
 
 			if (this.isPreFirstStep) {
 				// in this case, connect using the statically customised
@@ -444,18 +450,13 @@ extends		AbstractComponent
 		case UNIT_TEST_WITH_SIL_SIMULATION:
 			throw new BCMException("No unit test for HEM!");
 		case INTEGRATION_TEST:
-			this.initialiseClock(
+			case INTEGRATION_TEST_WITH_SIL_SIMULATION:
+				this.initialiseClock(
 					ClocksServer.STANDARD_INBOUNDPORT_URI,
 					this.testScenario.getClockURI());
 			this.executeTestScenario(this.testScenario);
 			break;
-		case INTEGRATION_TEST_WITH_SIL_SIMULATION:
-			this.initialiseClock(
-					ClocksServerWithSimulation.STANDARD_INBOUNDPORT_URI,
-					this.testScenario.getClockURI());
-			//this.executeTestScenario(this.testScenario);
-			break;
-		case UNIT_TEST_WITH_HIL_SIMULATION:
+			case UNIT_TEST_WITH_HIL_SIMULATION:
 		case INTEGRATION_TEST_WITH_HIL_SIMULATION:
 			throw new BCMException("HIL simulation not implemented yet!");
 		default:
@@ -478,7 +479,7 @@ extends		AbstractComponent
 //			this.testGenerator();
 //			this.logMessage("Generator tests end.");
 //			if (this.isPreFirstStep) {
-//				this.scheduleTestHeater();
+//				//this.scheduleTestHeater();
 //			}
 //		}
 
@@ -491,9 +492,9 @@ extends		AbstractComponent
 	public synchronized void	finalise() throws Exception
 	{
 		this.doPortDisconnection(this.meterop.getPortURI());
-//		this.doPortDisconnection(this.batteriesop.getPortURI());
-//		this.doPortDisconnection(this.solarPanelop.getPortURI());
-//		this.doPortDisconnection(this.generatorop.getPortURI());
+		this.doPortDisconnection(this.batteriesop.getPortURI());
+		this.doPortDisconnection(this.solarPanelop.getPortURI());
+		this.doPortDisconnection(this.generatorop.getPortURI());
 		if (this.isPreFirstStep) {
 			this.doPortDisconnection(this.heaterop.getPortURI());
 		}
@@ -513,9 +514,9 @@ extends		AbstractComponent
 	{
 		try {
 			this.meterop.unpublishPort();
-//			this.batteriesop.unpublishPort();
-//			this.solarPanelop.unpublishPort();
-//			this.generatorop.unpublishPort();
+			this.batteriesop.unpublishPort();
+			this.solarPanelop.unpublishPort();
+			this.generatorop.unpublishPort();
 			if (this.isPreFirstStep) {
 				this.heaterop.unpublishPort();
 			}
@@ -660,6 +661,60 @@ extends		AbstractComponent
 	}
 
 	/**
+	 * start charging the batteries.
+	 *
+	 * <p><strong>Contract</strong></p>
+	 *
+	 * <pre>
+	 * pre	{@code true}	// no precondition.
+	 * post	{@code true}	// no postcondition.
+	 * </pre>
+	 *
+	 * @throws Exception	<i>to do</i>.
+	 */
+	public void			startChargingBatteries() throws Exception
+	{
+		this.batteriesop.startCharging();
+	}
+
+	/**
+	 * test the state of the batteries.
+	 *
+	 * <p><strong>Contract</strong></p>
+	 *
+	 * <pre>
+	 * pre	{@code true}	// no precondition.
+	 * post	{@code true}	// no postcondition.
+	 * </pre>
+	 *
+	 * @throws Exception	<i>to do</i>.
+	 */
+	public void			testBatteriesState() throws Exception
+	{
+		this.logMessage("areCharging = " + this.batteriesop.areCharging());
+		this.logMessage("areDischarging = " + this.batteriesop.areDischarging());
+		this.logMessage("chargeLevel = " + this.batteriesop.chargeLevel());
+		this.logMessage("getCurrentPowerConsumption = " + this.batteriesop.getCurrentPowerConsumption());
+	}
+
+	/**
+	 * stop charging the batteries.
+	 *
+	 * <p><strong>Contract</strong></p>
+	 *
+	 * <pre>
+	 * pre	{@code true}	// no precondition.
+	 * post	{@code true}	// no postcondition.
+	 * </pre>
+	 *
+	 * @throws Exception	<i>to do</i>.
+	 */
+	public void			stopChargingBatteries() throws Exception
+	{
+		this.batteriesop.stopCharging();
+	}
+
+	/**
 	 * test the {@code SolarPanel} component.
 	 * 
 	 * <p><strong>Contract</strong></p>
@@ -693,6 +748,24 @@ extends		AbstractComponent
 	{
 		GeneratorUnitTester.runAllTests(this, this.generatorop,
 										 new TestsStatistics());
+	}
+
+	/**
+	 * return the outbound port connected to the generator component; used in
+	 * test scenario.
+	 *
+	 * <p><strong>Contract</strong></p>
+	 *
+	 * <pre>
+	 * pre	{@code true}	// no precondition.
+	 * post	{@code true}	// no postcondition.
+	 * </pre>
+	 *
+	 * @return	the outbound port connected to the generator component.
+	 */
+	public GeneratorOutboundPort	getGeneratorPort()
+	{
+		return this.generatorop;
 	}
 
 	/**

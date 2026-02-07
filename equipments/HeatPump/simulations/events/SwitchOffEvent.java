@@ -65,11 +65,10 @@ public class SwitchOffEvent extends AbstractHeatPumpEvent{
         assert model instanceof StateModelI :
                 new PreconditionException("model is not instanceof StateModelI");
 
-
         StateModelI electricity_model = (StateModelI) model;
 
-        assert electricity_model.getCurrentState() == HeatPumpUserI.State.On :
-                new NeoSim4JavaException("state_model.getCurrentState() != HeatPumpUserI.State.Off");
+        assert electricity_model.getCurrentState() != HeatPumpUserI.State.Off :
+                new NeoSim4JavaException("state_model.getCurrentState() == HeatPumpUserI.State.Off");
 
         electricity_model.setCurrentState(HeatPumpUserI.State.Off);
     }

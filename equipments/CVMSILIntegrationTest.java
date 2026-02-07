@@ -32,9 +32,7 @@ package equipments;
 // The fact that you are presently reading this means that you have had
 // knowledge of the CeCILL-C license and that you accept its terms.
 
-import equipments.HeatPump.HeatPump;
-import equipments.HeatPump.HeatPumpController;
-import equipments.HeatPump.HeatPumpCyPhy;
+import equipments.HeatPump.*;
 import equipments.HeatPump.Test.HeatPumpTesterCyPhy;
 import equipments.HeatPump.compressor.Compressor;
 import equipments.HeatPump.compressor.CompressorConnector;
@@ -49,6 +47,7 @@ import equipments.dimmerlamp.connections.DimmerLampUserConnector;
 import equipments.dimmerlamp.simulations.sil.DimmerLampStateModel;
 import equipments.dimmerlamp.test.DimmerLampTesterCyPhy;
 import equipments.hem.ElectricMeterCyPhy;
+import equipments.hem.GlobalSupervisor;
 import equipments.hem.HEMCyPhy;
 import equipments.hem.RegistrationConnector;
 import fr.sorbonne_u.components.AbstractComponent;
@@ -57,17 +56,33 @@ import fr.sorbonne_u.components.cyphy.ExecutionMode;
 import fr.sorbonne_u.components.cyphy.utils.aclocks.ClocksServerWithSimulation;
 import fr.sorbonne_u.components.cyphy.utils.tests.TestScenarioWithSimulation;
 import fr.sorbonne_u.components.exceptions.BCMRuntimeException;
+import fr.sorbonne_u.components.hem2025e1.equipments.batteries.Batteries;
+import fr.sorbonne_u.components.hem2025e1.equipments.generator.Generator;
+import fr.sorbonne_u.components.hem2025e1.equipments.solar_panel.SolarPanel;
+import fr.sorbonne_u.components.hem2025e2.equipments.batteries.mil.BatteriesSimulationConfiguration;
+import fr.sorbonne_u.components.hem2025e2.equipments.generator.mil.GeneratorSimulationConfiguration;
+import fr.sorbonne_u.components.hem2025e2.equipments.solar_panel.mil.*;
 import fr.sorbonne_u.components.hem2025e3.CoordinatorComponent;
-import fr.sorbonne_u.components.hem2025e3.GlobalSupervisor;
+import fr.sorbonne_u.components.hem2025e3.equipments.batteries.BatteriesCyPhy;
+import fr.sorbonne_u.components.hem2025e3.equipments.batteries.sil.BatteriesPowerSILModel;
+import fr.sorbonne_u.components.hem2025e3.equipments.batteries.sil.BatteriesStateSILModel;
+import fr.sorbonne_u.components.hem2025e3.equipments.batteries.sil.BatteriesUnitTesterSILModel;
+import fr.sorbonne_u.components.hem2025e3.equipments.generator.GeneratorCyPhy;
+import fr.sorbonne_u.components.hem2025e3.equipments.generator.sil.GeneratorFuelSILModel;
+import fr.sorbonne_u.components.hem2025e3.equipments.generator.sil.GeneratorPowerSILModel;
+import fr.sorbonne_u.components.hem2025e3.equipments.generator.sil.GeneratorUnitTesterSILModel;
 import fr.sorbonne_u.components.hem2025e3.equipments.hairdryer.HairDryerCyPhy;
 import fr.sorbonne_u.components.hem2025e3.equipments.hairdryer.HairDryerTesterCyPhy;
 import fr.sorbonne_u.components.hem2025e3.equipments.heater.HeaterController;
 import fr.sorbonne_u.components.hem2025e3.equipments.heater.HeaterController.ControlMode;
 import fr.sorbonne_u.components.hem2025e3.equipments.heater.HeaterCyPhy;
 import fr.sorbonne_u.components.hem2025e3.equipments.heater.HeaterTesterCyPhy;
+import fr.sorbonne_u.components.hem2025e3.equipments.solar_panel.SolarPanelCyPhy;
+import fr.sorbonne_u.components.hem2025e3.equipments.solar_panel.sil.SolarPanelPowerSILModel;
 import fr.sorbonne_u.components.utils.tests.TestScenario;
 import fr.sorbonne_u.components.utils.tests.TestStep;
 import fr.sorbonne_u.components.utils.tests.TestStepI;
+import fr.sorbonne_u.devs_simulation.models.interfaces.ModelI;
 import fr.sorbonne_u.devs_simulation.models.time.Duration;
 import fr.sorbonne_u.devs_simulation.models.time.Time;
 import fr.sorbonne_u.devs_simulation.models.time.TimeUtils;
@@ -150,10 +165,10 @@ extends		AbstractCVM
 										new Time(0.0, SIMULATION_TIME_UNIT);
 	/** duration  of the simulation, in simulated time.						*/
 	public static Duration		SIMULATION_DURATION =
-										new Duration(6.0, SIMULATION_TIME_UNIT);
+										new Duration(7.0, SIMULATION_TIME_UNIT);
 	/** for real time simulations, the acceleration factor applied to the
 	 *  the simulated time to get the execution time of the simulations. 	*/
-	public static double		ACCELERATION_FACTOR = 180.0;
+	public static double		ACCELERATION_FACTOR = 360.0;
 	/** duration of the execution.											*/
 	public static long			EXECUTION_DURATION =
 			DELAY_TO_START +
@@ -162,6 +177,10 @@ extends		AbstractCVM
 								SIMULATION_DURATION.getSimulatedDuration()/
 													ACCELERATION_FACTOR,
 								SIMULATION_DURATION.getTimeUnit()));
+
+	// parameters for the Controller of the heat Pump, start heating at 16.5, stop at 19.5
+	// // parameters for the Controller of the heat Pump, start cooling at 23.5, stop at 20.5
+	final static HeatPumpControllerParamI parameters = new ControllerParam(18.0, 22.0, 1.5);
 
 	public static ExecutionMode	GLOBAL_EXECUTION_MODE =
 //						ExecutionMode.INTEGRATION_TEST;
@@ -276,15 +295,15 @@ extends		AbstractCVM
 		ElectricMeterCyPhy.VERBOSE = true;
 		ElectricMeterCyPhy.X_RELATIVE_POSITION = 1;
 		ElectricMeterCyPhy.Y_RELATIVE_POSITION = 0;
-//		BatteriesCyPhy.VERBOSE = true;
-//		BatteriesCyPhy.X_RELATIVE_POSITION = 1;
-//		BatteriesCyPhy.Y_RELATIVE_POSITION = 1;
-//		SolarPanelCyPhy.VERBOSE = true;
-//		SolarPanelCyPhy.X_RELATIVE_POSITION = 2;
-//		SolarPanelCyPhy.Y_RELATIVE_POSITION = 1;
-//		GeneratorCyPhy.VERBOSE = true;
-//		GeneratorCyPhy.X_RELATIVE_POSITION = 3;
-//		GeneratorCyPhy.Y_RELATIVE_POSITION = 1;
+		BatteriesCyPhy.VERBOSE = true;
+		BatteriesCyPhy.X_RELATIVE_POSITION = 1;
+		BatteriesCyPhy.Y_RELATIVE_POSITION = 1;
+		SolarPanelCyPhy.VERBOSE = true;
+		SolarPanelCyPhy.X_RELATIVE_POSITION = 2;
+		SolarPanelCyPhy.Y_RELATIVE_POSITION = 1;
+		GeneratorCyPhy.VERBOSE = true;
+		GeneratorCyPhy.X_RELATIVE_POSITION = 3;
+		GeneratorCyPhy.Y_RELATIVE_POSITION = 1;
 		HairDryerTesterCyPhy.VERBOSE = true;
 		HairDryerTesterCyPhy.X_RELATIVE_POSITION = 0;
 		HairDryerTesterCyPhy.Y_RELATIVE_POSITION = 2;
@@ -349,17 +368,26 @@ extends		AbstractCVM
 						CLOCK_URI
 				});
 
-//			AbstractComponent.createComponent(
-//				Batteries.class.getCanonicalName(),
-//				new Object[]{});
-//
-//			AbstractComponent.createComponent(
-//				SolarPanel.class.getCanonicalName(),
-//				new Object[]{NB_OF_SQUARE_METERS});
-//
-//			AbstractComponent.createComponent(
-//				Generator.class.getCanonicalName(),
-//				new Object[]{});
+			AbstractComponent.createComponent(
+					BatteriesCyPhy.class.getCanonicalName(),
+					new Object[]{
+							BatteriesSimulationConfiguration.NUMBER_OF_PARALLEL_CELLS,
+							BatteriesSimulationConfiguration.
+									NUMBER_OF_CELL_GROUPS_IN_SERIES,
+							ExecutionMode.INTEGRATION_TEST,
+							CLOCK_URI
+					});
+
+			AbstractComponent.createComponent(
+					SolarPanelCyPhy.class.getCanonicalName(),
+					new Object[]{SolarPanelSimulationConfigurationI.NB_SQUARE_METERS});
+
+			AbstractComponent.createComponent(
+					GeneratorCyPhy.class.getCanonicalName(),
+					new Object[]{
+							ExecutionMode.INTEGRATION_TEST,
+							CLOCK_URI
+					});
 
 			AbstractComponent.createComponent(
 				HairDryerCyPhy.class.getCanonicalName(),
@@ -445,17 +473,44 @@ extends		AbstractCVM
 						ACCELERATION_FACTOR
 				});
 
-//			AbstractComponent.createComponent(
-//				Batteries.class.getCanonicalName(),
-//				new Object[]{});
-//
-//			AbstractComponent.createComponent(
-//				SolarPanel.class.getCanonicalName(),
-//				new Object[]{NB_OF_SQUARE_METERS});
-//
-//			AbstractComponent.createComponent(
-//				Generator.class.getCanonicalName(),
-//				new Object[]{});
+			AbstractComponent.createComponent(
+					BatteriesCyPhy.class.getCanonicalName(),
+					new Object[]{
+							BatteriesCyPhy.REFLECTION_INBOUND_PORT_URI,
+							BatteriesCyPhy.STANDARD_INBOUND_PORT_URI,
+							BatteriesSimulationConfiguration.
+									NUMBER_OF_PARALLEL_CELLS,
+							BatteriesSimulationConfiguration.
+									NUMBER_OF_CELL_GROUPS_IN_SERIES,
+							ExecutionMode.INTEGRATION_TEST_WITH_SIL_SIMULATION,
+							testScenario,
+							BatteriesCyPhy.INTEGRATION_TEST_ARCHITECTURE_URI,
+							ACCELERATION_FACTOR});
+
+			AbstractComponent.createComponent(
+					SolarPanelCyPhy.class.getCanonicalName(),
+					new Object[]{
+							SolarPanelCyPhy.REFLECTION_INBOUND_PORT_URI,
+							SolarPanelCyPhy.STANDARD_INBOUND_PORT_URI,
+							SolarPanelSimulationConfigurationI.NB_SQUARE_METERS,
+							ExecutionMode.INTEGRATION_TEST_WITH_SIL_SIMULATION,
+							testScenario,
+							BatteriesCyPhy.INTEGRATION_TEST_ARCHITECTURE_URI,
+							ACCELERATION_FACTOR
+					});
+
+			AbstractComponent.createComponent(
+					GeneratorCyPhy.class.getCanonicalName(),
+					new Object[]{
+							GeneratorCyPhy.STANDARD_INBOUND_PORT_URI,
+							GeneratorCyPhy.MAX_POWER,
+							GeneratorCyPhy.TANK_CAPACITY,
+							GeneratorCyPhy.MIN_FUEL_CONSUMPTION,
+							GeneratorCyPhy.MAX_FUEL_CONSUMPTION,
+							ExecutionMode.INTEGRATION_TEST_WITH_SIL_SIMULATION,
+							testScenario,
+							GeneratorCyPhy.INTEGRATION_TEST_ARCHITECTURE_URI,
+							ACCELERATION_FACTOR});
 
 			AbstractComponent.createComponent(
 				HairDryerCyPhy.class.getCanonicalName(),
@@ -570,9 +625,7 @@ extends		AbstractCVM
 							HeatPumpExternalControlConnector.class.getCanonicalName(),
 							HeatPumpActuatorConnector.class.getCanonicalName(),
 							HeatPumpController.CONTROLLER_INBOUND_URI,
-							0.5,
-							18.0,
-							22.0,
+							parameters,
 							60.0,
 							ACCELERATION_FACTOR
 					});
@@ -644,9 +697,9 @@ extends		AbstractCVM
 		Instant heaterSwitchOn = START_INSTANT.plusSeconds(60);
 
 		Instant hemTestMeter = START_INSTANT.plusSeconds(120);
-//		Instant hemTestBatteries = START_INSTANT.plusSeconds(180);
-//		Instant hemTestSolarPanel = START_INSTANT.plusSeconds(240);
-//		Instant hemTestGenerator = START_INSTANT.plusSeconds(300);
+		Instant hemTestBatteries = START_INSTANT.plusSeconds(180);
+		Instant hemTestSolarPanel = START_INSTANT.plusSeconds(240);
+		Instant hemTestGenerator = START_INSTANT.plusSeconds(300);
 
 		Instant hairDryerTurnOn = START_INSTANT.plusSeconds(600);
 		Instant hairDryerSetHigh = START_INSTANT.plusSeconds(660);
@@ -691,42 +744,42 @@ extends		AbstractCVM
 								throw new BCMRuntimeException(e) ;
 							}
 						}),
-//				// HEM test the batteries
-//				new ComponentTestStep(
-//					CLOCK_URI,
-//					HEMCyPhy.REFLECTION_INBOUND_PORT_URI,
-//					hemTestBatteries,
-//					owner ->  {
-//						try {
-//							((HEMCyPhy)owner).testBatteries();
-//						} catch (Exception e) {
-//							throw new BCMRuntimeException(e) ;
-//						}
-//					}),
-//				// HEM test the solar panel
-//				new ComponentTestStep(
-//					CLOCK_URI,
-//					HEMCyPhy.REFLECTION_INBOUND_PORT_URI,
-//					hemTestSolarPanel,
-//					owner ->  {
-//						try {
-//							((HEMCyPhy)owner).testSolarPanel();
-//						} catch (Exception e) {
-//							throw new BCMRuntimeException(e) ;
-//						}
-//					}),
-//				// HEM test the generator
-//				new ComponentTestStep(
-//					CLOCK_URI,
-//					HEMCyPhy.REFLECTION_INBOUND_PORT_URI,
-//					hemTestGenerator,
-//					owner ->  {
-//						try {
-//							((HEMCyPhy)owner).testSolarPanel();
-//						} catch (Exception e) {
-//							throw new BCMRuntimeException(e) ;
-//						}
-//					}),
+				// HEM test the batteries
+				new TestStep(
+					CLOCK_URI,
+					HEMCyPhy.REFLECTION_INBOUND_PORT_URI,
+					hemTestBatteries,
+					owner ->  {
+						try {
+							((HEMCyPhy)owner).testBatteries();
+						} catch (Exception e) {
+							throw new BCMRuntimeException(e) ;
+						}
+					}),
+				// HEM test the solar panel
+				new TestStep(
+					CLOCK_URI,
+					HEMCyPhy.REFLECTION_INBOUND_PORT_URI,
+					hemTestSolarPanel,
+					owner ->  {
+						try {
+							((HEMCyPhy)owner).testSolarPanel();
+						} catch (Exception e) {
+							throw new BCMRuntimeException(e) ;
+						}
+					}),
+				// HEM test the generator
+				new TestStep(
+					CLOCK_URI,
+					HEMCyPhy.REFLECTION_INBOUND_PORT_URI,
+					hemTestGenerator,
+					owner ->  {
+						try {
+							((HEMCyPhy)owner).testSolarPanel();
+						} catch (Exception e) {
+							throw new BCMRuntimeException(e) ;
+						}
+					}),
 
 				// Hair dryer test steps
 				new TestStep(
@@ -881,20 +934,35 @@ extends		AbstractCVM
 									TimeUtils.toNanos(SIMULATION_DURATION));
 		Instant endInstant = START_INSTANT.plusSeconds(d);
 
-		Instant heaterSwitchOn = Instant.parse("2025-12-02T07:00:00.00Z");
-		Instant heaterSwitchOff = Instant.parse("2025-12-02T10:00:00.00Z");
+		Instant heaterSwitchOn = START_INSTANT.plusSeconds(60);
+		Instant heaterSwitchOff = Instant.parse("2025-12-02T09:50:00.00Z");
 
-		Instant heatPumpSwitchOn = Instant.parse("2025-12-02T07:01:00.00Z");
-		Instant heatPumpSwitchOff = Instant.parse("2025-12-02T10:01:00.00Z");
+		Instant heatPumpSwitchOn = Instant.parse("2025-12-02T06:05:00.00Z");
+		Instant heatPumpSwitchOff = Instant.parse("2025-12-02T09:55:00.00Z");
+
+		Instant generatorStart =	Instant.parse("2025-12-02T06:15:00.00Z");
 
 		Instant hairDryerTurnOn1 = Instant.parse("2025-12-02T07:15:00.00Z");
 		Instant hairDryerSetHigh1 = Instant.parse("2025-12-02T07:15:20.00Z");
+
+		Instant batteriesTest1 =	Instant.parse("2025-12-02T07:17:30.00Z");
+
 		Instant hairDryerSetLow1 = Instant.parse("2025-12-02T07:20:00.00Z");
 		Instant hairDryerTurnOff1 = Instant.parse("2025-12-02T07:25:00.00Z");
+
+		Instant generatorStop =		Instant.parse("2025-12-02T07:30:00.00Z");
+
 		Instant hairDryerTurnOn2 = Instant.parse("2025-12-02T08:15:00.00Z");
 		Instant hairDryerSetHigh2 = Instant.parse("2025-12-02T08:15:20.00Z");
 		Instant hairDryerSetLow2 = Instant.parse("2025-12-02T08:20:00.00Z");
 		Instant hairDryerTurnOff2 = Instant.parse("2025-12-02T08:25:00.00Z");
+
+		Instant batteriesStartCharging =
+				Instant.parse("2025-12-02T10:00:00.00Z");
+		Instant batteriesTest2 =	Instant.parse("2025-12-02T10:30:00.00Z");
+		Instant batteriesStopCharging =
+				Instant.parse("2025-12-02T11:00:00.00Z");
+		Instant batteriesTest3 =	Instant.parse("2025-12-02T11:30:00.00Z");
 
 		Instant DimmerLampSwitchOn1 = Instant.parse("2025-12-02T08:35:00.00Z");
 		Instant DimmerLampSwitchOff1 = Instant.parse("2025-12-02T08:40:00.00Z");
@@ -902,12 +970,191 @@ extends		AbstractCVM
 		Instant DimmerLampSwitchOff2 = Instant.parse("2025-12-02T08:50:00.00Z");
 
 		return new TestScenarioWithSimulation(
-			CLOCK_URI,
-			START_INSTANT,
-			endInstant,
-			GlobalSupervisor.SIL_SIM_ARCHITECTURE_URI,
-			new Time(0.0, TimeUnit.HOURS),
-			(ts, simParams) -> { },
+				CLOCK_URI,
+				START_INSTANT,
+				endInstant,
+				GlobalSupervisor.SIL_SIM_ARCHITECTURE_URI,
+				new Time(0.0, TimeUnit.HOURS),
+				(ts, simParams) -> {
+					simParams.put(
+							ModelI.createRunParameterName(
+									BatteriesPowerSILModel.URI,
+									BatteriesPowerSILModel.CAPACITY_RP_NAME),
+							BatteriesSimulationConfiguration.NUMBER_OF_PARALLEL_CELLS
+									* BatteriesSimulationConfiguration.
+									NUMBER_OF_CELL_GROUPS_IN_SERIES
+									* Batteries.CAPACITY_PER_UNIT.getData());
+					simParams.put(
+							ModelI.createRunParameterName(
+									BatteriesPowerSILModel.URI,
+									BatteriesPowerSILModel.IN_POWER_RP_NAME),
+							BatteriesSimulationConfiguration.NUMBER_OF_PARALLEL_CELLS
+									* Batteries.IN_POWER_PER_CELL.getData());
+					simParams.put(
+							ModelI.createRunParameterName(
+									BatteriesPowerSILModel.URI,
+									BatteriesPowerSILModel.MAX_OUT_POWER_RP_NAME),
+							BatteriesSimulationConfiguration.NUMBER_OF_PARALLEL_CELLS
+									* Batteries.MAX_OUT_POWER_PER_CELL.getData());
+					simParams.put(
+							ModelI.createRunParameterName(
+									BatteriesPowerSILModel.URI,
+									BatteriesPowerSILModel.LEVEL_QUANTUM_RP_NAME),
+							BatteriesSimulationConfiguration.
+									STANDARD_LEVEL_INTEGRATION_QUANTUM);
+					simParams.put(
+							ModelI.createRunParameterName(
+									BatteriesPowerSILModel.URI,
+									BatteriesPowerSILModel.INITIAL_LEVEL_RATIO_RP_NAME),
+							BatteriesSimulationConfiguration.
+									INITIAL_BATTERIES_LEVEL_RATIO);
+					simParams.put(
+							ModelI.createRunParameterName(
+									BatteriesStateSILModel.URI,
+									BatteriesPowerSILModel.INITIAL_LEVEL_RATIO_RP_NAME),
+							BatteriesSimulationConfiguration.
+									INITIAL_BATTERIES_LEVEL_RATIO);
+					simParams.put(
+							ModelI.createRunParameterName(
+									BatteriesUnitTesterSILModel.URI,
+									BatteriesUnitTesterSILModel.TEST_SCENARIO_RP_NAME),
+							ts);
+					simParams.put(
+							ModelI.createRunParameterName(
+									DeterministicSunRiseAndSetModel.URI,
+									SunRiseAndSetModelI.LATITUDE_RP_NAME),
+							SolarPanelSimulationConfigurationI.LATITUDE);
+					simParams.put(
+							ModelI.createRunParameterName(
+									DeterministicSunRiseAndSetModel.URI,
+									SunRiseAndSetModelI.LONGITUDE_RP_NAME),
+							SolarPanelSimulationConfigurationI.LONGITUDE);
+					simParams.put(
+							ModelI.createRunParameterName(
+									DeterministicSunRiseAndSetModel.URI,
+									SunRiseAndSetModelI.START_INSTANT_RP_NAME),
+							START_INSTANT);
+					simParams.put(
+							ModelI.createRunParameterName(
+									DeterministicSunRiseAndSetModel.URI,
+									SunRiseAndSetModelI.ZONE_ID_RP_NAME),
+							SolarPanelSimulationConfigurationI.ZONE);
+
+					simParams.put(
+							ModelI.createRunParameterName(
+									DeterministicSunIntensityModel.URI,
+									SunIntensityModelI.LATITUDE_RP_NAME),
+							SolarPanelSimulationConfigurationI.LATITUDE);
+					simParams.put(
+							ModelI.createRunParameterName(
+									DeterministicSunIntensityModel.URI,
+									SunIntensityModelI.LONGITUDE_RP_NAME),
+							SolarPanelSimulationConfigurationI.LONGITUDE);
+					simParams.put(
+							ModelI.createRunParameterName(
+									DeterministicSunIntensityModel.URI,
+									SunIntensityModelI.START_INSTANT_RP_NAME),
+							START_INSTANT);
+					simParams.put(
+							ModelI.createRunParameterName(
+									DeterministicSunIntensityModel.URI,
+									SunIntensityModelI.ZONE_ID_RP_NAME),
+							SolarPanelSimulationConfigurationI.ZONE);
+					simParams.put(
+							ModelI.createRunParameterName(
+									DeterministicSunIntensityModel.URI,
+									SunIntensityModelI.SLOPE_RP_NAME),
+							SolarPanelSimulationConfigurationI.SLOPE);
+					simParams.put(
+							ModelI.createRunParameterName(
+									DeterministicSunIntensityModel.URI,
+									SunIntensityModelI.ORIENTATION_RP_NAME),
+							SolarPanelSimulationConfigurationI.ORIENTATION);
+					simParams.put(
+							ModelI.createRunParameterName(
+									DeterministicSunIntensityModel.URI,
+									SunIntensityModelI.COMPUTATION_STEP_RP_NAME),
+							0.25);
+
+					simParams.put(
+							ModelI.createRunParameterName(
+									SolarPanelPowerSILModel.URI,
+									SolarPanelPowerSILModel.LATITUDE_RP_NAME),
+							SolarPanelSimulationConfigurationI.LATITUDE);
+					simParams.put(
+							ModelI.createRunParameterName(
+									SolarPanelPowerSILModel.URI,
+									SolarPanelPowerSILModel.LONGITUDE_RP_NAME),
+							SolarPanelSimulationConfigurationI.LONGITUDE);
+					simParams.put(
+							ModelI.createRunParameterName(
+									SolarPanelPowerSILModel.URI,
+									SolarPanelPowerSILModel.START_INSTANT_RP_NAME),
+							START_INSTANT);
+					simParams.put(
+							ModelI.createRunParameterName(
+									SolarPanelPowerSILModel.URI,
+									SolarPanelPowerSILModel.ZONE_ID_RP_NAME),
+							SolarPanelSimulationConfigurationI.ZONE);
+					simParams.put(
+							ModelI.createRunParameterName(
+									SolarPanelPowerSILModel.URI,
+									SolarPanelPowerSILModel.MAX_POWER_RP_NAME),
+							SolarPanelSimulationConfigurationI.NB_SQUARE_METERS *
+									SolarPanel.CAPACITY_PER_SQUARE_METER.getData());
+					simParams.put(
+							ModelI.createRunParameterName(
+									SolarPanelPowerSILModel.URI,
+									SolarPanelPowerSILModel.COMPUTATION_STEP_RP_NAME),
+							0.10);
+
+					simParams.put(
+							ModelI.createRunParameterName(
+									GeneratorFuelSILModel.URI,
+									GeneratorFuelSILModel.CAPACITY_RP_NAME),
+							GeneratorSimulationConfiguration.TANK_CAPACITY);
+					simParams.put(
+							ModelI.createRunParameterName(
+									GeneratorFuelSILModel.URI,
+									GeneratorFuelSILModel.INITIAL_LEVEL_RP_NAME),
+							GeneratorSimulationConfiguration.INITIAL_TANK_LEVEL);
+					simParams.put(
+							ModelI.createRunParameterName(
+									GeneratorFuelSILModel.URI,
+									GeneratorFuelSILModel.MIN_FUEL_CONSUMPTION_RP_NAME),
+							Generator.MIN_FUEL_CONSUMPTION.getData());
+					simParams.put(
+							ModelI.createRunParameterName(
+									GeneratorFuelSILModel.URI,
+									GeneratorFuelSILModel.MAX_FUEL_CONSUMPTION_RP_NAME),
+							Generator.MAX_FUEL_CONSUMPTION.getData());
+					simParams.put(
+							ModelI.createRunParameterName(
+									GeneratorFuelSILModel.URI,
+									GeneratorFuelSILModel.LEVEL_QUANTUM_RP_NAME),
+							GeneratorSimulationConfiguration.
+									STANDARD_LEVEL_INTEGRATION_QUANTUM);
+					simParams.put(
+							ModelI.createRunParameterName(
+									GeneratorFuelSILModel.URI,
+									GeneratorFuelSILModel.MAX_OUT_POWER_RP_NAME),
+							Generator.MAX_POWER.getData());
+					simParams.put(
+							ModelI.createRunParameterName(
+									GeneratorPowerSILModel.URI,
+									GeneratorPowerSILModel.MAX_OUT_POWER_RP_NAME),
+							Generator.MAX_POWER.getData());
+					simParams.put(
+							ModelI.createRunParameterName(
+									GeneratorUnitTesterSILModel.URI,
+									GeneratorUnitTesterSILModel.TEST_SCENARIO_RP_NAME),
+							ts);
+					simParams.put(
+							ModelI.createRunParameterName(
+									GeneratorUnitTesterSILModel.URI,
+									GeneratorUnitTesterSILModel.INITIAL_LEVEL_RP_NAME),
+							GeneratorSimulationConfiguration.INITIAL_TANK_LEVEL);
+				},
 			new TestStepI[] {
 				new TestStep(
 					CLOCK_URI,
@@ -928,6 +1175,20 @@ extends		AbstractCVM
 							owner ->  {
 								try {
 									((HeatPumpTesterCyPhy)owner).switchOn();
+								} catch (Exception e) {
+									throw new BCMRuntimeException(e) ;
+								}
+							}),
+
+					new TestStep(
+							CLOCK_URI,
+							HEMCyPhy
+									.REFLECTION_INBOUND_PORT_URI,
+							generatorStart,
+							owner ->  {
+								try {
+									((HEMCyPhy)owner).getGeneratorPort().
+											startGenerator();
 								} catch (Exception e) {
 									throw new BCMRuntimeException(e) ;
 								}
@@ -955,6 +1216,21 @@ extends		AbstractCVM
 							throw new BCMRuntimeException(e) ;
 						}
 					}),
+
+					new TestStep(
+							CLOCK_URI,
+							HEMCyPhy
+									.REFLECTION_INBOUND_PORT_URI,
+							batteriesTest1,
+							owner ->  {
+								try {
+									((HEMCyPhy
+											)owner).testBatteriesState();
+								} catch (Exception e) {
+									throw new BCMRuntimeException(e) ;
+								}
+							}),
+
 				new TestStep(
 					CLOCK_URI,
 					HairDryerTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
@@ -977,6 +1253,21 @@ extends		AbstractCVM
 							throw new BCMRuntimeException(e) ;
 						}
 					}),
+
+					new TestStep(
+							CLOCK_URI,
+							HEMCyPhy
+									.REFLECTION_INBOUND_PORT_URI,
+							generatorStop,
+							owner ->  {
+								try {
+									((HEMCyPhy)owner).getGeneratorPort().
+											stopGenerator();
+								} catch (Exception e) {
+									throw new BCMRuntimeException(e) ;
+								}
+							}),
+
 				new TestStep(
 					CLOCK_URI,
 					HairDryerTesterCyPhy.REFLECTION_INBOUND_PORT_URI,
@@ -1092,6 +1383,61 @@ extends		AbstractCVM
 									throw new BCMRuntimeException(e) ;
 								}
 							}),
+					new TestStep(
+							CLOCK_URI,
+							HEMCyPhy
+									.REFLECTION_INBOUND_PORT_URI,
+							batteriesStartCharging,
+							owner ->  {
+								try {
+									((HEMCyPhy
+											)owner).startChargingBatteries();
+								} catch (Exception e) {
+									throw new BCMRuntimeException(e) ;
+								}
+							}),
+
+					new TestStep(
+							CLOCK_URI,
+							HEMCyPhy
+									.REFLECTION_INBOUND_PORT_URI,
+							batteriesTest2,
+							owner ->  {
+								try {
+									((HEMCyPhy
+											)owner).testBatteriesState();
+								} catch (Exception e) {
+									throw new BCMRuntimeException(e) ;
+								}
+							}),
+
+					new TestStep(
+							CLOCK_URI,
+							HEMCyPhy
+									.REFLECTION_INBOUND_PORT_URI,
+							batteriesStopCharging,
+							owner ->  {
+								try {
+									((HEMCyPhy
+											)owner).stopChargingBatteries();
+								} catch (Exception e) {
+									throw new BCMRuntimeException(e) ;
+								}
+							}),
+
+					new TestStep(
+							CLOCK_URI,
+							HEMCyPhy.REFLECTION_INBOUND_PORT_URI,
+							batteriesTest3,
+							owner ->  {
+								try {
+									((HEMCyPhy
+											)owner).testBatteriesState();
+								} catch (Exception e) {
+									throw new BCMRuntimeException(e) ;
+								}
+							}),
+
 			});
 	}
 }
