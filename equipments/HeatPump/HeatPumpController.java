@@ -63,6 +63,8 @@ public class HeatPumpController extends AbstractComponent implements HeatPumpCon
 
     protected HeatPumpControllerInboundPort controller_port;
 
+    public static final double STANDARD_CONTROL_PERIOD = 60.0;
+
     protected String heatPumpExternalURI;
     protected String heatPumpActuatorURI;
     protected String externalCCName;

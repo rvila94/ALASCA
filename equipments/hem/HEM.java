@@ -1462,7 +1462,7 @@ public class			HEM
 	 */
 	public void	integrationTestHeatPump() throws Exception {
 
-		AdjustableOutboundPort outbound = this.registrationTable.get(HeatPump.EQUIPMENT_UID);
+		AdjustableOutboundPort outbound = this.registrationTable.get(HeatPump.REFLECTION_INBOUND_URI);
 
 		this.logMessage("Heat pump tests starts.");
 		TestsStatistics statistics = new TestsStatistics();

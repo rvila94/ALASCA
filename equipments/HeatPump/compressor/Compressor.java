@@ -135,6 +135,8 @@ implements CompressorI {
         SignalData<Double> res;
         res = this.currentPower;
 
+
+
         assert res.getMeasure().getData() >= 0.0 && res.getMeasure().getData() <= getMaximumPower().getData() :
                 new PostconditionException("ret.getMeasure().getData() < 0.0 || ret.getMeasure().getData() > getMaximumPower().getData()");
 

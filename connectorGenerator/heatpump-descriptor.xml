@@ -6,8 +6,8 @@
     <instance-var modifiers="protected static" type="int" name="MAX_MODE" static-init="10"/>
     <instance-var modifiers="protected" type="int" name="currentMode" static-init="MAX_MODE"/>
     <instance-var modifiers="protected" type="boolean" name="isSuspended" static-init="false"/>
-    <instance-var modifiers="protected static" type="double" name="MAX_POS_DELTA" static-init="10.0"/>
-    <instance-var modifiers="protected static" type="double" name="MAX_NEG_DELTA" static-init="-10.0"/>
+    <instance-var modifiers="protected static" type="double" name="MAX_POS_DELTA" static-init="5.0"/>
+    <instance-var modifiers="protected static" type="double" name="MAX_NEG_DELTA" static-init="-5.0"/>
     <instance-var modifiers="protected static" type="double" name="MIN_ADMISSIBLE_TEMPERATURE" static-init="14.0"/>
     <instance-var modifiers="protected static" type="double" name="MAX_ADMISSIBLE_TEMPERATURE" static-init="32.0"/>
     <internal modifiers="protected" type="double" name="computePowerLevel">
@@ -154,7 +154,7 @@
             if (! temperatureIsAdmissible(currentTemperature) ||
                 MAX_NEG_DELTA >= delta || delta >= MAX_POS_DELTA) {
                     res = 1.0;
-            } else if (MAX_NEG_DELTA >= delta) {
+            } else if (0.0 >= delta) {
                 res = delta / MAX_NEG_DELTA;
             } else {
                 res = delta / MAX_POS_DELTA;

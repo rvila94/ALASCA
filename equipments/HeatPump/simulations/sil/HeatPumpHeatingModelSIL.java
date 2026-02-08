@@ -6,6 +6,8 @@ import equipments.HeatPump.simulations.events.*;
 import equipments.HeatPump.simulations.interfaces.CompleteModelI;
 import equipments.HeatPump.simulations.reports.HeatPumpTemperatureReport;
 import fr.sorbonne_u.alasca.physical_data.MeasurementUnit;
+import fr.sorbonne_u.components.cyphy.plugins.devs.AtomicSimulatorPlugin;
+import fr.sorbonne_u.devs_simulation.exceptions.MissingRunParameterException;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
 import fr.sorbonne_u.devs_simulation.hioa.annotations.ImportedVariable;
 import fr.sorbonne_u.devs_simulation.hioa.annotations.InternalVariable;
@@ -27,6 +29,7 @@ import fr.sorbonne_u.exceptions.PreconditionException;
 import fr.sorbonne_u.components.cyphy.interfaces.ModelStateAccessI.VariableValue;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -156,7 +159,9 @@ public class HeatPumpHeatingModelSIL extends AtomicHIOA implements CompleteModel
         super(uri, simulatedTimeUnit, simulationEngine);
 
         this.integrationStep = new Duration(STEP, simulatedTimeUnit);
-        this.getSimulationEngine().setLogger(new StandardLogger());
+        if ( VERBOSE ) {
+            this.getSimulationEngine().setLogger(new StandardLogger());
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -385,6 +390,27 @@ public class HeatPumpHeatingModelSIL extends AtomicHIOA implements CompleteModel
     }
 
     /**
+     * @see fr.sorbonne_u.devs_simulation.models.interfaces.ModelI#setSimulationRunParameters
+     */
+    @Override
+    public void setSimulationRunParameters(Map<String, Object> simParams) throws MissingRunParameterException {
+
+        super.setSimulationRunParameters(simParams);
+
+        // this gets the reference on the owner component which is required
+        // to have simulation models able to make the component perform some
+        // operations or tasks or to get the value of variables held by the
+        // component when necessary.
+        if (simParams.containsKey(
+                AtomicSimulatorPlugin.OWNER_RUNTIME_PARAMETER_NAME)) {
+            // by the following, all of the logging will appear in the owner
+            // component logger
+            this.getSimulationEngine().setLogger(
+                    AtomicSimulatorPlugin.createComponentLogger(simParams));
+        }
+    }
+
+    /**
      * <pre>
      *     pre {@code true} // no precondition
      *     post {@code !this.currentTemperature.isInitialised() || externalTemperature.isInitialised()}
@@ -395,8 +421,6 @@ public class HeatPumpHeatingModelSIL extends AtomicHIOA implements CompleteModel
     public Pair<Integer, Integer> fixpointInitialiseVariables() {
 
         Pair<Integer, Integer> result = new Pair<>(0, 0);
-
-        System.out.println("HELP");
 
         // The currentTemperature variable depends on the external Temperature variable, therefore we need to wait
         // for the external Temperature variable to be initialised

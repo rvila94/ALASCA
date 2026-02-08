@@ -174,7 +174,57 @@ public class HeatPumpCyPhy extends HeatPump {
             TestScenario testScenario,
             String localArchitectureURI,
             double accelerationFactor) throws Exception {
-        super(compressorURI,
+        super(REFLECTION_INBOUND_URI,
+                compressorURI,
+                bufferTankURI,
+                compressorCcName,
+                bufferCcName,
+                userInboundURI,
+                internalInboundURI,
+                externalInboundURI,
+                registrationHEMURI,
+                registrationHEMCcName,
+                mode,
+                testScenario,
+                accelerationFactor);
+
+        this.localArchitectureURI = localArchitectureURI;
+        this.executionMode = mode;
+
+        this.actuator_port = new HeatPumpActuatorInboundPort(actuatorInboundURI, this);
+        this.actuator_port.publishPort();
+
+        this.controller_external_port = new HeatPumpExternalControlInboundPort(cExternalInboundURI, this);
+        this.controller_external_port.publishPort();
+
+        this.controller_port = new HeatPumpControllerOutboundPort(this);
+        this.controller_port.publishPort();
+
+        this.controllerCCName = controllerCCName;
+        this.controllerURI = controllerURI;
+    }
+
+    protected HeatPumpCyPhy(
+            String reflectionInboundURI,
+            String compressorURI,
+            String bufferTankURI,
+            String compressorCcName,
+            String bufferCcName,
+            String userInboundURI,
+            String internalInboundURI,
+            String externalInboundURI,
+            String registrationHEMURI,
+            String registrationHEMCcName,
+            String actuatorInboundURI,
+            String cExternalInboundURI,
+            String controllerURI,
+            String controllerCCName,
+            ExecutionMode mode,
+            TestScenario testScenario,
+            String localArchitectureURI,
+            double accelerationFactor) throws Exception {
+        super(reflectionInboundURI,
+                compressorURI,
                 bufferTankURI,
                 compressorCcName,
                 bufferCcName,

@@ -7,8 +7,10 @@ import equipments.dimmerlamp.simulations.events.AbstractLampEvent;
 import equipments.dimmerlamp.simulations.events.SetPowerLampEvent;
 import equipments.dimmerlamp.simulations.events.SwitchOffLampEvent;
 import equipments.dimmerlamp.simulations.events.SwitchOnLampEvent;
+import fr.sorbonne_u.components.cyphy.plugins.devs.AtomicSimulatorPlugin;
 import fr.sorbonne_u.components.hem2025e1.equipments.meter.ElectricMeterImplementationI;
 import fr.sorbonne_u.components.hem2025e2.utils.Electricity;
+import fr.sorbonne_u.devs_simulation.exceptions.MissingRunParameterException;
 import fr.sorbonne_u.devs_simulation.exceptions.NeoSim4JavaException;
 import fr.sorbonne_u.devs_simulation.hioa.annotations.ExportedVariable;
 import fr.sorbonne_u.devs_simulation.hioa.annotations.ModelExportedVariable;
@@ -27,6 +29,7 @@ import fr.sorbonne_u.exceptions.PostconditionException;
 import fr.sorbonne_u.exceptions.PreconditionException;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 // TODO TENSION EXTERNAL???
@@ -621,6 +624,27 @@ public class DimmerLampElectricityModel
         assert DimmerLampElectricityModel.invariants(this) :
                 new NeoSim4JavaException(
                         "DimmerLampElectricity.invariants(this)");
+    }
+
+    /**
+     * @see fr.sorbonne_u.devs_simulation.models.interfaces.ModelI#setSimulationRunParameters
+     */
+    @Override
+    public void setSimulationRunParameters(Map<String, Object> simParams) throws MissingRunParameterException {
+
+        super.setSimulationRunParameters(simParams);
+
+        // this gets the reference on the owner component which is required
+        // to have simulation models able to make the component perform some
+        // operations or tasks or to get the value of variables held by the
+        // component when necessary.
+        if (simParams.containsKey(
+                AtomicSimulatorPlugin.OWNER_RUNTIME_PARAMETER_NAME)) {
+            // by the following, all of the logging will appear in the owner
+            // component logger
+            this.getSimulationEngine().setLogger(
+                    AtomicSimulatorPlugin.createComponentLogger(simParams));
+        }
     }
 
     /**

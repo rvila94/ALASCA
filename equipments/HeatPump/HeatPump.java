@@ -10,9 +10,6 @@ import equipments.HeatPump.connections.HeatPumpUserInboundPort;
 import equipments.HeatPump.interfaces.*;
 import equipments.HeatPump.temperatureSensor.TemperatureSensorCI;
 import equipments.HeatPump.compressor.CompressorCI;
-import equipments.dimmerlamp.simulations.events.SetPowerLampEvent;
-import equipments.dimmerlamp.simulations.events.SwitchOffLampEvent;
-import equipments.dimmerlamp.simulations.events.SwitchOnLampEvent;
 import equipments.hem.RegistrationOutboundPort;
 import fr.sorbonne_u.alasca.physical_data.Measure;
 import fr.sorbonne_u.alasca.physical_data.MeasureI;
@@ -106,8 +103,6 @@ implements HeatPumpUserI,
 
     public static final String REFLECTION_INBOUND_URI = "HEAT-PUMP-REFLECTION-INBOUND-URI";
 
-    public static final String EQUIPMENT_UID = "1A100354";
-
     protected static final File PATH_TO_CONNECTOR_DESCRIPTOR =
             new File("src/connectorGenerator/heatpump-descriptor.xml");
 
@@ -159,7 +154,8 @@ implements HeatPumpUserI,
 
     protected boolean isUnitTest;
 
-    protected HeatPump(String compressorURI,
+    protected HeatPump(String reflection_inbound_uri,
+                       String compressorURI,
                        String bufferTankURI,
                        String compressorCcName,
                        String bufferCcName,
@@ -171,7 +167,7 @@ implements HeatPumpUserI,
                          ExecutionMode mode,
                          TestScenario testScenario,
                          double accelerationFactor) throws Exception {
-        super(REFLECTION_INBOUND_URI, NUMBER_THREADS, NUMBER_SCHEDULABLE_THREADS, mode,
+        super(reflection_inbound_uri, NUMBER_THREADS, NUMBER_SCHEDULABLE_THREADS, mode,
                 AssertionChecking.assertTrueAndReturnOrThrow(
                         testScenario != null,
                         testScenario.getClockURI(),
@@ -642,7 +638,7 @@ implements HeatPumpUserI,
         }
 
         if (! this.isUnitTest) {
-            this.registrationOutboundPort.unregister(HeatPump.EQUIPMENT_UID);
+            this.registrationOutboundPort.unregister(this.getReflectionInboundPortURI());
 
             if (HeatPump.VERBOSE) {
                 this.traceMessage("The heat pump successfully completed the call to the home energy manager\n");
@@ -684,7 +680,7 @@ implements HeatPumpUserI,
 
         if (! this.isUnitTest) {
             boolean registration = this.registrationOutboundPort.register(
-                    EQUIPMENT_UID,
+                    this.getReflectionInboundPortURI(),
                     this.externalInboundPort.getPortURI(),
                     PATH_TO_CONNECTOR_DESCRIPTOR.getAbsolutePath());
 

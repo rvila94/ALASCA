@@ -460,7 +460,9 @@ extends		AbstractCVM
 				HEMCyPhy.class.getCanonicalName(),
 				new Object[]{
 						ExecutionMode.INTEGRATION_TEST_WITH_SIL_SIMULATION,
-						testScenario
+						testScenario,
+						HEMCyPhy.STANDARD_CONTROL_PERIOD,
+						ACCELERATION_FACTOR
 				});
 			AbstractComponent.createComponent(
 				ElectricMeterCyPhy.class.getCanonicalName(),
@@ -626,7 +628,7 @@ extends		AbstractCVM
 							HeatPumpActuatorConnector.class.getCanonicalName(),
 							HeatPumpController.CONTROLLER_INBOUND_URI,
 							parameters,
-							60.0,
+							HeatPumpController.STANDARD_CONTROL_PERIOD,
 							ACCELERATION_FACTOR
 					});
 
